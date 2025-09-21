@@ -17,7 +17,7 @@ class VerifyEmailController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             if(!Auth::user()->subscription){
-                return redirect('/plans');
+                return redirect('/allplans');
             }else{
             $user = Auth::user();
             if($user->system_type === 'clubs'){
