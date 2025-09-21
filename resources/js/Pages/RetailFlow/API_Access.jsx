@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import GenerateToken from "./Components/GenerateToken";
+import GenerateToken from "./components/GenerateToken";
 import AdminLayout from "./layout";
 export default function API_Access() {
     const [token, setToken] = useState(null);
