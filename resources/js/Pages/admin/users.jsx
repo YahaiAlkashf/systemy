@@ -25,6 +25,7 @@ export default function CustomersRetailFlow() {
     const [sendModal, setSendModal] = useState(false);
     const [customers, setCustomers] = useState([]);
     const [editSubscription, setEditSubscription] = useState("");
+    const [editSubscriptionValue, setEditSubscriptionValue] = useState("");
     const [errors, setErrors] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
@@ -133,6 +134,10 @@ export default function CustomersRetailFlow() {
 
     const handleSendMessageToCustomer = (customer) => {
         setSelectedCustomer(customer);
+            setMessageForm({
+                phone: member.phone,
+                message: ""
+            });
         setSendModal(true);
     };
 
@@ -176,9 +181,9 @@ export default function CustomersRetailFlow() {
     const handleEditeSubscription = async (customer) => {
         try {
             const response = await axios.post(
-                `${app_url}/addSubscription/${selectedCustomer.id}`,
+                `${app_url}/addSubscription/${selectedCustomer.company.id}`,
                 {
-                    subscription: selectedCustomer.subscription,
+                    subscription:editSubscriptionValue,
                 }
             );
             closeModal();
@@ -192,6 +197,7 @@ export default function CustomersRetailFlow() {
 
     const handleOpenModelEditSubsctiption = (customer) => {
         setSelectedCustomer(customer);
+        setEditSubscriptionValue(customer.company.subscription);
         setEditSubscription(true);
     };
 
@@ -351,7 +357,7 @@ export default function CustomersRetailFlow() {
                                         />
                                     </td>
                                     <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.subscription}
+                                        {customer.company.subscription}
                                     </td>
                                     <td className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">
                                         <div className="flex justify-center space-x-2">
@@ -523,8 +529,8 @@ export default function CustomersRetailFlow() {
                         {t("اختر نوع الباقة")}
                     </label>
                     <select
-                        value={selectedCustomer.subscription}
-                        onChange={(e) => setSelectedCustomer({...selectedCustomer, subscription: e.target.value})}
+                        value={editSubscriptionValue}
+                        onChange={(e) => setEditSubscriptionValue( e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
                         <option value="basic">{t("Basic (مبتدئ)")}</option>

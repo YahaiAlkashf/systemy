@@ -12,7 +12,10 @@ use HasFactory;
         'company_name',
         'phone',
         'address',
-        'logo'
+        'logo',
+        'subscription',
+        'subscription_expires_at',
+        'trial_used',
     ];
 
     public function users()

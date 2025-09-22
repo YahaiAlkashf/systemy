@@ -40,8 +40,7 @@ export default function Tasks() {
     const [newTask, setNewTask] = useState({
         title: "",
         description: "",
-        assigned_to: null,
-
+        assigned_to: [],
         due_date: "",
         files: [],
         status: "pending",
@@ -96,53 +95,85 @@ export default function Tasks() {
     const indexOfFirstItem = indexOfLastItem - rowsPerPage;
     const currentTasks = filteredTasks.slice(indexOfFirstItem, indexOfLastItem);
 
-    const handleAddTask = async () => {
-        setLoading(true);
-        try {
-            const formData = new FormData();
-            formData.append("title", newTask.title);
-            formData.append("description", newTask.description);
-            formData.append("assigned_to", newTask.assigned_to);
-            formData.append("due_date", newTask.due_date);
+const handleAddTask = async () => {
+    setLoading(true);
+    setErrors({});
 
-            fileUploads.forEach((file) => {
-                formData.append("files[]", file);
+    try {
+        if (!newTask.title || !newTask.due_date || newTask.assigned_to.length === 0) {
+            setErrors({
+                general: ['جميع الحقول المطلوبة يجب ملؤها']
             });
-
-            try {
-                const response = await axios.post(
-                    `${app_url}/tasks`,
-                    formData,
-                    {
-                        headers: {
-                            "Content-Type": "multipart/form-data",
-                        },
-                    }
-                );
-                showAllTasks();
-                setAddTaskModal(false);
-                setNewTask({
-                    title: "",
-                    description: "",
-                    assigned_to: null,
-                    due_date: "",
-                    files: [],
-                    status: "pending",
-                });
-                setFileUploads([]);
-                setSelectedMember(null);
-                setMemberNameSearch("");
-                setMemberIdSearch("");
-            } catch (error) {
-                 setLoading(false);
-                setErrors(error.response?.data?.errors || {});
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
             setLoading(false);
+            return;
         }
-    };
+
+        const formData = new FormData();
+        formData.append("title", newTask.title);
+        formData.append("description", newTask.description || "");
+        formData.append("due_date", newTask.due_date);
+
+        newTask.assigned_to.forEach(userId => {
+            formData.append("assigned_to[]", userId);
+        });
+
+        fileUploads.forEach((file) => {
+            formData.append("files[]", file);
+        });
+
+        console.log('Sending data:', {
+            title: newTask.title,
+            description: newTask.description,
+            assigned_to: newTask.assigned_to,
+            due_date: newTask.due_date,
+            filesCount: fileUploads.length
+        });
+
+        const response = await axios.post(
+            `${app_url}/tasks`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        if (response.data.success) {
+            showAllTasks();
+            setAddTaskModal(false);
+            setNewTask({
+                title: "",
+                description: "",
+                assigned_to: [],
+                due_date: "",
+                files: [],
+                status: "pending",
+            });
+            setFileUploads([]);
+            setMemberNameSearch("");
+            setMemberIdSearch("");
+        }
+
+    } catch (error) {
+        console.error('Error adding task:', error);
+
+        if (error.response) {
+            setErrors(error.response.data.errors || {});
+            console.error('Server error:', error.response.data);
+        } else if (error.request) {
+            setErrors({
+                general: ['تعذر الاتصال بالخادم']
+            });
+        } else {
+            setErrors({
+                general: ['حدث خطأ أثناء إعداد الطلب']
+            });
+        }
+    } finally {
+        setLoading(false);
+    }
+};
 
     const handleEditTask = async () => {
         setLoading(true);
@@ -192,7 +223,7 @@ export default function Tasks() {
     const openEditModal = (task) => {
         setSelectedTask(task);
 
-        const assignedMember = members.find(member => member.id === task.assigned_to);
+        const assignedMember = members.find(member => member.user_id === task.assigned_to);
         setSelectedMemberEdit(assignedMember || null);
 
         setEditTaskModal(true);
@@ -394,7 +425,8 @@ export default function Tasks() {
                                             {task.assigner?.name || t("غير معروف")}
                                         </td>
                                         <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                            {task.assignee?.name || t("غير معروف")}
+
+                                           {task?.assignee?.name}
                                         </td>
                                         <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
                                             {task.due_date}
@@ -514,47 +546,50 @@ export default function Tasks() {
                                         </div>
                                     </div>
 
-                                    <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-700 max-h-60 overflow-y-auto">
-                                        {filteredMembers.length > 0 ? (
-                                            <div className="space-y-2">
-                                                {filteredMembers.map((member) => (
-                                                    <div
-                                                        key={member.id}
-                                                        className={`flex items-center justify-between p-2 rounded cursor-pointer ${
-                                                            newTask.assigned_to === member.user_id
-                                                                ? "bg-primary-100 border border-primary-300 dark:bg-primary-900 dark:border-primary-700"
-                                                                : "hover:bg-gray-100 dark:hover:bg-gray-600"
-                                                        }`}
-                                                        onClick={() => {
-                                                            setNewTask({
-                                                                ...newTask,
-                                                                assigned_to: member.user_id,
-                                                            });
-                                                            setSelectedMember(member);
-                                                        }}
-                                                    >
-                                                        <div className="flex items-center">
-                                                            <div className="ml-3">
-                                                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                    {member.name}
-                                                                </div>
-                                                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                    {t("رقم العضوية:")} {member.member_id || t("غير محدد")} | {member.role?.name || t("بدور")}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        {newTask.assigned_to === member.id && (
-                                                            <CheckCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                                                {t("لا توجد نتائج")}
-                                            </div>
-                                        )}
-                                    </div>
+                           <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-700 max-h-60 overflow-y-auto">
+    {filteredMembers.length > 0 ? (
+        <div className="space-y-2">
+            {filteredMembers.map((member) => (
+                <div
+                    key={member.id}
+                    className={`flex items-center justify-between p-2 rounded cursor-pointer ${
+                        newTask.assigned_to.includes(member.user_id)
+                            ? "bg-primary-100 border border-primary-300 dark:bg-primary-900 dark:border-primary-700"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-600"
+                    }`}
+                    onClick={() => {
+                        const updatedAssignees = newTask.assigned_to.includes(member.user_id)
+                            ? newTask.assigned_to.filter(id => id !== member.user_id)
+                            : [...newTask.assigned_to, member.user_id];
+
+                        setNewTask({
+                            ...newTask,
+                            assigned_to: updatedAssignees
+                        });
+                    }}
+                >
+                    <div className="flex items-center">
+                        <div className="ml-3">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {member.name}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {t("رقم العضوية:")} {member.member_id || t("غير محدد")} | {member.role?.name || t("بدور")}
+                            </div>
+                        </div>
+                    </div>
+                    {newTask.assigned_to.includes(member.user_id) && (
+                        <CheckCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    )}
+                </div>
+            ))}
+        </div>
+    ) : (
+        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+            {t("لا توجد نتائج")}
+        </div>
+    )}
+</div>
 
                                     {selectedMember && (
                                         <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -954,44 +989,44 @@ export default function Tasks() {
 )}
 
 {/* Delete Confirmation Modal */}
-{deleteTaskModal && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    {t("تأكيد الحذف")}
-                </h3>
-                <button
-                    onClick={() => setDeleteTaskModal(false)}
-                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
-                >
-                    <XMarkIcon className="h-6 w-6" />
-                </button>
-            </div>
-            <div className="p-6">
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    {t('هل أنت متأكد من أنك تريد حذف المهمة "{taskTitle}"؟ هذا الإجراء لا يمكن التراجع عنه.', {
-                        taskTitle: selectedTask?.title
-                    })}
-                </p>
-            </div>
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
-                <button
-                    onClick={() => setDeleteTaskModal(false)}
-                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                >
-                    {t("إلغاء")}
-                </button>
-                <button
-                    onClick={handleDeleteTask}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                >
-                    {t("حذف")}
-                </button>
+    {deleteTaskModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                        {t("تأكيد الحذف")}
+                    </h3>
+                    <button
+                        onClick={() => setDeleteTaskModal(false)}
+                        className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                    >
+                        <XMarkIcon className="h-6 w-6" />
+                    </button>
+                </div>
+                <div className="p-6">
+                    <p className="text-gray-700 dark:text-gray-300 mb-4">
+                        {t('هل أنت متأكد من أنك تريد حذف المهمة "{taskTitle}"؟ هذا الإجراء لا يمكن التراجع عنه.', {
+                            taskTitle: selectedTask?.title
+                        })}
+                    </p>
+                </div>
+                <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                    <button
+                        onClick={() => setDeleteTaskModal(false)}
+                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    >
+                        {t("إلغاء")}
+                    </button>
+                    <button
+                        onClick={handleDeleteTask}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    >
+                        {t("حذف")}
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-)}
+    )}
 </div>
 <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
@@ -1004,15 +1039,11 @@ export default function Tasks() {
     </h3>
     <div className="space-y-4">
         {tasks
-            .filter(
-                (task) =>
-                    task.assigned_to === auth.user.id
+            .filter(task =>
+                task.assigned_to === auth.user.id
             )
             .map((task) => (
-                <div
-                    key={task.id}
-                    className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg flex justify-between items-center"
-                >
+                <div key={task.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg flex justify-between items-center">
                     <div>
                         <h4 className="font-medium text-gray-800 dark:text-gray-200">
                             {task.title}
@@ -1020,18 +1051,16 @@ export default function Tasks() {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             {t("يجب التسليم قبل:")} {task.due_date}
                         </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {task?.assignee?.name}
+                        </div>
                         <div className='p-2'>
-                        {getStatusBadge(task.status)}
+                            {getStatusBadge(task.status)}
                         </div>
                     </div>
-                    {(task.status !== "completed" && task.status !== "overdue") &&  (
+                    {task.status !== "completed" && (
                         <button
-                            onClick={() =>
-                                handleTaskStatusChange(
-                                    task.id,
-                                    "completed"
-                                )
-                            }
+                            onClick={() => handleTaskStatusChange(task.id, "completed")}
                             className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
                         >
                             {t("تم الإكمال")}

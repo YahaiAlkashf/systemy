@@ -41,7 +41,7 @@ export default function SendMessageModal({
                                     onChange={(e) =>
                                         setMessageForm({
                                             ...messageForm,
-                                            message: e.target.value,phone:customer.phone
+                                            message: e.target.value
                                         })
                                     }
                                     rows="4"

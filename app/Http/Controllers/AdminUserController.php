@@ -28,11 +28,15 @@ class AdminUserController extends Controller
 
     public function customers()
     {
-        $customers = User::whereIn('subscription', ['basic', 'premium', 'vip'])->with('company')->get();
+        $customers = User::whereHas('company', function ($query) {
+            $query->whereIn('subscription', ['basic', 'premium', 'vip']);
+        })->where('role','superadmin')->with('company')->get();
+
         return response()->json([
             'customers' => $customers
         ]);
     }
+
 
     public function store(Request $request)
     {
@@ -231,15 +235,17 @@ $request->validate([
 
     public function addSubscription(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $company=Company::findOrFail($id);
 
         $request->validate([
             'subscription' => 'required'
         ],[
             'subscription.required' => 'حقل نوع الاشتراك مطلوب'
         ]);
-
-        $user->update(['subscription' => $request->subscription]);
+        $company->update([
+            'subscription' => $request->subscription,
+            'subscription_expires_at' => now()->addMonth()
+        ]);
     }
 
     public function exportUsersPDF()

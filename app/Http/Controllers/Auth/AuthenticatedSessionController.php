@@ -18,7 +18,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
-        
+
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
             return redirect('/clubs');
         }else if(Auth::user()->system_type === 'manager'){
             return redirect('/admin');
-        }else if(Auth::user()->system_type === 'retail' || Auth::user()->system_type === 'services'||Auth::user()->system_type === 'education'||Auth::user()->system_type === 'realEstate'  ||Auth::user()->system_type === 'delivery'||Auth::user()->system_type === 'travels'){
+        }else if(Auth::user()->system_type === 'retail' || Auth::user()->system_type === 'services'||Auth::user()->system_type === 'education'||Auth::user()->system_type === 'realEstate'  ||Auth::user()->system_type === 'delivery'||Auth::user()->system_type === 'travels' || Auth::user()->system_type === 'gym' || Auth::user()->system_type === 'hotel'){
             return redirect('/retailFlow');
         }else{
             return redirect('/');

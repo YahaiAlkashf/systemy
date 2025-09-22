@@ -16,7 +16,7 @@ class ManegarMiddelware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(Auth::check() && Auth::user()->system_type === "manager"){
+        if(Auth::check() && Auth::user()->company->role === "manager"){
             return $next($request);
         }
         return abort(403, 'Unauthorized');

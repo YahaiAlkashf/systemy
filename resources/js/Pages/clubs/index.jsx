@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { usePage } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import {
     UserGroupIcon,
     CalendarDaysIcon,
@@ -125,22 +125,22 @@ export default function ClubDashboard() {
                         {t("إجراءات سريعة")}
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <button className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 p-4 rounded-lg text-center transition-colors">
+                        <Link href='/clubs/members' className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 p-4 rounded-lg text-center transition-colors">
                             <UserGroupIcon className="h-8 w-8 mx-auto mb-2" />
                             <span>{t("إدارة الأعضاء")}</span>
-                        </button>
-                        <button className="bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-200 p-4 rounded-lg text-center transition-colors">
+                        </Link>
+                        <Link href='/clubs/schedule' className="bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-200 p-4 rounded-lg text-center transition-colors">
                             <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2" />
                             <span>{t("الفعاليات")}</span>
-                        </button>
-                        <button className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-200 p-4 rounded-lg text-center transition-colors">
+                        </Link>
+                        <Link href='/clubs/members' className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-200 p-4 rounded-lg text-center transition-colors">
                             <TrophyIcon className="h-8 w-8 mx-auto mb-2" />
                             <span>{t("التقارير")}</span>
-                        </button>
-                        <button className="bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-700 dark:text-yellow-200 p-4 rounded-lg text-center transition-colors">
+                        </Link>
+                        <Link href='/clubs/members' className="bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-700 dark:text-yellow-200 p-4 rounded-lg text-center transition-colors">
                             <ChartBarIcon className="h-8 w-8 mx-auto mb-2" />
                             <span>{t("الإحصائيات")}</span>
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

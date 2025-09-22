@@ -33,7 +33,8 @@ class TaskController extends Controller
 $validator = Validator::make($request->all(), [
     'title' => 'required|string|max:255',
     'description' => 'nullable|string',
-    'assigned_to' => 'required|exists:users,id',
+    'assigned_to' => 'required|array',
+    'assigned_to.*' => 'required|exists:users,id',
     'due_date' => 'required|date|after_or_equal:today',
     'files.*' => 'nullable|file|max:40960',
 ], [
@@ -61,8 +62,9 @@ $validator = Validator::make($request->all(), [
                 'errors' => $validator->errors()
             ], 422);
         }
-
-        $assignedUser = User::findOrFail($request->assigned_to);
+        foreach($request->assigned_to as $user_id){
+            $user = User::findOrFail($user_id);
+         $assignedUser = User::findOrFail($user_id);
         if ($assignedUser->company_id !== Auth::user()->company_id) {
             return response()->json([
                 'success' => false,
@@ -73,13 +75,20 @@ $validator = Validator::make($request->all(), [
         $task = Task::create([
             'title' => $request->title,
             'description' => $request->description,
-            'assigned_to' => $request->assigned_to,
+            'assigned_to' => $user_id,
             'assigned_by' => Auth::id(),
             'due_date' => $request->due_date,
             'status' => 'pending',
             'company_id' => Auth::user()->company_id,
         ]);
 
+
+        $user = User::find($user_id);
+
+        if($user && $user->email){
+            Mail::to($user->email)->send(new TaskAssignedMail($task,$user));
+        }
+        }
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
                 $path = $file->store("tasks/{$task->id}", 'public');
@@ -91,11 +100,6 @@ $validator = Validator::make($request->all(), [
                     'uploaded_by' => Auth::id(),
                 ]);
             }
-        }
-        $user = User::find($request->assigned_to);
-
-        if($user && $user->email){
-            Mail::to($user->email)->send(new TaskAssignedMail($task,$user));
         }
         return response()->json([
             'success' => true,

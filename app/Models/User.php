@@ -61,6 +61,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Message::class);
     }
+
+
         protected $casts = [
             'access' => 'array',
         ];

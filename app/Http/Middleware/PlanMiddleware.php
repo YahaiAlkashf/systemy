@@ -16,7 +16,7 @@ class PlanMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(Auth::user()->subscription_expires_at){
+        if(Auth::user()->company->subscription_expires_at){
             abort(403,"انت بالفعل مشترك فى باقة اشتراك");
         }
         return $next($request);

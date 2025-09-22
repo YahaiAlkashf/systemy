@@ -18,7 +18,7 @@ class SystemAccessMiddleware
         $user = Auth::user();
         $currentPath = $request->path();
 
-        if ($user->system_type === 'manager') {
+        if ($user->company->role === 'manager') {
             return $next($request);
         }
 

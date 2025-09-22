@@ -10,12 +10,16 @@ import {
     EyeIcon,
     UserCircleIcon,
     CheckBadgeIcon,
+    CalendarDaysIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    FunnelIcon
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 
 export default function Schedules() {
     const { app_url, auth } = usePage().props;
-        const { t } = useTranslation();
+    const { t } = useTranslation();
     const [viewType, setViewType] = useState("weekly");
     const [events, setEvents] = useState([]);
     const [filteredEvents, setFilteredEvents] = useState([]);
@@ -30,22 +34,30 @@ export default function Schedules() {
     const [selectedMembersType, setSelectedMembersType] = useState("");
     const [errors, setErrors] = useState({});
     const [members, setMembers] = useState([]);
-    const [loading,setLoading]=useState(false);
+    const [loading, setLoading] = useState(false);
     const [newEvent, setNewEvent] = useState({
         title: "",
         date: "",
         description: "",
-        option:"select"
+        option: "select"
     });
+
+    // حالات جديدة للتقويم والفلترة
+    const [calendarModal, setCalendarModal] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [customFilterActive, setCustomFilterActive] = useState(false);
 
     const updateEventAttendanceLocally = (eventId, newStatus) => {
         setEvents((prevEvents) =>
             prevEvents.map((event) =>
                 event.id === eventId
                     ? {
-                          ...event,
-                          user_attendance: { status: newStatus },
-                      }
+                        ...event,
+                        user_attendance: { status: newStatus },
+                    }
                     : event
             )
         );
@@ -54,9 +66,9 @@ export default function Schedules() {
             prevFilteredEvents.map((event) =>
                 event.id === eventId
                     ? {
-                          ...event,
-                          user_attendance: { status: newStatus },
-                      }
+                        ...event,
+                        user_attendance: { status: newStatus },
+                    }
                     : event
             )
         );
@@ -66,8 +78,8 @@ export default function Schedules() {
         try {
             const response = await axios.get(`${app_url}/events`);
             setEvents(response.data.events);
-
-            handleViewTypeChange(viewType, response.data.events);
+            // هنا نضيف تحديث للفلترة بعد جلب البيانات
+            applyCurrentFilter(response.data.events);
         } catch (error) {
             console.log(error);
         }
@@ -75,15 +87,14 @@ export default function Schedules() {
 
     useEffect(() => {
         showAllEvents();
-        handleViewTypeChange();
     }, []);
 
-    const handleViewTypeChange = (type, eventsList = events) => {
-        setViewType(type);
+    // دالة جديدة لتطبيق الفلترة الحالية
+    const applyCurrentFilter = (eventsList = events) => {
         const today = new Date();
         let filtered = [];
 
-        if (type === "daily") {
+        if (viewType === "daily" && !customFilterActive) {
             filtered = eventsList.filter((event) => {
                 const eventDate = new Date(event.date);
                 return (
@@ -92,7 +103,7 @@ export default function Schedules() {
                     eventDate.getDate() === today.getDate()
                 );
             });
-        } else if (type === "weekly") {
+        } else if (viewType === "weekly" && !customFilterActive) {
             const startOfWeek = getStartOfWeek(today);
             const endOfWeek = getEndOfWeek(today);
 
@@ -100,7 +111,7 @@ export default function Schedules() {
                 const eventDate = new Date(event.date);
                 return eventDate >= startOfWeek && eventDate <= endOfWeek;
             });
-        } else if (type === "monthly") {
+        } else if (viewType === "monthly" && !customFilterActive) {
             filtered = eventsList.filter((event) => {
                 const eventDate = new Date(event.date);
                 return (
@@ -108,9 +119,43 @@ export default function Schedules() {
                     eventDate.getMonth() === today.getMonth()
                 );
             });
+        } else if (viewType === "custom" && customFilterActive) {
+            // فلترة حسب التاريخ المحدد
+            filtered = eventsList.filter((event) => {
+                const eventDate = new Date(event.date);
+                return (
+                    eventDate.getFullYear() === selectedDate.getFullYear() &&
+                    eventDate.getMonth() === selectedDate.getMonth() &&
+                    eventDate.getDate() === selectedDate.getDate()
+                );
+            });
+        } else if (viewType === "month-custom" && customFilterActive) {
+            // فلترة حسب الشهر المحدد
+            filtered = eventsList.filter((event) => {
+                const eventDate = new Date(event.date);
+                return (
+                    eventDate.getFullYear() === selectedYear &&
+                    eventDate.getMonth() === selectedMonth
+                );
+            });
+        } else {
+            // Default to weekly view
+            const startOfWeek = getStartOfWeek(today);
+            const endOfWeek = getEndOfWeek(today);
+
+            filtered = eventsList.filter((event) => {
+                const eventDate = new Date(event.date);
+                return eventDate >= startOfWeek && eventDate <= endOfWeek;
+            });
         }
 
         setFilteredEvents(filtered);
+    };
+
+    const handleViewTypeChange = (type, eventsList = events) => {
+        setViewType(type);
+        setCustomFilterActive(false);
+        applyCurrentFilter(eventsList);
     };
 
     function getStartOfWeek(date) {
@@ -152,7 +197,7 @@ export default function Schedules() {
 
     const handleViewApologizing = async (event) => {
         setSelectedEvent(event);
-       setApologizingModal(true);
+        setApologizingModal(true);
     };
 
     const handleAttend = async (eventId, newStatus) => {
@@ -175,6 +220,7 @@ export default function Schedules() {
         setAttendingModal(false);
         setApologizingModal(false);
         setNotSeenModal(false);
+        setCalendarModal(false);
         setSelectedEvent(null);
         setSelectedMembersType("");
         setErrors({});
@@ -182,7 +228,7 @@ export default function Schedules() {
             title: "",
             date: "",
             description: "",
-            option:"select"
+            option: "select"
         });
         setLoading(false);
     };
@@ -202,7 +248,7 @@ export default function Schedules() {
                 title: "",
                 date: "",
                 description: "",
-                option:"select"
+                option: "select"
             });
         } catch (error) {
             setLoading(false);
@@ -216,7 +262,7 @@ export default function Schedules() {
                 title: selectedEvent.title,
                 description: selectedEvent.description,
                 date: selectedEvent.date,
-                option:selectedEvent.option
+                option: selectedEvent.option
             });
 
             showAllEvents();
@@ -241,6 +287,104 @@ export default function Schedules() {
         return new Date(dateString).toLocaleDateString("ar-EG", options);
     };
 
+    // وظائف جديدة للتقويم
+    const openCalendarModal = (type) => {
+        setCalendarModal(type);
+        setCurrentMonth(new Date());
+        if (type === "custom") {
+            setSelectedDate(new Date());
+        } else if (type === "month-custom") {
+            setSelectedMonth(new Date().getMonth());
+            setSelectedYear(new Date().getFullYear());
+        }
+    };
+
+    const handleDateSelect = (date) => {
+        setSelectedDate(date);
+        setCustomFilterActive(true);
+        setViewType("custom");
+        // تطبيق الفلترة مباشرة بعد اختيار التاريخ
+        applyCurrentFilter(events);
+        setCalendarModal(false);
+    };
+
+    const handleMonthSelect = (month, year) => {
+        setSelectedMonth(month);
+        setSelectedYear(year);
+        setCustomFilterActive(true);
+        setViewType("month-custom");
+        // تطبيق الفلترة مباشرة بعد اختيار الشهر
+        applyCurrentFilter(events);
+        setCalendarModal(false);
+    };
+
+    const navigateMonth = (direction) => {
+        const newMonth = new Date(currentMonth);
+        if (direction === "prev") {
+            newMonth.setMonth(newMonth.getMonth() - 1);
+        } else {
+            newMonth.setMonth(newMonth.getMonth() + 1);
+        }
+        setCurrentMonth(newMonth);
+    };
+
+    const getDaysInMonth = (year, month) => {
+        return new Date(year, month + 1, 0).getDate();
+    };
+
+    const getFirstDayOfMonth = (year, month) => {
+        return new Date(year, month, 1).getDay();
+    };
+
+    const generateCalendarDays = () => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const daysInMonth = getDaysInMonth(year, month);
+        const firstDay = getFirstDayOfMonth(year, month);
+
+        const days = [];
+
+        // أيام الشهر السابق
+        const prevMonthDays = getDaysInMonth(year, month - 1);
+        for (let i = firstDay - 1; i >= 0; i--) {
+            days.push({
+                date: new Date(year, month - 1, prevMonthDays - i),
+                isCurrentMonth: false
+            });
+        }
+
+        // أيام الشهر الحالي
+        for (let i = 1; i <= daysInMonth; i++) {
+            days.push({
+                date: new Date(year, month, i),
+                isCurrentMonth: true
+            });
+        }
+
+        // أيام الشهر التالي
+        const totalCells = 42; // 6 أسطر × 7 أيام
+        const nextMonthDays = totalCells - days.length;
+        for (let i = 1; i <= nextMonthDays; i++) {
+            days.push({
+                date: new Date(year, month + 1, i),
+                isCurrentMonth: false
+            });
+        }
+
+        return days;
+    };
+
+    const resetFilter = () => {
+        setCustomFilterActive(false);
+        setViewType("weekly");
+        applyCurrentFilter(events);
+    };
+
+    // إضافة useEffect لتطبيق الفلترة عند تغيير الأحداث
+    useEffect(() => {
+        applyCurrentFilter();
+    }, [events, viewType, customFilterActive, selectedDate, selectedMonth, selectedYear]);
+
     return (
         <AdminLayout>
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
@@ -253,7 +397,7 @@ export default function Schedules() {
                             <button
                                 onClick={() => handleViewTypeChange("daily")}
                                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    viewType === "daily"
+                                    viewType === "daily" && !customFilterActive
                                         ? "bg-primary text-white"
                                         : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                                 }`}
@@ -263,7 +407,7 @@ export default function Schedules() {
                             <button
                                 onClick={() => handleViewTypeChange("weekly")}
                                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    viewType === "weekly"
+                                    viewType === "weekly" && !customFilterActive
                                         ? "bg-primary text-white"
                                         : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                                 }`}
@@ -273,13 +417,39 @@ export default function Schedules() {
                             <button
                                 onClick={() => handleViewTypeChange("monthly")}
                                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    viewType === "monthly"
+                                    viewType === "monthly" && !customFilterActive
                                         ? "bg-primary text-white"
                                         : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                                 }`}
                             >
                                 {t("الشهر")}
                             </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => openCalendarModal("custom")}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
+                                        customFilterActive && viewType === "custom"
+                                            ? "bg-primary text-white"
+                                            : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                                    }`}
+                                >
+                                    <CalendarDaysIcon className="h-4 w-4" />
+                                    {t("يوم محدد")}
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <button
+                                    onClick={() => openCalendarModal("month-custom")}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
+                                        customFilterActive && viewType === "month-custom"
+                                            ? "bg-primary text-white"
+                                            : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                                    }`}
+                                >
+                                    <FunnelIcon className="h-4 w-4" />
+                                    {t("شهر محدد")}
+                                </button>
+                            </div>
                         </div>
                         {auth?.user?.member?.role === "manager" && (
                             <button
@@ -293,15 +463,28 @@ export default function Schedules() {
                     </div>
                 </div>
 
-                <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                    {t("عرض الأحداث:")}
-                    <span className="font-medium ml-2">
-                        {viewType === "daily" && t("اليوم")}
-                        {viewType === "weekly" && t("هذا الأسبوع")}
-                        {viewType === "monthly" && t("هذا الشهر")}
+                <div className="mb-4 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-4">
+                    <span>
+                        {t("عرض الأحداث:")}
+                        <span className="font-medium ml-2">
+                            {viewType === "daily" && !customFilterActive && t("اليوم")}
+                            {viewType === "weekly" && !customFilterActive && t("هذا الأسبوع")}
+                            {viewType === "monthly" && !customFilterActive && t("هذا الشهر")}
+                            {viewType === "custom" && customFilterActive && t(`يوم ${selectedDate.toLocaleDateString('ar-EG')}`)}
+                            {viewType === "month-custom" && customFilterActive && t(`شهر ${selectedMonth + 1}/${selectedYear}`)}
+                        </span>
                     </span>
                     <span className="mx-2">•</span>
-                    {t("عدد النتائج:")} {filteredEvents.length}
+                    <span>{t("عدد النتائج:")} {filteredEvents.length}</span>
+
+                    {customFilterActive && (
+                        <button
+                            onClick={resetFilter}
+                            className="px-3 py-1 text-xs bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                        >
+                            {t("إعادة الضبط")}
+                        </button>
+                    )}
                 </div>
 
                 <div className="overflow-x-auto">
@@ -356,116 +539,84 @@ export default function Schedules() {
                                     </td>
                                     <td className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">
                                         <div className="flex justify-center space-x-2 gap-2">
-                                            {auth.user.member.role ===
-                                            "manager"  &&
+                                            {auth.user.member.role === "manager" &&
                                                 <>
-                                                {event.option === 'select' && (
-<>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleViewAttending(
-                                                                event
-                                                            )
-                                                        }
-                                                        className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center gap-1"
-                                                    >
-                                                        <EyeIcon className="h-4 w-4" />
-                                                        {t("الحاضرون")}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleViewApologizing(
-                                                                event
-                                                            )
-                                                        }
-                                                        className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1"
-                                                    >
-                                                        <EyeIcon className="h-4 w-4" />
-                                                        {t("المعتذرون")}
-                                                    </button></>
-                                                )}
+                                                    {event.option === 'select' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleViewAttending(event)}
+                                                                className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center gap-1"
+                                                            >
+                                                                <EyeIcon className="h-4 w-4" />
+                                                                {t("الحاضرون")}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleViewApologizing(event)}
+                                                                className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1"
+                                                            >
+                                                                <EyeIcon className="h-4 w-4" />
+                                                                {t("المعتذرون")}
+                                                            </button>
+                                                        </>
+                                                    )}
 
                                                     <button
-                                                        onClick={() =>
-                                                            handleEditEvent(
-                                                                event
-                                                            )
-                                                        }
+                                                        onClick={() => handleEditEvent(event)}
                                                         className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
                                                     >
                                                         <PencilIcon className="h-4 w-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() =>
-                                                            handleDeleteEvent(
-                                                                event
-                                                            )
-                                                        }
+                                                        onClick={() => handleDeleteEvent(event)}
                                                         className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
                                                     >
                                                         <TrashIcon className="h-4 w-4" />
                                                     </button>
                                                 </>
                                             }
-                                                <>
-                                                    {event.attendances.some(
-                                                        (attendance) =>
-                                                            attendance.user_id ===
-                                                            auth.user.id
-                                                    ) ? (
-                                                        <>
-                                                            {event.attendances.find(
-                                                                (attendance) =>
-                                                                    attendance.user_id ===
-                                                                    auth.user.id
-                                                            )?.status ===
-                                                            "attending" ? (
-                                                                <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg flex items-center gap-1">
+                                            <>
+                                                {event.attendances.some(
+                                                    (attendance) => attendance.user_id === auth.user.id
+                                                ) ? (
+                                                    <>
+                                                        {event.attendances.find(
+                                                            (attendance) => attendance.user_id === auth.user.id
+                                                        )?.status === "attending" ? (
+                                                            <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg flex items-center gap-1">
+                                                                <CheckBadgeIcon className="h-4 w-4" />
+                                                                {t("تم تسجيل حضور")}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg flex items-center gap-1">
+                                                                <XMarkIcon className="h-4 w-4" />
+                                                                {t("تم تسجيل اعتذار")}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {event.option === "select" && (
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleAttend(event.id, "attending")}
+                                                                    className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center gap-1"
+                                                                >
                                                                     <CheckBadgeIcon className="h-4 w-4" />
-                                                                    {t("تم تسجيل حضور")}
-                                                                </span>
-                                                            ) : (
-                                                                <span className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg flex items-center gap-1">
+                                                                    {t("سأحضر")}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleAttend(event.id, "apologizing")}
+                                                                    className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1"
+                                                                >
                                                                     <XMarkIcon className="h-4 w-4" />
-                                                                    {t("تم تسجيل اعتذار")}
-                                                                </span>
-                                                            )}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            {event.option ===
-                                                                "select" && (
-                                                                <div className="flex gap-2">
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            handleAttend(
-                                                                                event.id,
-                                                                                "attending"
-                                                                            )
-                                                                        }
-                                                                        className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center gap-1"
-                                                                    >
-                                                                        <CheckBadgeIcon className="h-4 w-4" />
-                                                                        {t("سأحضر")}
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            handleAttend(
-                                                                                event.id,
-                                                                                "apologizing"
-                                                                            )
-                                                                        }
-                                                                        className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1"
-                                                                    >
-                                                                        <XMarkIcon className="h-4 w-4" />
-                                                                        {t("أعتذر")}
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </>
-                                            
+                                                                    {t("أعتذر")}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </>
+
                                         </div>
                                     </td>
                                 </tr>
@@ -479,7 +630,153 @@ export default function Schedules() {
                     )}
                 </div>
 
-                {addModal && (
+                {/* باقي المودالات (Add, Edit, Delete, Attending, Apologizing) تبقى كما هي */}
+
+                {/* Calendar Modal for Day Selection */}
+                {calendarModal === "custom" && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm w-full animate-fade-in-up">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                    {t("اختر يوم")}
+                                </h3>
+                                <button
+                                    onClick={closeModal}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300 transition-transform hover:rotate-90"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                            <div className="p-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <button
+                                        onClick={() => navigateMonth("prev")}
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                        <ChevronLeftIcon className="h-5 w-5" />
+                                    </button>
+                                    <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                        {currentMonth.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}
+                                    </h4>
+                                    <button
+                                        onClick={() => navigateMonth("next")}
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                        <ChevronRightIcon className="h-5 w-5" />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-7 gap-1 mb-2">
+                                    {['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'].map(day => (
+                                        <div key={day} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
+                                            {day}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-7 gap-1">
+                                    {generateCalendarDays().map((day, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => day.isCurrentMonth && handleDateSelect(day.date)}
+                                            className={`p-2 rounded-lg text-sm transition-colors ${
+                                                day.isCurrentMonth
+                                                    ? day.date.toDateString() === selectedDate.toDateString()
+                                                        ? "bg-primary text-white"
+                                                        : "text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                    : "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                                            }`}
+                                            disabled={!day.isCurrentMonth}
+                                        >
+                                            {day.date.getDate()}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                <button
+                                    onClick={closeModal}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    {t("إلغاء")}
+                                </button>
+                                <button
+                                    onClick={() => handleDateSelect(selectedDate)}
+                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                                >
+                                    {t("تطبيق")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Calendar Modal for Month Selection */}
+                {calendarModal === "month-custom" && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full animate-fade-in-up">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                    {t("اختر شهر")}
+                                </h3>
+                                <button
+                                    onClick={closeModal}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300 transition-transform hover:rotate-90"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                            <div className="p-6">
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("السنة")}
+                                    </label>
+                                    <select
+                                        value={selectedYear}
+                                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    >
+                                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(year => (
+                                            <option key={year} value={year}>{year}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {[
+                                        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                                        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+                                    ].map((month, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => handleMonthSelect(index, selectedYear)}
+                                            className={`p-3 rounded-lg text-center transition-colors ${
+                                                selectedMonth === index
+                                                    ? "bg-primary text-white"
+                                                    : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            }`}
+                                        >
+                                            {month}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                <button
+                                    onClick={closeModal}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    {t("إلغاء")}
+                                </button>
+                                <button
+                                    onClick={() => handleMonthSelect(selectedMonth, selectedYear)}
+                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                                >
+                                    {t("تطبيق")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+            {addModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full animate-fade-in-up">
                             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">

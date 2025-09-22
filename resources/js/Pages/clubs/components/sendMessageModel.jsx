@@ -1,27 +1,26 @@
 import React from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useTranslation } from 'react-i18next';
-
+import { useTranslation } from "react-i18next";
 export default function SendMessageModal({
     messageForm,
     setMessageForm,
-    customer,
+    member,
     closeModal,
     handleSendMessage,
 }) {
     const { t } = useTranslation();
     return (
         <>
-            {customer.company.phone ? (
+            {member.phone ? (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-background-card rounded-2xl shadow-2xl max-w-md w-full">
                         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                    {t("إرسال رسالة إلى")} {customer.name}
+                                    إرسال رسالة إلى {member.name}
                                 </h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                    {t("رقم الهاتف:")} {customer.company.phone}
+                                    رقم الهاتف: {member.phone}
                                 </p>
                             </div>
                             <button
@@ -35,7 +34,7 @@ export default function SendMessageModal({
                         <div className="p-6">
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    {t("محتوى الرسالة")}
+                                    محتوى الرسالة
                                 </label>
                                 <textarea
                                     value={messageForm.message || ''}
@@ -47,10 +46,10 @@ export default function SendMessageModal({
                                     }
                                     rows="4"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                                    placeholder={t("اكتب محتوى الرسالة هنا...")}
+                                    placeholder="اكتب محتوى الرسالة هنا..."
                                 />
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    {t("عدد الأحرف:")} {messageForm.message?.length || 0}
+                                    عدد الأحرف: {messageForm.message?.length || 0}
                                 </p>
                             </div>
                         </div>
@@ -60,14 +59,14 @@ export default function SendMessageModal({
                                 onClick={closeModal}
                                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
                             >
-                                {t("إلغاء")}
+                                إلغاء
                             </button>
                             <button
                                 onClick={handleSendMessage}
                                 disabled={!messageForm.message?.trim()}
                                 className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                {t("إرسال")}
+                                إرسال
                             </button>
                         </div>
                     </div>
@@ -77,7 +76,7 @@ export default function SendMessageModal({
                     <div className="bg-white dark:bg-background-card rounded-2xl shadow-2xl max-w-md w-full">
                         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                {t("لا يمكن إرسال رسالة")}
+                                لا يمكن إرسال رسالة
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -94,7 +93,7 @@ export default function SendMessageModal({
                                 </svg>
                             </div>
                             <p className="text-center text-gray-600 dark:text-gray-400">
-                                {t("العميل")} <span className="font-semibold">{customer.name}</span> {t("لا يحتوي على رقم هاتف مسجل في النظام.")}
+                                العضو <span className="font-semibold">{member.name}</span> لا يحتوي على رقم هاتف مسجل في النظام.
                             </p>
                         </div>
 
@@ -103,7 +102,7 @@ export default function SendMessageModal({
                                 onClick={closeModal}
                                 className="w-full px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
                             >
-                                {t("موافق")}
+                                موافق
                             </button>
                         </div>
                     </div>

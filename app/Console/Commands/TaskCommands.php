@@ -20,7 +20,6 @@ class TaskCommands extends Command
         $today = Carbon::today()->toDateString();
         $tomorrow = Carbon::tomorrow()->toDateString();
 
-        // 1. إرسال تذكيرات المهام المستحقة غداً
         $tasksDueTomorrow = Task::with(['assignee', 'company'])
             ->whereDate('due_date', $tomorrow)
             ->where('status', '!=', 'completed')
@@ -33,14 +32,12 @@ class TaskCommands extends Command
                 ->first();
 
             foreach ($tasks as $task) {
-                // إرسال إيميل
                 if ($task->assignee && $task->assignee->email) {
                     Mail::to($task->assignee->email)
                         ->send(new TaskCmmandMail($task));
                     $this->info("Sent reminder email for task '{$task->title}' to {$task->assignee->email}");
                 }
 
-                // إرسال واتساب
                 if ($whatsappSettings && $task->assignee && $task->assignee->phone) {
                     try {
                         $whatsappService = new WhatsAppService($companyId);
@@ -54,7 +51,6 @@ class TaskCommands extends Command
             }
         }
 
-        // 2. تحديث المهام المتأخرة
         $overdueTasks = Task::with(['assignee', 'company'])
             ->where('due_date', '<', $today)
             ->where('status', '!=', 'completed')
@@ -70,7 +66,6 @@ class TaskCommands extends Command
             foreach ($tasks as $task) {
                 $task->update(['status' => 'overdue']);
 
-                // إرسال تنبيه تأخير
                 if ($whatsappSettings && $task->assignee && $task->assignee->phone) {
                     try {
                         $whatsappService = new WhatsAppService($companyId);
@@ -87,7 +82,6 @@ class TaskCommands extends Command
         $this->info("Task reminders and overdue updates completed successfully.");
     }
 
-    // دالة مساعدة لتنسيق الرسائل
     protected function formatTaskMessage($task, $type)
     {
         if ($type === 'reminder') {

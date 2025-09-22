@@ -34,6 +34,7 @@ export default function Index() {
         try {
             const response = await axios.get(`${app_url}/customers`);
             const allCustomers = response.data.customers || [];
+            const allCustomers2=allCustomers.filter((C) => C.role==='superadmin')
             setCustomers(allCustomers);
             const basic = allCustomers.filter(customer =>
                 customer.subscription && customer.subscription.toLowerCase() === 'basic'

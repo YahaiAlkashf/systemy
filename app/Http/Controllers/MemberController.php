@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MemberController extends Controller
 {
@@ -90,7 +92,7 @@ class MemberController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'admin',
             'company_id' => Auth::user()->company_id,
-            'system_type' => Auth::user()->system_type,
+            'system_type' => 'clubs',
             'country' => Auth::user()->country,
             'subscription' => Auth::user()->subscription,
             'subscription_expires_at' => Auth::user()->subscription_expires_at,
@@ -177,7 +179,7 @@ class MemberController extends Controller
             'email' => $request->email,
             'role' => 'admin',
             'company_id' => Auth::user()->company_id,
-            'system_type' => Auth::user()->system_type,
+            'system_type' => 'clubs',
             'country' => Auth::user()->country,
             'subscription' => Auth::user()->subscription,
         ];
@@ -293,7 +295,6 @@ class MemberController extends Controller
             ], 500);
         }
     }
-
 
     public function getMemberAllEvents($id)
     {

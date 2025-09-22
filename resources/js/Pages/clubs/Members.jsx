@@ -18,6 +18,8 @@ import ActivitiesModal from "./components/ActivitiesModal";
 import TasksModal from "./components/TasksModal";
 import MemberModal from "./components/MemberModal"
 import { useTranslation } from "react-i18next";
+import { FaWhatsapp } from "react-icons/fa";
+import SendMessageModal from "./components/sendMessageModel";
 
 export default function Members() {
     const { app_url } = usePage().props;
@@ -38,6 +40,11 @@ export default function Members() {
     const [currentPage, setCurrentPage] = useState(1);
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("default");
+    const [sendModal, setSendModal] = useState(false);
+    const [messageForm, setMessageForm] = useState({
+                phone: "",
+                message: "",
+    });
     const [newMember, setNewMember] = useState({
         name: "",
         email: "",
@@ -49,7 +56,6 @@ export default function Members() {
         rating: 0,
         member_id: ""
     });
-
     const roles = ["manager", "member"];
     const rowsPerPage = 10;
 
@@ -71,7 +77,28 @@ export default function Members() {
             console.log(t("Error fetching cycles:"), error);
         }
     };
+    const handleSendMessage = async () => {
+                console.log(messageForm);
+                try {
+                    await axios.post(`${app_url}/whatsapp/send`, {
+                        phone: selectedMember.phone,
+                        message: messageForm.message,
+                    });
+                    closeModal();
+                    setSendModal(false);
+                } catch (error) {
+                    console.log(error);
+                }
+            };
+    const handleSendMessageToMember = (member) => {
+            setSelectedMember(member);
+                setMessageForm({
+                    phone: member.phone,
+                    message: ""
+              });
+                setSendModal(true);
 
+        };
     useEffect(() => {
         fetchMembersWithDetails();
         fetchCycles();
@@ -148,7 +175,8 @@ export default function Members() {
         setSelectedMember({
             ...member,
             password: "",
-            password_confirmation: ""
+            password_confirmation: "",
+            email:member.user.email
         });
         setEditModal(true);
     };
@@ -177,6 +205,8 @@ export default function Members() {
         setActivitiesModal(false);
         setTasksModal(false);
         setRolesModal(false);
+        setSendModal(false);
+        setSelectedMember(null);
         setErrors({});
         setNewMember({
             name: "",
@@ -314,7 +344,7 @@ export default function Members() {
 
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                         <div className="flex items-center w-full sm:w-auto">
-                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("بحث عن عضو")} className="flex-1 px-3 py-2 border border-gray-300 rounded-r-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("بحث  عن عضو")} className="flex-1 px-3 py-2 border border-gray-300 rounded-r-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
                             <button onClick={() => setCurrentPage(1)} className="px-4 py-2 bg-primary text-white rounded-l-lg hover:bg-primary-dark transition-colors border border-primary">{t("بحث")}</button>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -392,6 +422,25 @@ export default function Members() {
                                             <button onClick={() => handleViewTasks(member)} className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center gap-1">
                                                 <EyeIcon className="h-4 w-4" /> {t("المهام")}
                                             </button>
+                                            <button
+                                                onClick={() => {
+                                                    window.location.href = `mailto:${member.user?.email}?subject=رسالة%20إدارية&body=مرحباً%20${member.name}`;
+                                                }}
+                                                className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors flex items-center gap-1"
+                                            >
+                                                {t('إرسال إيميل')}
+                                            </button>
+                                            <button
+                                          onClick={() =>
+                                                    handleSendMessageToMember(
+                                                        member
+                                                    )
+                                                }
+                                                    className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors flex items-center gap-2"
+                                                >
+                                                    <FaWhatsapp className="text-green-600 text-lg" />
+                                                    {t('إرسال رسالة ')}
+                                                </button>
                                             <button onClick={() => handleEditMember(member)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors">
                                                 <PencilIcon className="h-4 w-4" />
                                             </button>
@@ -520,7 +569,17 @@ export default function Members() {
                     </div>
                 </div>
             </div>
-)}
+            )}
+                                {sendModal && (
+                                    <SendMessageModal
+                                        messageForm={messageForm}
+                                        setMessageForm={setMessageForm}
+                                        member={selectedMember}
+                                        closeModal={closeModal}
+                                        handleSendMessage={handleSendMessage}
+
+                                    />
+                                )}
                 {activitiesModal && selectedMember && <ActivitiesModal member={selectedMember} closeModal={closeModal} />}
                 {tasksModal && selectedMember && <TasksModal member={selectedMember} closeModal={closeModal} />}
             </div>

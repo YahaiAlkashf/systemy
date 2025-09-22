@@ -93,6 +93,10 @@
 
         const handleSendMessageToCustomer = (customer) => {
             setSelectedCustomer(customer);
+                setMessageForm({
+                phone: member.phone,
+                message: ""
+            });
             setSendModal(true);
         };
 

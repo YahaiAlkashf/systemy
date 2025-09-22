@@ -23,7 +23,7 @@ class SupscriptionMiddleware
         if (!$user->hasVerifiedEmail()) {
             return redirect('/verify-email');
         }
-        if ($user->subscription === null) {
+        if ($user->company->subscription === null) {
             return redirect('/allplans');
         }
         return $next($request);

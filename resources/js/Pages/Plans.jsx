@@ -425,325 +425,399 @@ const applyCoupon = async () => {
                 )}
             </section>
 
-            {showModal && (
-                <div className="fixed inset-0  bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300">
-                    <div className="bg-gray-800 h-full overflow-auto  rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-transform duration-300 scale-100 text-white" dir="rtl">
-                        <div className="text-center">
-                            <h3 className="text-2xl font-bold mb-2">
-                                {t("اختر وسيلة الدفع")}
-                            </h3>
-                            <p className="mb-3 text-gray-300">
-                                {t("لـ")} {selectedPlan?.name2}
-                            </p>
+{showModal && (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 h-full overflow-auto rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-transform duration-300 scale-100 text-white border border-gray-700" dir="rtl">
 
-                            <div className="mb-6 bg-gray-700 p-4 rounded-lg">
-                                <h4 className="text-lg font-semibold mb-2 text-primary">
-                                    {t("أدخل كود الخصم")}
-                                </h4>
-                                <div className="flex gap-2 mb-3">
-                                    <input
-                                        type="text"
-                                        value={couponCode}
-                                        onChange={(e) => setCouponCode(e.target.value)}
-                                        placeholder={t("أدخل كود الخصم هنا")}
-                                        className="flex-1 px-4 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
-                                        disabled={couponLoading}
-                                    />
-                                    <button
-                                        onClick={applyCoupon}
-                                        disabled={couponLoading}
-                                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                                    >
-                                        {couponLoading ? t("...") : t("تطبيق")}
-                                    </button>
-                                </div>
-                                {couponError && (
-                                    <div className="flex items-center mt-1 text-red-400 text-sm">
-                                        <ExclamationCircleIcon className="h-4 w-4 ml-1" />
-                                        {couponError}
-                                    </div>
-                                )}
-                                {couponData && (
-                                    <div className="flex items-center mt-1 text-green-400 text-sm">
-                                        <svg className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        {t("كود الخصم تم تطبيقه بنجاح!")}
-                                    </div>
-                                )}
-                            </div>
+            <div className="text-center">
+                <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                    {t("اختر وسيلة الدفع")}
+                </h3>
+                <p className="mb-3 text-gray-300">
+                    {t("لـ")} {selectedPlan?.name2}
+                </p>
+             <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                    <h4 className="text-lg font-semibold mb-2 text-blue-400">{t("للتواصل مع الإدارة")}</h4>
+                    <p className="text-sm text-gray-300 mb-3">لديك استفسار أو تحتاج مساعدة؟ فريق الدعم جاهز لمساعدتك</p>
+
+                    <button
+                        onClick={() => window.open('https://wa.me/+971556127735', '_blank')}
+                        className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.017 2.047c-5.511 0-9.98 4.468-9.98 9.98 0 1.766.465 3.42 1.277 4.85L2 22l5.255-1.386c1.425.802 3.078 1.267 4.843 1.267 5.512 0 9.98-4.468 9.98-9.98s-4.468-9.98-9.98-9.98zm-.005 1.818c4.52 0 8.162 3.642 8.162 8.162s-3.642 8.162-8.162 8.162c-1.6 0-3.102-.46-4.367-1.257l-.3-.18-3.12.82.834-3.047-.197-.314c-.87-1.322-1.362-2.87-1.362-4.524 0-4.52 3.642-8.162 8.162-8.162zM8.898 7.462c-.24 0-.36.117-.554.39-.195.273-1.04 1.016-1.04 2.476 0 1.46 1.06 2.87 1.208 3.07.148.195 2.09 3.332 5.16 4.562 2.578 1.03 3.105.82 3.652.78.547-.04 1.76-.72 2.01-1.415.25-.695.25-1.29.175-1.415-.074-.125-.273-.195-.566-.34-.293-.145-1.76-.87-2.03-.967-.274-.1-.47-.15-.664.146-.195.293-.75.967-.92 1.17-.17.2-.34.224-.625.075-.293-.15-1.235-.455-2.35-1.45-.87-.78-1.46-1.74-1.63-2.04-.17-.29-.018-.45.13-.59.133-.133.293-.35.44-.525.146-.175.195-.29.293-.487.097-.195.05-.367-.025-.515-.075-.146-.664-1.595-.91-2.18-.24-.57-.48-.475-.664-.484l-.566-.01z"/>
+                        </svg>
+                        {t("تواصل عبر واتساب")}
+                    </button>
+                </div>
 
 
-                            {couponData ? (
-                                <div className="mb-4">
-                                    <p className="text-gray-400 line-through">
-                                        {isEgypt
-                                            ? `${selectedPlan?.priceInsideEgypt} جنيه`
-                                            : `$${selectedPlan?.priceOutsideEgypt}`}
-                                    </p>
-                                    <p className="text-2xl font-bold text-green-400">
-                                        {isEgypt
-                                            ? `${couponData.price_in_egp} جنيه / شهر`
-                                            : `$${couponData.price_outside_egp} / month`}
-                                    </p>
-                                    <p className="text-sm text-green-400 mt-1">
-                                        {t("خصم مطبق بنجاح!")}
-                                    </p>
-                                </div>
-                            ) : (
-                                <p className="mb-6 text-2xl font-bold text-purple-400">
-                                    {isEgypt
-                                        ? `${selectedPlan?.priceInsideEgypt} جنيه / شهر`
-                                        : `$${selectedPlan?.priceOutsideEgypt} / month`}
-                                </p>
-                            )}
+                <div className="mb-6 bg-gray-700 p-4 rounded-lg border border-gray-600">
+                    <h4 className="text-lg font-semibold mb-2 text-yellow-400">
+                        {t("أدخل كود الخصم")}
+                    </h4>
+                    <div className="flex gap-2 mb-3">
+                        <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            placeholder={t("أدخل كود الخصم هنا")}
+                            className="flex-1 px-4 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            disabled={couponLoading}
+                        />
+                        <button
+                            onClick={applyCoupon}
+                            disabled={couponLoading}
+                            className="px-4 py-2 bg-yellow-500 text-gray-900 font-medium rounded-lg hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                        >
+                            {couponLoading ? t("...") : t("تطبيق")}
+                        </button>
+                    </div>
+                    {couponError && (
+                        <div className="flex items-center mt-1 text-red-400 text-sm">
+                            <ExclamationCircleIcon className="h-4 w-4 ml-1" />
+                            {couponError}
+                        </div>
+                    )}
+                    {couponData && (
+                        <div className="flex items-center mt-1 text-green-400 text-sm">
+                            <svg className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            {t("كود الخصم تم تطبيقه بنجاح!")}
+                        </div>
+                    )}
+                </div>
 
-                            {paymentError && (
-                                <div className="bg-red-900 border-l-4 border-red-500 text-red-100 p-4 mb-4 text-right rounded-lg">
-                                    <p>{paymentError}</p>
-                                </div>
-                            )}
+                {couponData ? (
+                    <div className="mb-4">
+                        <p className="text-gray-400 line-through">
+                            {isEgypt
+                                ? `${selectedPlan?.priceInsideEgypt} جنيه`
+                                : `$${selectedPlan?.priceOutsideEgypt}`}
+                        </p>
+                        <p className="text-2xl font-bold text-green-400">
+                            {isEgypt
+                                ? `${couponData.price_in_egp} جنيه / شهر`
+                                : `$${couponData.price_outside_egp} / month`}
+                        </p>
+                        <p className="text-sm text-green-400 mt-1">
+                            {t("خصم مطبق بنجاح!")}
+                        </p>
+                    </div>
+                ) : (
+                    <p className="mb-6 text-2xl font-bold text-purple-400">
+                        {isEgypt
+                            ? `${selectedPlan?.priceInsideEgypt} جنيه / شهر`
+                            : `$${selectedPlan?.priceOutsideEgypt} / month`}
+                    </p>
+                )}
 
-                            <div className="space-y-4 mb-6">
-                                <button
-                                    onClick={() => handlePayment("stripe")}
-                                    disabled={isProcessing}
-                                    className="w-full bg-purple-700 text-white py-3 px-4 rounded-xl hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
+                {paymentError && (
+                    <div className="bg-red-900 border-l-4 border-red-500 text-red-100 p-4 mb-4 text-right rounded-lg">
+                        <p>{paymentError}</p>
+                    </div>
+                )}
+
+                <div className="space-y-4 mb-6">
+                    {/* Stripe */}
+                    <button
+                        onClick={() => handlePayment("stripe")}
+                        disabled={isProcessing}
+                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 px-4 rounded-xl hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
+                    >
+                        {isProcessing ? (
+                            <>
+                                <svg
+                                    className="animate-spin h-5 w-5 text-white"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                 >
-                                    {isProcessing ? (
-                                        <>
-                                            <svg
-                                                className="animate-spin h-5 w-5 text-white"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <circle
-                                                    className="opacity-25"
-                                                    cx="12"
-                                                    cy="12"
-                                                    r="10"
-                                                    stroke="currentColor"
-                                                    strokeWidth="4"
-                                                ></circle>
-                                                <path
-                                                    className="opacity-75"
-                                                    fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                ></path>
-                                            </svg>
-                                            {t("جاري المعالجة...")}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="currentColor"
-                                                className="text-white"
-                                            >
-                                                <path d="M12.876 13.59l2.211-2.211h-5.087v-1.758h5.087l-2.211-2.211 1.244-1.244 4.411 4.411-4.411 4.411-1.244-1.244zm-10.876-11.59v20h18v-20h-18zm16 18h-14v-16h14v16z" />
-                                            </svg>
-                                            {t("الدفع بـ Stripe")}
-                                        </>
-                                    )}
-                                </button>
-
-                                <button
-                                    onClick={() => handlePayment("paymob")}
-                                    disabled={isProcessing}
-                                    className="w-full bg-blue-700 text-white py-3 px-4 rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
-                                >
-                                    {isProcessing ? (
-                                        <>
-                                            <svg
-                                                className="animate-spin h-5 w-5 text-white"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <circle
-                                                    className="opacity-25"
-                                                    cx="12"
-                                                    cy="12"
-                                                    r="10"
-                                                    stroke="currentColor"
-                                                    strokeWidth="4"
-                                                ></circle>
-                                                <path
-                                                    className="opacity-75"
-                                                    fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                ></path>
-                                            </svg>
-                                            {t("جاري المعالجة...")}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="currentColor"
-                                                className="text-white"
-                                            >
-                                                <path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1 17l-5-5 1.5-1.5 3.5 3.5 7.5-7.5 1.5 1.5-9 9z" />
-                                            </svg>
-                                            {t("الدفع بـ Paymob")}
-                                        </>
-                                    )}
-                                </button>
-
-                                {isEgypt && (
-                                    <button
-                                        onClick={() => handlePayment("fawry")}
-                                        disabled={isProcessing}
-                                        className="w-full bg-yellow-600 text-white py-3 px-4 rounded-xl hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
-                                    >
-                                        {isProcessing ? (
-                                            <>
-                                                <svg
-                                                    className="animate-spin h-5 w-5 text-white"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <circle
-                                                        className="opacity-25"
-                                                        cx="12"
-                                                        cy="12"
-                                                        r="10"
-                                                        stroke="currentColor"
-                                                        strokeWidth="4"
-                                                    ></circle>
-                                                    <path
-                                                        className="opacity-75"
-                                                        fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                    ></path>
-                                                </svg>
-                                                {t("جاري المعالجة...")}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                    className="text-white"
-                                                >
-                                                    <path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1 6h2v8h-2v-8zm1 12.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z" />
-                                                </svg>
-                                                {t("الدفع بـ Fawry")}
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="mb-6">
-                                <p className="text-sm text-gray-400 mb-2">
-                                    {t("البطاقات المقبولة")}
-                                </p>
-                                <p className="text-sm text-gray-400 mb-2">
-                                    {t("نوفّر جميع طرق الدفع")}
-                                </p>
-                                <div className="flex justify-center space-x-2">
-                                    <div className="bg-gray-700 p-2 rounded-lg">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="32"
-                                            height="24"
-                                            viewBox="0 0 32 24"
-                                        >
-                                            <path
-                                                fill="#ff5f00"
-                                                d="M20 0h-8c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h8c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
-                                            />
-                                            <path
-                                                fill="#eb001b"
-                                                d="M12 0h-8c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h8c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
-                                            />
-                                            <path
-                                                fill="#f79e1b"
-                                                d="M16 9a7 7 0 1 0 0 6 7 7 0 0 0 0-6z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <div className="bg-gray-700 p-2 rounded-lg">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="32"
-                                            height="24"
-                                            viewBox="0 0 32 24"
-                                        >
-                                            <path
-                                                fill="#0061a8"
-                                                d="M28 0h-24c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h24c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
-                                            />
-                                            <path
-                                                fill="#0079c1"
-                                                d="M16 9a7 7 0 1 0 0 6 7 7 0 0 0 0-6z"
-                                            />
-                                            <path
-                                                fill="#e60028"
-                                                d="M28 0h-12v24h12c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <div className="bg-gray-700 p-2 rounded-lg">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="32"
-                                            height="24"
-                                            viewBox="0 0 32 24"
-                                        >
-                                            <path
-                                                fill="#012169"
-                                                d="M28 0h-24c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h24c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
-                                            />
-                                            <path
-                                                fill="#fff"
-                                                d="M16 9a7 7 0 1 0 0 6 7 7 0 0 0 0-6z"
-                                            />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    setShowModal(false);
-                                    setIsProcessing(false);
-                                    setCouponData(null);
-                                    setCouponCode("");
-                                }}
-                                className="text-gray-400 hover:text-red-400 transition-colors duration-200 flex items-center justify-center mx-auto"
-                                disabled={isProcessing}
-                            >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                                {t("جاري المعالجة...")}
+                            </>
+                        ) : (
+                            <>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5 ml-1"
-                                    viewBox="0 0 20 20"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
                                     fill="currentColor"
+                                    className="text-white"
                                 >
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                        clipRule="evenodd"
-                                    />
+                                    <path d="M12.876 13.59l2.211-2.211h-5.087v-1.758h5.087l-2.211-2.211 1.244-1.244 4.411 4.411-4.411 4.411-1.244-1.244zm-10.876-11.59v20h18v-20h-18zm16 18h-14v-16h14v16z" />
                                 </svg>
-                                {t("إلغاء")}
+                                {t("الدفع بـ Stripe")}
+                            </>
+                        )}
+                    </button>
+
+                    {/* Paymob */}
+                    <button
+                        onClick={() => handlePayment("paymob")}
+                        disabled={isProcessing}
+                        className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 px-4 rounded-xl hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
+                    >
+                        {isProcessing ? (
+                            <>
+                                <svg
+                                    className="animate-spin h-5 w-5 text-white"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                                {t("جاري المعالجة...")}
+                            </>
+                        ) : (
+                            <>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    className="text-white"
+                                >
+                                    <path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1 17l-5-5 1.5-1.5 3.5 3.5 7.5-7.5 1.5 1.5-9 9z" />
+                                </svg>
+                                {t("الدفع بـ Paymob")}
+                            </>
+                        )}
+                    </button>
+
+                    {/* Fawry */}
+                    {isEgypt && (
+                        <button
+                            onClick={() => handlePayment("fawry")}
+                            disabled={isProcessing}
+                            className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 text-white py-3 px-4 rounded-xl hover:from-yellow-700 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
+                        >
+                            {isProcessing ? (
+                                <>
+                                    <svg
+                                        className="animate-spin h-5 w-5 text-white"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                    {t("جاري المعالجة...")}
+                                </>
+                            ) : (
+                                <>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        className="text-white"
+                                    >
+                                        <path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1 6h2v8h-2v-8zm1 12.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z" />
+                                    </svg>
+                                    {t("الدفع بـ Fawry")}
+                                </>
+                            )}
+                        </button>
+                    )}
+
+
+                    <div className="pt-4 border-t border-gray-600">
+                        <h4 className="text-lg font-semibold mb-3 text-green-400">{t("المحافظ الإلكترونية")}</h4>
+                        <div className="grid grid-cols-3 gap-3">
+
+                            <button
+                                onClick={() => handlePayment("vodafone_cash")}
+                                disabled={isProcessing}
+                                className="bg-gradient-to-r from-red-600 to-red-500 text-white p-3 rounded-lg hover:from-red-700 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-md"
+                            >
+                                <div className="bg-white rounded-full p-1 w-10 h-10 flex items-center justify-center">
+                                    <span className="text-red-600 font-bold text-lg">V</span>
+                                </div>
+                                <span className="text-xs">فودافون كاش</span>
+                            </button>
+                            <button
+                                onClick={() => handlePayment("orange_cash")}
+                                disabled={isProcessing}
+                                className="bg-gradient-to-r from-orange-600 to-orange-500 text-white p-3 rounded-lg hover:from-orange-700 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-md"
+                            >
+                                <div className="bg-white rounded-full p-1 w-10 h-10 flex items-center justify-center">
+                                    <span className="text-orange-600 font-bold text-lg">O</span>
+                                </div>
+                                <span className="text-xs">أورانج كاش</span>
+                            </button>
+
+                            <button
+                                onClick={() => handlePayment("orange_cash")}
+                                disabled={isProcessing}
+                                className="bg-gradient-to-r from-green-500 to-green-500 text-white p-3 rounded-lg hover:from-orange-700 hover:to-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-md"
+                            >
+                                <div className="bg-white rounded-full p-1 w-10 h-10 flex items-center justify-center">
+                                    <span className="text-green-600 font-bold text-lg">O</span>
+                                </div>
+                                <span className="text-xs">اتصالات كاش</span>
+                            </button>
+
+                            <button
+                                onClick={() => handlePayment("instapay")}
+                                disabled={isProcessing}
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-md"
+                            >
+                                <div className="bg-white rounded-full p-1 w-10 h-10 flex items-center justify-center">
+                                    <span className="text-purple-600 font-bold text-lg">I</span>
+                                </div>
+                                <span className="text-xs">InstaPay</span>
                             </button>
                         </div>
                     </div>
                 </div>
-            )}
+
+
+
+
+
+                <div className="mb-6">
+                    <p className="text-sm text-gray-400 mb-2">
+                        {t("البطاقات المقبولة")}
+                    </p>
+                    <p className="text-sm text-gray-400 mb-3">
+                        {t("نوفّر جميع طرق الدفع")}
+                    </p>
+                    <div className="flex justify-center space-x-2">
+                        <div className="bg-gray-700 p-2 rounded-lg">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="32"
+                                height="24"
+                                viewBox="0 0 32 24"
+                            >
+                                <path
+                                    fill="#ff5f00"
+                                    d="M20 0h-8c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h8c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
+                                />
+                                <path
+                                    fill="#eb001b"
+                                    d="M12 0h-8c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h8c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
+                                />
+                                <path
+                                    fill="#f79e1b"
+                                    d="M16 9a7 7 0 1 0 0 6 7 7 0 0 0 0-6z"
+                                />
+                            </svg>
+                        </div>
+                        <div className="bg-gray-700 p-2 rounded-lg">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="32"
+                                height="24"
+                                viewBox="0 0 32 24"
+                            >
+                                <path
+                                    fill="#0061a8"
+                                    d="M28 0h-24c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h24c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
+                                />
+                                <path
+                                    fill="#0079c1"
+                                    d="M16 9a7 7 0 1 0 0 6 7 7 0 0 0 0-6z"
+                                />
+                                <path
+                                    fill="#e60028"
+                                    d="M28 0h-12v24h12c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
+                                />
+                            </svg>
+                        </div>
+                        <div className="bg-gray-700 p-2 rounded-lg">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="32"
+                                height="24"
+                                viewBox="0 0 32 24"
+                            >
+                                <path
+                                    fill="#012169"
+                                    d="M28 0h-24c-2.209 0-4 1.791-4 4v16c0 2.209 1.791 4 4 4h24c2.209 0 4-1.791 4-4v-16c0-2.209-1.791-4-4-4z"
+                                />
+                                <path
+                                    fill="#fff"
+                                    d="M16 9a7 7 0 1 0 0 6 7 7 0 0 0 0-6z"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => {
+                        setShowModal(false);
+                        setIsProcessing(false);
+                        setCouponData(null);
+                        setCouponCode("");
+                        setCouponError(null);
+                        setPaymentError(null);
+                    }}
+                    className="text-gray-400 hover:text-red-400 transition-colors duration-200 flex items-center justify-center mx-auto"
+                    
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 ml-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                        />
+                    </svg>
+                    {t("إلغاء")}
+                </button>
+            </div>
+        </div>
+    </div>
+)}
 
             <footer className="bg-gray-800 py-8 text-center text-gray-400">
                 <p>©  {t(" سيستمى. جميع الحقوق محفوظة.")}</p>
