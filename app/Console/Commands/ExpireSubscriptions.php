@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SubscriptionExpirationAlert;
+use Carbon\Carbon;
 
 class ExpireSubscriptions extends Command
 {
@@ -17,8 +18,8 @@ class ExpireSubscriptions extends Command
     public function handle()
     {
         $expiredCompanies = Company::whereNotNull('subscription_expires_at')
-            ->where('subscription_expires_at', '<', now())
-            ->where('role','!=','manager')
+            ->where('subscription_expires_at', '<', Carbon::now())
+             ->where('role',null)
             ->get();
 
         $expiredCount = 0;
