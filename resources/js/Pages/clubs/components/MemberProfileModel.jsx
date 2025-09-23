@@ -186,7 +186,7 @@ export default function MemberProfileModel() {
                                     {t("المسمى الوظيفى")}
                                 </p>
                                 <p className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {member.cycle.name || t("غير محدد")}
+                                    {member.cycle?.name || t("غير محدد")}
                                 </p>
                             </div>
                         </div>
@@ -198,7 +198,7 @@ export default function MemberProfileModel() {
                                     {t("الرتبة")}
                                 </p>
                                 <p className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {member.role === "manager" ? t("مدير") : t("عضو")}
+                                    {member?.role === "manager" ? t("مدير") : t("عضو")}
                                 </p>
                             </div>
                         </div>
