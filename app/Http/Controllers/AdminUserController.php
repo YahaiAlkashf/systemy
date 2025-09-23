@@ -124,7 +124,7 @@ class AdminUserController extends Controller
     {
         $user = User::findOrFail($id);
 
-$request->validate([
+    $request->validate([
     'name' => 'required|string|max:255',
     'email' => 'required|string|lowercase|email|max:255|unique:' . User::class . ',email,' . $user->id,
     'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
@@ -251,7 +251,7 @@ $request->validate([
 
     public function exportUsersPDF()
     {
-        $users = User::with('company')->where('system_type', '!=', 'manager')->get();
+        $users = User::with('company')->where('role','superadmin')->where('system_type', '!=', 'manager')->get();
 
         $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
 
@@ -311,7 +311,7 @@ $request->validate([
 
     public function exportUsersExcel()
     {
-        $users = User::with('company')->where('system_type', '!=', 'manager')->get();
+        $users = User::with('company')->where('role','superadmin')->where('system_type', '!=', 'manager')->get();
 
         $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
 

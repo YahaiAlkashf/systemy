@@ -206,18 +206,20 @@ const submit = (e) => {
                 closeModal();
             },
         });
-        closeModal();
-    showAllCustomers();
+        //  onSuccess: () => {
+            //     },
+            closeModal();
+            showAllCustomers();
     } else if (mode === "edit" && customer) {
 
-        post(route("users.update", customer.id), {
-            data: formData,
+        post(route("users.update", customer.id),formData ,{
             forceFormData: true,
             onSuccess: () => {
                 closeModal();
             },
         });
-        showAllCustomers()
+        closeModal();
+        showAllCustomers();
     }
 };
 
