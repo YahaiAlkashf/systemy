@@ -68,6 +68,53 @@ const applyCoupon = async () => {
         });
 
         if (response.data && response.data.success) {
+            // تحقق إذا كان السعر 0 (خصم 100%)
+            const priceInEgz = parseFloat(response.data.coupon?.price_in_egp || selectedPlan?.priceInsideEgypt);
+            const priceOutsideEgz = parseFloat(response.data.coupon?.price_outside_egp || selectedPlan?.priceOutsideEgypt);
+
+            if (priceInEgz === 0 || priceOutsideEgz === 0) {
+                // إذا كان السعر 0، نفذ الاشتراك مباشرة
+                setCouponData(response.data.coupon);
+
+                // هنا نضيف الاشتراك مباشرة بدون دفع
+                try {
+                    const subscriptionResponse = await axios.post(`${app_url}/subscription/free`, {
+                        plan: selectedPlan?.name,
+                        coupon_code: couponCode
+                    });
+
+                    if (subscriptionResponse.data.success) {
+                        // انتظر قليلاً ثم وجه المستخدم
+                        setTimeout(() => {
+                            switch (auth.user.system_type) {
+                                case 'clubs':
+                                    window.location.href = '/clubs';
+                                    break;
+                                case 'manager':
+                                    window.location.href = '/admin';
+                                    break;
+                                case 'retail':
+                                case 'services':
+                                case 'education':
+                                case 'realEstate':
+                                case 'delivery':
+                                case 'travels':
+                                case 'gym':
+                                case 'hotel':
+                                    window.location.href = '/retailFlow';
+                                    break;
+                                default:
+                                    window.location.href = '/';
+                            }
+                        }, 1000);
+                    }
+                } catch (error) {
+                    console.error('Free subscription error:', error);
+                    setCouponError(t("حدث خطأ أثناء تفعيل الاشتراك المجاني"));
+                }
+                return;
+            }
+
             setCouponData(response.data.coupon);
             setCouponError(null);
         } else {
@@ -798,7 +845,7 @@ const applyCoupon = async () => {
                         setPaymentError(null);
                     }}
                     className="text-gray-400 hover:text-red-400 transition-colors duration-200 flex items-center justify-center mx-auto"
-                    
+
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

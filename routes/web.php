@@ -182,6 +182,7 @@ Route::get('/', function () {
 
         Route::post('/subscription/basic',[AdminUserController:: class,'subscriptionBasic' ]);
         Route::post('/subscription/coupons',[AdminUserController:: class,'subscriptioncoupons' ]);
+        Route::post('/subscription/free', [AdminUserController::class, 'activateFreeSubscription']);
     });
 
     Route::middleware(['plan'])->group(function () {

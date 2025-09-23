@@ -22,7 +22,7 @@ class AdminUserController extends Controller
 
     public function users()
     {
-        $users = User::with('company')->where('role','superadmin')->get();
+        $users = User::with('company')->where('role', 'superadmin')->get();
         return response()->json(['users' => $users]);
     }
 
@@ -30,7 +30,7 @@ class AdminUserController extends Controller
     {
         $customers = User::whereHas('company', function ($query) {
             $query->whereIn('subscription', ['basic', 'premium', 'vip']);
-        })->where('role','superadmin')->with('company')->get();
+        })->where('role', 'superadmin')->with('company')->get();
 
         return response()->json([
             'customers' => $customers
@@ -124,46 +124,46 @@ class AdminUserController extends Controller
     {
         $user = User::findOrFail($id);
 
-    $request->validate([
-    'name' => 'required|string|max:255',
-    'email' => 'required|string|lowercase|email|max:255|unique:' . User::class . ',email,' . $user->id,
-    'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
-    'company_name' => 'required|string|max:255',
-    'phone' => 'nullable|string|max:255',
-    'address' => 'nullable|string|max:255',
-    'logo' => 'nullable|image|max:2048',
-    'system_type' => 'required',
-    'country' => 'required',
-], [
-    'name.required' => 'حقل الاسم مطلوب',
-    'name.string' => 'الاسم يجب أن يكون نصاً',
-    'name.max' => 'الاسم يجب ألا يتجاوز 255 حرفاً',
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class . ',email,' . $user->id,
+            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'company_name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|max:2048',
+            'system_type' => 'required',
+            'country' => 'required',
+        ], [
+            'name.required' => 'حقل الاسم مطلوب',
+            'name.string' => 'الاسم يجب أن يكون نصاً',
+            'name.max' => 'الاسم يجب ألا يتجاوز 255 حرفاً',
 
-    'email.required' => 'حقل البريد الإلكتروني مطلوب',
-    'email.string' => 'البريد الإلكتروني يجب أن يكون نصاً',
-    'email.lowercase' => 'البريد الإلكتروني يجب أن يكون بأحرف صغيرة',
-    'email.email' => 'صيغة البريد الإلكتروني غير صحيحة',
-    'email.max' => 'البريد الإلكتروني يجب ألا يتجاوز 255 حرفاً',
-    'email.unique' => 'البريد الإلكتروني مسجل مسبقاً',
+            'email.required' => 'حقل البريد الإلكتروني مطلوب',
+            'email.string' => 'البريد الإلكتروني يجب أن يكون نصاً',
+            'email.lowercase' => 'البريد الإلكتروني يجب أن يكون بأحرف صغيرة',
+            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة',
+            'email.max' => 'البريد الإلكتروني يجب ألا يتجاوز 255 حرفاً',
+            'email.unique' => 'البريد الإلكتروني مسجل مسبقاً',
 
-    'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
+            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
 
-    'company_name.required' => 'حقل اسم الشركة مطلوب',
-    'company_name.string' => 'اسم الشركة يجب أن يكون نصاً',
-    'company_name.max' => 'اسم الشركة يجب ألا يتجاوز 255 حرفاً',
+            'company_name.required' => 'حقل اسم الشركة مطلوب',
+            'company_name.string' => 'اسم الشركة يجب أن يكون نصاً',
+            'company_name.max' => 'اسم الشركة يجب ألا يتجاوز 255 حرفاً',
 
-    'phone.string' => 'رقم الهاتف يجب أن يكون نصاً',
-    'phone.max' => 'رقم الهاتف يجب ألا يتجاوز 255 حرفاً',
+            'phone.string' => 'رقم الهاتف يجب أن يكون نصاً',
+            'phone.max' => 'رقم الهاتف يجب ألا يتجاوز 255 حرفاً',
 
-    'address.string' => 'العنوان يجب أن يكون نصاً',
-    'address.max' => 'العنوان يجب ألا يتجاوز 255 حرفاً',
+            'address.string' => 'العنوان يجب أن يكون نصاً',
+            'address.max' => 'العنوان يجب ألا يتجاوز 255 حرفاً',
 
-    'logo.image' => 'الملف المرفوع يجب أن يكون صورة',
-    'logo.max' => 'حجم الشعار يجب ألا يتجاوز 2 ميجابايت',
+            'logo.image' => 'الملف المرفوع يجب أن يكون صورة',
+            'logo.max' => 'حجم الشعار يجب ألا يتجاوز 2 ميجابايت',
 
-    'system_type.required' => 'حقل نوع النظام مطلوب',
-    'country.required' => 'حقل الدولة مطلوب',
-]);
+            'system_type.required' => 'حقل نوع النظام مطلوب',
+            'country.required' => 'حقل الدولة مطلوب',
+        ]);
 
         $company = Company::findOrFail($user->company_id);
 
@@ -236,11 +236,11 @@ class AdminUserController extends Controller
 
     public function addSubscription(Request $request, $id)
     {
-        $company=Company::findOrFail($id);
+        $company = Company::findOrFail($id);
 
         $request->validate([
             'subscription' => 'required'
-        ],[
+        ], [
             'subscription.required' => 'حقل نوع الاشتراك مطلوب'
         ]);
         $company->update([
@@ -251,7 +251,7 @@ class AdminUserController extends Controller
 
     public function exportUsersPDF()
     {
-        $users = User::with('company')->where('role','superadmin')->where('system_type', '!=', 'manager')->get();
+        $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
 
         $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
 
@@ -311,7 +311,7 @@ class AdminUserController extends Controller
 
     public function exportUsersExcel()
     {
-        $users = User::with('company')->where('role','superadmin')->where('system_type', '!=', 'manager')->get();
+        $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
 
         $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
 
@@ -370,65 +370,151 @@ class AdminUserController extends Controller
 
 
 
-        public function subscriptionBasic(Request $request)
-        {
+    public function subscriptionBasic(Request $request)
+    {
 
-            $user = Auth::user();
-            $user->company->update([
-                'subscription' => 'basic',
-                'trial_used' => true,
+        $user = Auth::user();
+        $user->company->update([
+            'subscription' => 'basic',
+            'trial_used' => true,
+            'subscription_expires_at' => now()->addDays(7)
+        ]);
+        $user->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function subscriptioncoupons(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'code'     => 'required|exists:coupons,code',
+            'planName' => 'required|exists:plans,name',
+        ], [
+            'code.required' => 'كود الخصم مطلوب',
+            'code.exists' => 'كود الخصم غير موجود',
+            'planName.required' => 'الباقة مطلوبة',
+            'planName.exists' => 'الباقة غير موجودة',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $coupon = Coupon::where('code', $request->code)
+            ->with('plan')
+            ->first();
+
+        $requestedPlan = Plan::where('name', $request->planName)->first();
+
+        if (!$coupon || $coupon->plan_id !== $requestedPlan->id) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['code' => ['كود الخصم غير صالح لهذه الباقة']]
+            ], 422);
+        }
+
+        if ($coupon->price_in_egp === 0 || $coupon->price_outside_egp === 0) {
+            $company = Company::findOrFail($user->company_id);
+            $company->update([
+                'subscription' => $request->planName,
                 'subscription_expires_at' => now()->addDays(7)
             ]);
             $user->save();
 
-            return response()->json(['success' => true]);
-
-
+            return response()->json([
+                'success' => true,
+                'free_subscription' => true,
+                'redirect_url' => $this->getRedirectUrl($user->system_type),
+                'message' => 'تم تفعيل الاشتراك المجاني بنجاح'
+            ]);
         }
 
-        public function subscriptioncoupons(Request $request)
-        {
-            $validator = Validator::make($request->all(), [
-                'code'     => 'required|exists:coupons,code',
-                'planName' => 'required|exists:plans,name',
-            ], [
-                'code.required' => 'كود الخصم مطلوب',
-                'code.exists' => 'كود الخصم غير موجود',
-                'planName.required' => 'الباقة مطلوبة',
-                'planName.exists' => 'الباقة غير موجودة',
+        return response()->json([
+            'success' => true,
+            'free_subscription' => false,
+            'coupon' => [
+                'id' => $coupon->id,
+                'code' => $coupon->code,
+                'price_in_egp' => $coupon->price_in_egp,
+                'price_outside_egp' => $coupon->price_outside_egp,
+                'original_price_in_egp' => $requestedPlan->price_in_egp,
+                'original_price_outside_egp' => $requestedPlan->price_outside_egp,
+                'plan_id' => $coupon->plan_id
+            ]
+        ]);
+    }
+
+    private function getRedirectUrl($systemType)
+    {
+        switch ($systemType) {
+            case 'clubs':
+                return '/clubs';
+            case 'manager':
+                return '/admin';
+            case 'retail':
+            case 'services':
+            case 'education':
+            case 'realEstate':
+            case 'delivery':
+            case 'travels':
+            case 'gym':
+            case 'hotel':
+                return '/retailFlow';
+            default:
+                return '/';
+        }
+    }
+    public function activateFreeSubscription(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'plan' => 'required|exists:plans,name',
+            'coupon_code' => 'required|exists:coupons,code'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'بيانات غير صحيحة'
+            ], 422);
+        }
+
+        try {
+            $user = Auth::user();
+            $plan = Plan::where('name', $request->plan)->first();
+            $coupon = Coupon::where('code', $request->coupon_code)->first();
+
+            if ($coupon->plan_id !== $plan->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'كود الخصم غير صالح لهذه الباقة'
+                ], 422);
+            }
+
+            $company = Company::findOrFail($user->company_id);
+            $company->update([
+                'subscription' => $request->plan,
+                'subscription_expires_at' => now()->addMonth(),
+                'trial_used' => true
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            $coupon = Coupon::where('code', $request->code)
-                ->with('plan')
-                ->first();
-
-            $requestedPlan = Plan::where('name', $request->planName)->first();
-
-            if (!$coupon || $coupon->plan_id !== $requestedPlan->id) {
-                return response()->json([
-                    'success' => false,
-                    'errors' => ['code' => ['كود الخصم غير صالح لهذه الباقة']]
-                ], 422);
-            }
+            $user->save();
 
             return response()->json([
                 'success' => true,
-                'coupon' => [
-                    'id' => $coupon->id,
-                    'code' => $coupon->code,
-                    'price_in_egp' => $coupon->price_in_egp,
-                    'price_outside_egp' => $coupon->price_outside_egp,
-                    'original_price_in_egp' => $requestedPlan->price_in_egp,
-                    'original_price_outside_egp' => $requestedPlan->price_outside_egp,
-                    'plan_id' => $coupon->plan_id
-                ]
+                'message' => 'تم تفعيل الاشتراك بنجاح',
+                'subscription' => $request->plan,
+                'expires_at' => $company->subscription_expires_at
             ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء تفعيل الاشتراك'
+            ], 500);
         }
+    }
 }
