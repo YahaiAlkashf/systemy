@@ -310,6 +310,7 @@ const handleAddTask = async () => {
                         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
                             {t("المهام المطلوبة منك")}
                         </h3>
+
                         <div className="space-y-4">
                             {tasks
                                 .filter(
@@ -325,6 +326,31 @@ const handleAddTask = async () => {
                                             <h4 className="font-medium text-gray-800 dark:text-gray-200">
                                                 {task.title}
                                             </h4>
+                                            <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                                                    {task.description}
+                                            </h4>
+                                            {task.files && task.files.length > 0 ? (
+                                            task.files.map((file, index) => (
+                                                <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                                                    <div className="flex items-center">
+                                                        <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                        <span className="text-sm">{file.file_name}</span>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <a
+                                                            href={`${app_url}/storage/${file.file_path}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            <EyeIcon className="h-4 w-4" />
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-500 text-sm">{t("لا توجد ملفات مرفقة")}</p>
+                                        )}
                                             <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 {t("يجب التسليم قبل:")} {task.due_date}
                                             </p>
@@ -466,14 +492,14 @@ const handleAddTask = async () => {
                         </table>
                     </div>
 
-                        {filteredTasks.length > rowsPerPage && (
+                {filteredTasks.length > rowsPerPage && (
                             <div className="flex items-center justify-between mt-6">
                                 <div className="text-sm text-gray-700 dark:text-gray-300">
                                     {t("عرض")} {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredTasks.length)} {t("من")} {filteredTasks.length} {t("مهمة")}
                                 </div>
 
                                 <div className="flex space-x-2">
-                                    {/* زر السابق */}
+
                                     <button
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                         disabled={currentPage === 1}
@@ -486,7 +512,7 @@ const handleAddTask = async () => {
                                         {t("السابق")}
                                     </button>
 
-                                    {/* أرقام الصفحات */}
+
                                     <div className="flex space-x-1">
                                         {Array.from({ length: Math.ceil(filteredTasks.length / rowsPerPage) }, (_, i) => i + 1)
                                             .filter(page => {
@@ -517,7 +543,7 @@ const handleAddTask = async () => {
                                         }
                                     </div>
 
-                                    {/* زر التالي */}
+
                                     <button
                                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredTasks.length / rowsPerPage)))}
                                         disabled={currentPage === Math.ceil(filteredTasks.length / rowsPerPage)}
@@ -531,7 +557,7 @@ const handleAddTask = async () => {
                                     </button>
                                 </div>
                             </div>
-                        )}
+                )}
 
 </div>
 </div>
@@ -1113,6 +1139,31 @@ const handleAddTask = async () => {
                         <h4 className="font-medium text-gray-800 dark:text-gray-200">
                             {task.title}
                         </h4>
+                                                                    <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                                                    {task.description}
+                                            </h4>
+                                            {task.files && task.files.length > 0 ? (
+                                            task.files.map((file, index) => (
+                                                <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                                                    <div className="flex items-center">
+                                                        <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                        <span className="text-sm">{file.file_name}</span>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <a
+                                                            href={`${app_url}/storage/${file.file_path}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            <EyeIcon className="h-4 w-4" />
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-500 text-sm">{t("لا توجد ملفات مرفقة")}</p>
+                                        )}
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             {t("يجب التسليم قبل:")} {task.due_date}
                         </p>

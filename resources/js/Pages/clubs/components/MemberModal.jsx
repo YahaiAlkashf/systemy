@@ -179,7 +179,19 @@ export default function MemberModal({
                     </select>
                     {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role[0]}</p>}
                 </div>
+                <div className="flex gap-2 mt-2" dir='rtl'>
+                    <input
+                            type="checkbox"
+                            checked={member.add_members}
+                            onChange={(e) => setMember({ ...member, add_members: e.target.checked ? 1 : 0})}
+                            value={member.add_members}
+                            className=" transition-all duration-300 hover:scale-[1.02]"
+                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t("العضو يستطيع اضافة اعضاء اخرين")}
+                    </label>
 
+                </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         {t("التقييم")}

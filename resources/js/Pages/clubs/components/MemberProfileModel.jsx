@@ -183,10 +183,10 @@ export default function MemberProfileModel() {
                             <BuildingOfficeIcon className="h-6 w-6 text-primary ml-2" />
                             <div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    {t("الدور")}
+                                    {t("المسمى الوظيفى")}
                                 </p>
                                 <p className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {member.cycle?.name || t("غير محدد")}
+                                    {member.cycle.name || t("غير محدد")}
                                 </p>
                             </div>
                         </div>

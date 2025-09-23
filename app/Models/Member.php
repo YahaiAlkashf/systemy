@@ -19,7 +19,8 @@ class Member extends Model
         'permissions',
         'user_id',
         'member_id',
-        'company_id'
+        'company_id',
+        'add_members',
     ];
 
     protected $casts = [
@@ -32,7 +33,7 @@ class Member extends Model
     }
    public function user()
     {
-        return $this->belongsTo(User::class, 'user_id'); 
+        return $this->belongsTo(User::class, 'user_id');
     }
     public function company(){
         return $this->belongsTo(Company::class,'company_id');

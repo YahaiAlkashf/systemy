@@ -47,7 +47,8 @@ class MemberController extends Controller
             'cycle_id' => 'nullable|exists:cycles,id',
             'role' => 'required|string|in:manager,member',
             'rating' => 'required|integer|min:0|max:5',
-            'member_id' => 'nullable|unique:members,member_id'
+            'member_id' => 'nullable|unique:members,member_id',
+            'add_members'=>'nullable'
         ], [
             'name.required' => 'الاسم مطلوب',
             'name.string' => 'الاسم يجب أن يكون نصًا',
@@ -107,7 +108,8 @@ class MemberController extends Controller
             'rating' => $request->rating,
             'user_id' => $user->id,
             'member_id' => $request->member_id,
-            'company_id' => Auth::user()->company_id
+            'company_id' => Auth::user()->company_id,
+            'add_members'=>$request->add_members
         ]);
 
         return response()->json([
@@ -131,9 +133,10 @@ class MemberController extends Controller
             'phone' => 'required|string|max:20',
             'email' => 'required|email|unique:users,email,' . $member->user_id,
             'password' => 'nullable|confirmed',
-            'cycle_id' => 'nullable|exists:roles,id',
+            'cycle_id' => 'nullable|exists:cycles,id',
             'role' => 'required|string|in:manager,member',
             'rating' => 'required|integer|min:0|max:5',
+            'add_members'=>'nullable',
             'member_id' => 'nullable|unique:members,member_id,' . $member->id
         ], [
             'name.required' => 'الاسم مطلوب',
@@ -196,7 +199,8 @@ class MemberController extends Controller
             'cycle_id' => $request->cycle_id,
             'role' => $request->role,
             'rating' => $request->rating,
-            'member_id' => $request->member_id
+            'member_id' => $request->member_id,
+            'add_members'=>$request->add_members,
         ]);
 
         return response()->json([
@@ -230,7 +234,7 @@ class MemberController extends Controller
 
     public function memberProfile()
     {
-        $member = Member::where('user_id', Auth::user()->id)->with('company')->first();
+        $member = Member::where('user_id', Auth::user()->id)->with(['company','cycle'])->first();
         return response()->json([
             'member' => $member
         ]);

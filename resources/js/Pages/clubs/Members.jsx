@@ -53,6 +53,7 @@ export default function Members() {
         phone: "",
         cycle_id: null,
         role: "",
+        add_members:0,
         rating: 0,
         member_id: ""
     });
@@ -385,10 +386,11 @@ export default function Members() {
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">#</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("الاسم")}</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("البريد الإلكتروني")}</th>
-                                <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("الدور")}</th>
+                                <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("المسمى الوظيفى")}</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("رقم التليفون")}</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("الرقم التعريفى (id)")}</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("الرتبة")}</th>
+                                <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("يمكن اضافة اعضاء ")}</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("التقييم")}</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("الأحداث الحاضرة")}</th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t("المهام المكتملة")}</th>
@@ -408,6 +410,11 @@ export default function Members() {
                                     <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
                                         <span className={`px-2 py-1 text-xs rounded-full ${member.role === "manager" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : member.role === "member" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"}`}>
                                             {member.role}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                                        <span className={`px-2 py-1 text-xs rounded-full ${member.role === "manager" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : member.role === "member" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"}`}>
+                                            {member?.add_members ? "نعم " : "لا" || t("لم يتم التحديد ")}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">{renderRatingStars(member.rating)}</td>
