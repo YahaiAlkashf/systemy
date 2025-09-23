@@ -294,7 +294,7 @@ class AdminUserController extends Controller
                     <td>' . $user->country . '</td>
                     <td>' . ($user->company->company_name ?? 'غير محدد') . '</td>
                     <td>' . ($user->company->address ?? 'غير محدد') . '</td>
-                    <td>' . $user->subscription . '</td>
+                    <td>' . $user->company->subscription . '</td>
                     <td>' . $user->created_at->format('Y-m-d') . '</td>
                     </tr>';
         }
@@ -348,7 +348,7 @@ class AdminUserController extends Controller
                 <Cell><Data ss:Type=\"String\">{$user->country}</Data></Cell>
                 <Cell><Data ss:Type=\"String\">" . ($user->company->company_name ?? 'غير محدد') . "</Data></Cell>
                 <Cell><Data ss:Type=\"String\">" . ($user->company->address ?? 'غير محدد') . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->subscription}</Data></Cell>
+                <Cell><Data ss:Type=\"String\">{$user->company->subscription}</Data></Cell>
                 <Cell><Data ss:Type=\"String\">{$user->created_at->format('Y-m-d')}</Data></Cell>
             </Row>";
         }
