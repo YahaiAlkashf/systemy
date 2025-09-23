@@ -94,11 +94,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             path: "/clubs/companychat",
         },
         {
-            name: t("الربط بنظام خارجي"),
-            icon: LinkIcon,
-            path: "/clubs/api_access",
-        },
-        {
             name: t("الملف الشخصي"),
             icon: UserIcon,
             path: "/clubs/memberprofile",
@@ -126,11 +121,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             icon: MegaphoneIcon,
             path: "/clubs/companychat",
         },
-        {
-            name: t("الربط بنظام خارجي"),
-            icon: LinkIcon,
-            path: "/clubs/api_access",
-        },
+
         {
             name: t("الملف الشخصي"),
             icon: UserIcon,
@@ -164,7 +155,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             icon: MegaphoneIcon,
             path: "/clubs/companychat",
         },
-
         {
             name: t("الملف الشخصي"),
             icon: UserIcon,
