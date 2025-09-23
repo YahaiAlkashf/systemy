@@ -995,12 +995,6 @@ const handleAddTask = async () => {
                                                         >
                                                             <EyeIcon className="h-4 w-4" />
                                                         </a>
-                                                        <button
-                                                            onClick={() => handleRemoveExistingFile(file.id)}
-                                                            className="text-red-600 hover:text-red-800"
-                                                        >
-                                                            <TrashIcon className="h-4 w-4" />
-                                                        </button>
                                                     </div>
                                                 </div>
                                             ))
