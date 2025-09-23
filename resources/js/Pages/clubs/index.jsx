@@ -120,7 +120,7 @@ export default function ClubDashboard() {
 
 
                 {/* Quick Actions */}
-                {auth.user.role === 'superadmin' && (
+                {(auth.user.role === 'superadmin' || auth.user.system_type === 'manager' || auth.user.company.role === 'manager' )&& (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
                         {t("إجراءات سريعة")}
