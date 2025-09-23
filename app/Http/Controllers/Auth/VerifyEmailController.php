@@ -15,39 +15,47 @@ class VerifyEmailController extends Controller
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            if(!Auth::user()->subscription){
-                return redirect('/allplans');
-            }else{
-            $user = Auth::user();
-            if($user->system_type === 'clubs'){
-                return redirect('/clubs');
-            } else if($user->system_type === 'manager'){
-                return redirect('/admin');
-            } else if($user->system_type === 'retail' || $user->system_type === 'services' || $user->system_type === 'education' || $user->system_type === 'realEstate' || $user->system_type === 'delivery' || $user->system_type === 'travels' || $user->system_type === 'gym' || $user->system_type === 'hotel'){
-                return redirect('/retailFlow');
-            } else {
-                return redirect('/');
-            }
-            }
+        // تأكد من تسجيل دخول المستخدم
+        if (!Auth::check()) {
+            Auth::login($request->user());
         }
 
+        // تحقق من البريد الإلكتروني أولاً
         if ($request->user()->markEmailAsVerified()) {
             event(new Verified($request->user()));
         }
-            if(!Auth::user()->subscription){
-                return redirect('/allplans');
-            }else{
-            $user = Auth::user();
-            if($user->system_type === 'clubs'){
+
+        // ثم قم بالتوجيه بناءً على نوع المستخدم
+        return $this->redirectUser();
+    }
+
+    /**
+     * توجيه المستخدم بناءً على نوعه
+     */
+    private function redirectUser(): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$user->company->subscription) {
+            return redirect('/allplans');
+        }
+
+        switch ($user->system_type) {
+            case 'clubs':
                 return redirect('/clubs');
-            } else if($user->system_type === 'manager'){
+            case 'manager':
                 return redirect('/admin');
-            } else if($user->system_type === 'retail' || $user->system_type === 'services' || $user->system_type === 'education' || $user->system_type === 'realEstate' || $user->system_type === 'delivery' || $user->system_type === 'travels' || $user->system_type === 'gym' || $user->system_type === 'hotel'){
+            case 'retail':
+            case 'services':
+            case 'education':
+            case 'realEstate':
+            case 'delivery':
+            case 'travels':
+            case 'gym':
+            case 'hotel':
                 return redirect('/retailFlow');
-            } else {
+            default:
                 return redirect('/');
-            }
-            }
+        }
     }
 }

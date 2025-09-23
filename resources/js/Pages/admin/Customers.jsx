@@ -249,13 +249,6 @@ export default function CustomersRetailFlow() {
                                 <ArrowDownTrayIcon className="h-4 w-4 mr-1.5" />
                                 Excel
                             </button>
-                            <button
-                                onClick={handleAddCustomer}
-                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
-                            >
-                                <PlusIcon className="h-4 w-4 mr-1.5" />
-                                {t("اضافة عميل")}
-                            </button>
                         </div>
                     </div>
                 </div>

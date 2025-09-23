@@ -22,7 +22,7 @@ class AdminUserController extends Controller
 
     public function users()
     {
-        $users = User::with('company')->get();
+        $users = User::with('company')->where('role','superadmin')->get();
         return response()->json(['users' => $users]);
     }
 
@@ -84,6 +84,7 @@ class AdminUserController extends Controller
             'phone' => $request->phone,
             'address' => $request->address,
             'logo' => $logo,
+
         ]);
 
         $user = User::create([
@@ -369,21 +370,21 @@ $request->validate([
 
 
 
-    public function subscriptionBasic(Request $request)
-    {
+        public function subscriptionBasic(Request $request)
+        {
 
-        $user = Auth::user();
-        $user->update([
-            'subscription' => 'basic',
-            'trial_used' => true,
-            'subscription_expires_at' => now()->addDays(7)
-        ]);
-        $user->save();
+            $user = Auth::user();
+            $user->company->update([
+                'subscription' => 'basic',
+                'trial_used' => true,
+                'subscription_expires_at' => now()->addDays(7)
+            ]);
+            $user->save();
 
-         return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
 
 
-    }
+        }
 
         public function subscriptioncoupons(Request $request)
         {

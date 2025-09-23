@@ -58,8 +58,10 @@ export default function Tasks() {
         try {
             const response = await axios.get(`${app_url}/tasks`);
             setTasks(response.data.tasks);
+            console.log(response.data.tasks);
         } catch (error) {
             console.log(error);
+            setTasks([]);
         }
     };
 
@@ -98,7 +100,6 @@ export default function Tasks() {
 const handleAddTask = async () => {
     setLoading(true);
     setErrors({});
-
     try {
         if (!newTask.title || !newTask.due_date || newTask.assigned_to.length === 0) {
             setErrors({
@@ -138,6 +139,7 @@ const handleAddTask = async () => {
                 },
             }
         );
+    console.log('Add task response:', response.data);
 
         if (response.data.success) {
             showAllTasks();
@@ -215,9 +217,15 @@ const handleAddTask = async () => {
     };
 
     const handleDeleteTask = () => {
-        setTasks(tasks.filter((task) => task.id !== selectedTask.id));
-        setDeleteTaskModal(false);
-        setSelectedTask(null);
+        try{
+            const response = axios.delete(`${app_url}/tasks/${selectedTask.id}`);
+            showAllTasks();
+            setDeleteTaskModal(false);
+            setSelectedTask(null);
+        }catch(error){
+            console.log(error);
+        }
+
     };
 
     const openEditModal = (task) => {
@@ -367,6 +375,7 @@ const handleAddTask = async () => {
 
                 {/* Tabs */}
                 <div>
+                    <div>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                             {t("المهام")}
@@ -456,7 +465,78 @@ const handleAddTask = async () => {
                             </tbody>
                         </table>
                     </div>
-                </div>
+
+                        {filteredTasks.length > rowsPerPage && (
+                            <div className="flex items-center justify-between mt-6">
+                                <div className="text-sm text-gray-700 dark:text-gray-300">
+                                    {t("عرض")} {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredTasks.length)} {t("من")} {filteredTasks.length} {t("مهمة")}
+                                </div>
+
+                                <div className="flex space-x-2">
+                                    {/* زر السابق */}
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className={`px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 ${
+                                            currentPage === 1
+                                            ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
+                                            : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+                                        }`}
+                                    >
+                                        {t("السابق")}
+                                    </button>
+
+                                    {/* أرقام الصفحات */}
+                                    <div className="flex space-x-1">
+                                        {Array.from({ length: Math.ceil(filteredTasks.length / rowsPerPage) }, (_, i) => i + 1)
+                                            .filter(page => {
+                                                return page === 1 ||
+                                                    page === Math.ceil(filteredTasks.length / rowsPerPage) ||
+                                                    Math.abs(page - currentPage) <= 1;
+                                            })
+                                            .map((page, index, array) => {
+                                                const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                                                return (
+                                                    <React.Fragment key={page}>
+                                                        {showEllipsis && (
+                                                            <span className="px-3 py-2 text-gray-500">...</span>
+                                                        )}
+                                                        <button
+                                                            onClick={() => setCurrentPage(page)}
+                                                            className={`px-3 py-2 rounded-lg border ${
+                                                                currentPage === page
+                                                                ? "bg-primary text-white border-primary"
+                                                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500"
+                                                            }`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    </React.Fragment>
+                                                );
+                                            })
+                                        }
+                                    </div>
+
+                                    {/* زر التالي */}
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredTasks.length / rowsPerPage)))}
+                                        disabled={currentPage === Math.ceil(filteredTasks.length / rowsPerPage)}
+                                        className={`px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 ${
+                                            currentPage === Math.ceil(filteredTasks.length / rowsPerPage)
+                                            ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
+                                            : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+                                        }`}
+                                    >
+                                        {t("التالي")}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+</div>
+</div>
+
+
 
                 {/* Add Task Modal */}
                 {addTaskModal && (
@@ -867,21 +947,6 @@ const handleAddTask = async () => {
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        {t("الحالة")}
-                                    </label>
-                                    <select
-                                        value={selectedTask.status}
-                                        onChange={(e) => setSelectedTask({...selectedTask, status: e.target.value})}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                    >
-                                        <option value="pending">{t("معلقة")}</option>
-                                        <option value="in_progress">{t("جارية")}</option>
-                                        <option value="completed">{t("مكتملة")}</option>
-                                        <option value="overdue">{t("متأخرة")}</option>
-                                    </select>
-                                </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -986,7 +1051,7 @@ const handleAddTask = async () => {
 </div>
 </div>
 </div>
-)}
+                )}
 
 {/* Delete Confirmation Modal */}
     {deleteTaskModal && (
@@ -1005,7 +1070,7 @@ const handleAddTask = async () => {
                 </div>
                 <div className="p-6">
                     <p className="text-gray-700 dark:text-gray-300 mb-4">
-                        {t('هل أنت متأكد من أنك تريد حذف المهمة "{taskTitle}"؟ هذا الإجراء لا يمكن التراجع عنه.', {
+                        {t(`هل أنت متأكد من أنك تريد حذف المهمة ${selectedTask.title}؟ هذا الإجراء لا يمكن التراجع عنه.`, {
                             taskTitle: selectedTask?.title
                         })}
                     </p>

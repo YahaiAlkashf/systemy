@@ -85,16 +85,15 @@ class TaskCommands extends Command
     protected function formatTaskMessage($task, $type)
     {
         if ($type === 'reminder') {
-            return "📋 تذكير بمهمة مستحقة غداً\n\n" .
+            return "📋 تذكير بمهمة ستنتهى  غداً\n\n" .
                    "العنوان: {$task->title}\n" .
                    "الوصف: " . (strlen($task->description) > 50 ? substr($task->description, 0, 50) . '...' : $task->description) . "\n" .
-                   "تاريخ الاستحقاق: {$task->due_date}\n" .
-                   "الأولوية: {$task->priority}";
+                   "تاريخ الانتهاء: {$task->due_date}\n" ;
         } else {
             return "⚠️ تنبيه: مهمة متأخرة\n\n" .
                    "العنوان: {$task->title}\n" .
-                   "تاريخ الاستحقاق: {$task->due_date}\n" .
-                   "يرجى إكمال هذه المهمة في أقرب وقت ممكن";
+                   "تاريخ الانتهاء: {$task->due_date}\n" .
+                   "تم تسجيل المهمة متأخره";
         }
     }
 }

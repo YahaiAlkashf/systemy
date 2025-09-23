@@ -22,7 +22,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const sidebarWidth = isOpen ? "w-56" : "w-20";
     const { auth } = usePage().props;
     let navItems =[];
-    if(auth.user.role === 'superadmin'){
+    if(auth.user.role === 'superadmin' && auth.user.member.role === 'manager'){
              navItems = [
         { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {
@@ -66,7 +66,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             path: "/clubs/memberprofile",
         },
     ];
-    }else{
+    }else if( auth.user.member.role === 'manager'){
            navItems = [
         { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {
@@ -99,6 +99,36 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             icon: LinkIcon,
             path: "/clubs/api_access",
         },
+        {
+            name: t("الملف الشخصي"),
+            icon: UserIcon,
+            path: "/clubs/memberprofile",
+        },
+    ];
+    }else {
+        navItems = [
+        { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
+        {
+            name: t("المهام"),
+            icon: ClipboardDocumentListIcon,
+            path: "/clubs/tasks",
+        },
+        {
+            name: t("جدول المواعيد"),
+            icon: DocumentTextIcon,
+            path: "/clubs/schedule",
+        },
+        {
+            name: t("المكتبة"),
+            icon: BookOpenIcon,
+            path: "/clubs/resources",
+        },
+        {
+            name: t("مجموعة تواصل الاعضاء"),
+            icon: MegaphoneIcon,
+            path: "/clubs/companychat",
+        },
+
         {
             name: t("الملف الشخصي"),
             icon: UserIcon,

@@ -82,38 +82,38 @@ export default function AddUserModel({
         { code: "HU", name: t("المجر"), flag: "🇭🇺" },
     ];
 
-const allCategories = [
-    { id: "gym", label: t("جيم / لياقة"), icon: <Dumbbell className="w-6 h-6" />, system_type:"gym"},
-    { id: "real-estate", label: t("عقارات"), icon: <Home className="w-6 h-6" />, related: ["construction", "consultancy"], system_type:"realEstate" },
-    { id: "restaurant", label: t("مطاعم / كافيهات"), icon: <Coffee className="w-6 h-6" />, system_type:"retail" },
-    { id: "ecommerce", label: t("متجر إلكتروني"), icon: <ShoppingCart className="w-6 h-6" />, system_type:"retail" },
-    { id: "salon", label: t("صالون / تجميل"), icon: <Heart className="w-6 h-6" />, system_type:"services" },
-    { id: "events", label: t("تنظيم فعاليات"), icon: <Film className="w-6 h-6" />,system_type:"services" },
-    { id: "auto", label: t("ميكانيكا وورش"), icon: <Car className="w-6 h-6" />,system_type:"services" },
-    { id: "photography", label: t("تصوير فوتوغرافي"), icon: <UserPlus className="w-6 h-6" />,system_type:"retail" },
-    { id: "education", label: t("تعليم وتدريب"), icon: <BookOpen className="w-6 h-6" />,system_type:"education" },
-    { id: "hotel", label: t("فندق وإقامة"), icon: <Building className="w-6 h-6" />,system_type:"hotel" },
-    { id: "bakery", label: t("مخبوزات"), icon: <Coffee className="w-6 h-6" />,system_type:"retail" },
-    { id: "retail", label: t("تجزئة وبيع"), icon: <ShoppingCart className="w-6 h-6" />,system_type:"retail" },
-    { id: "healthcare", label: t("رعاية صحية"), icon: <Heart className="w-6 h-6" />,system_type:"services" },
-    { id: "logistics", label: t("لوجستيك وتوصيل"), icon: <Car className="w-6 h-6" />,system_type:"delivery" },
-    { id: "construction", label: t("إستشارات/إنشاءات"), icon: <Building className="w-6 h-6" />, related: ["real-estate", "consultancy"],system_type:"services" },
-    { id: "saas", label: t("SaaS وتطبيقات"), icon: <UserPlus className="w-6 h-6" />,system_type:"retail" },
-    { id: "marketing", label: t("وكالة تسويق"), icon: <Film className="w-6 h-6" /> ,system_type:"services"},
-    { id: "consultancy", label: t("استشارات"), icon: <UserPlus className="w-6 h-6" />, related: ["real-estate", "construction"],system_type:"services" },
-    { id: "fashion", label: t("موضة وأزياء"), icon: <ShoppingCart className="w-6 h-6" />,system_type:"retail" },
-    { id: "pharmacy", label: t("صيدلية"), icon: <Heart className="w-6 h-6" />,system_type:"retail" },
-    { id: "supermarket", label: t("سوبرماركت"), icon: <ShoppingCart className="w-6 h-6" />,system_type:"retail" },
-    { id: "sports", label: t("رياضة وبطولات"), icon: <Dumbbell className="w-6 h-6" />,system_type:"gym" },
-    { id: "travel", label: t("سياحة وسفر"), icon: <Home className="w-6 h-6" />,system_type:"travels" },
-    { id: "photostudio", label: t("استوديو تصوير"), icon: <UserPlus className="w-6 h-6" />,system_type:"retail" },
-    { id: "delivery", label: t("توصيل"), icon: <Car className="w-6 h-6" />,system_type:"delivery" },
-    { id: "cleaning", label: t("نظافة وخدمات"), icon: <Home className="w-6 h-6" />,system_type:"services" },
-    { id: "agriculture", label: t("زراعة"), icon: <Heart className="w-6 h-6" />,system_type:"retail" },
-    { id: "clubs", label: t("النوادى"), icon: <UsersIcon  className="w-6 h-6" />,system_type:"clubs" },
-    { id: "finance", label: t("خدمات مالية"), icon: <Building className="w-6 h-6" /> ,system_type:"services"}, // غير من code إلى id
-    { id: "jewelry", label: t("مجوهرات"), icon: <ShoppingCart className="w-6 h-6" /> ,system_type:"retail" }, // غير من code إلى id
-];
+    const allCategories = [
+        { id: "gym", label: t("جيم / لياقة"), icon: <Dumbbell className="w-6 h-6" />, system_type:"gym"},
+        { id: "real-estate", label: t("عقارات"), icon: <Home className="w-6 h-6" />, related: ["construction", "consultancy"], system_type:"realEstate" },
+        { id: "restaurant", label: t("مطاعم / كافيهات"), icon: <Coffee className="w-6 h-6" />, system_type:"retail" },
+        { id: "ecommerce", label: t("متجر إلكتروني"), icon: <ShoppingCart className="w-6 h-6" />, system_type:"retail" },
+        { id: "salon", label: t("صالون / تجميل"), icon: <Heart className="w-6 h-6" />, system_type:"services" },
+        { id: "events", label: t("تنظيم فعاليات"), icon: <Film className="w-6 h-6" />,system_type:"services" },
+        { id: "auto", label: t("ميكانيكا وورش"), icon: <Car className="w-6 h-6" />,system_type:"services" },
+        { id: "photography", label: t("تصوير فوتوغرافي"), icon: <UserPlus className="w-6 h-6" />,system_type:"retail" },
+        { id: "education", label: t("تعليم وتدريب"), icon: <BookOpen className="w-6 h-6" />,system_type:"education" },
+        { id: "hotel", label: t("فندق وإقامة"), icon: <Building className="w-6 h-6" />,system_type:"hotel" },
+        { id: "bakery", label: t("مخبوزات"), icon: <Coffee className="w-6 h-6" />,system_type:"retail" },
+        { id: "retail", label: t("تجزئة وبيع"), icon: <ShoppingCart className="w-6 h-6" />,system_type:"retail" },
+        { id: "healthcare", label: t("رعاية صحية"), icon: <Heart className="w-6 h-6" />,system_type:"services" },
+        { id: "logistics", label: t("لوجستيك وتوصيل"), icon: <Car className="w-6 h-6" />,system_type:"delivery" },
+        { id: "construction", label: t("إستشارات/إنشاءات"), icon: <Building className="w-6 h-6" />, related: ["real-estate", "consultancy"],system_type:"services" },
+        { id: "saas", label: t("SaaS وتطبيقات"), icon: <UserPlus className="w-6 h-6" />,system_type:"retail" },
+        { id: "marketing", label: t("وكالة تسويق"), icon: <Film className="w-6 h-6" /> ,system_type:"services"},
+        { id: "consultancy", label: t("استشارات"), icon: <UserPlus className="w-6 h-6" />, related: ["real-estate", "construction"],system_type:"services" },
+        { id: "fashion", label: t("موضة وأزياء"), icon: <ShoppingCart className="w-6 h-6" />,system_type:"retail" },
+        { id: "pharmacy", label: t("صيدلية"), icon: <Heart className="w-6 h-6" />,system_type:"retail" },
+        { id: "supermarket", label: t("سوبرماركت"), icon: <ShoppingCart className="w-6 h-6" />,system_type:"retail" },
+        { id: "sports", label: t("رياضة وبطولات"), icon: <Dumbbell className="w-6 h-6" />,system_type:"gym" },
+        { id: "travel", label: t("سياحة وسفر"), icon: <Home className="w-6 h-6" />,system_type:"travels" },
+        { id: "photostudio", label: t("استوديو تصوير"), icon: <UserPlus className="w-6 h-6" />,system_type:"retail" },
+        { id: "delivery", label: t("توصيل"), icon: <Car className="w-6 h-6" />,system_type:"delivery" },
+        { id: "cleaning", label: t("نظافة وخدمات"), icon: <Home className="w-6 h-6" />,system_type:"services" },
+        { id: "agriculture", label: t("زراعة"), icon: <Heart className="w-6 h-6" />,system_type:"retail" },
+        { id: "clubs", label: t("النوادى"), icon: <UsersIcon  className="w-6 h-6" />,system_type:"clubs" },
+        { id: "finance", label: t("خدمات مالية"), icon: <Building className="w-6 h-6" /> ,system_type:"services"}, // غير من code إلى id
+        { id: "jewelry", label: t("مجوهرات"), icon: <ShoppingCart className="w-6 h-6" /> ,system_type:"retail" }, // غير من code إلى id
+    ];
 
     const [selected, setSelected] = useState(customer?.system_type ? [customer.system_type] : []);
     const [query, setQuery] = useState("");
@@ -199,14 +199,14 @@ const submit = (e) => {
     }
 
     if (mode === "add") {
-        post(route("addUser"), {
-            data: formData,
+        post(route("addUser"), formData,{
             forceFormData: true,
             onSuccess: () => {
                 reset("password", "password_confirmation");
                 closeModal();
             },
         });
+        closeModal();
     showAllCustomers();
     } else if (mode === "edit" && customer) {
 
@@ -464,19 +464,10 @@ const submit = (e) => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between gap-3">
+                            <div  className="flex items-center justify-between gap-3">
                                 <PrimaryButton className="px-5 py-3 rounded-xl bg-purple-600 text-white font-medium shadow-md" disabled={processing}>
                                     {mode === "add" ? t("إنشاء حساب والانتقال") : t("تحديث البيانات")}
                                 </PrimaryButton>
-
-                                {mode === "add" && (
-                                    <Link
-                                        href={route("login")}
-                                        className="rounded-md text-sm text-gray-300 underline hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    >
-                                        {t("عندك حساب بالفعل؟")}
-                                    </Link>
-                                )}
                             </div>
                         </form>
                     </div>

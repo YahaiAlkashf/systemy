@@ -30,7 +30,7 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-$validator = Validator::make($request->all(), [
+    $validator = Validator::make($request->all(), [
     'title' => 'required|string|max:255',
     'description' => 'nullable|string',
     'assigned_to' => 'required|array',
@@ -192,21 +192,12 @@ $validator = Validator::make($request->all(), [
         ]);
     }
 
-    public function destroy(Task $task)
+    public function destroy( $id)
     {
-        if ($task->company_id !== Auth::user()->company_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح بحذف هذه المهمة'
-            ], 403);
-        }
+        $task = Task::where('id', $id)
+            ->where('company_id', Auth::user()->company_id)
+            ->firstOrFail();
 
-        if ($task->assigned_by !== Auth::id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح بحذف هذه المهمة'
-            ], 403);
-        }
 
         foreach ($task->files as $file) {
             Storage::disk('public')->delete($file->file_path);
