@@ -287,7 +287,6 @@ export default function Schedules() {
         return new Date(dateString).toLocaleDateString("ar-EG", options);
     };
 
-    // وظائف جديدة للتقويم
     const openCalendarModal = (type) => {
         setCalendarModal(type);
         setCurrentMonth(new Date());
@@ -303,7 +302,6 @@ export default function Schedules() {
         setSelectedDate(date);
         setCustomFilterActive(true);
         setViewType("custom");
-        // تطبيق الفلترة مباشرة بعد اختيار التاريخ
         applyCurrentFilter(events);
         setCalendarModal(false);
     };
@@ -313,7 +311,6 @@ export default function Schedules() {
         setSelectedYear(year);
         setCustomFilterActive(true);
         setViewType("month-custom");
-        // تطبيق الفلترة مباشرة بعد اختيار الشهر
         applyCurrentFilter(events);
         setCalendarModal(false);
     };
@@ -344,7 +341,6 @@ export default function Schedules() {
 
         const days = [];
 
-        // أيام الشهر السابق
         const prevMonthDays = getDaysInMonth(year, month - 1);
         for (let i = firstDay - 1; i >= 0; i--) {
             days.push({
@@ -353,7 +349,6 @@ export default function Schedules() {
             });
         }
 
-        // أيام الشهر الحالي
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
                 date: new Date(year, month, i),
@@ -361,8 +356,7 @@ export default function Schedules() {
             });
         }
 
-        // أيام الشهر التالي
-        const totalCells = 42; // 6 أسطر × 7 أيام
+        const totalCells = 42;
         const nextMonthDays = totalCells - days.length;
         for (let i = 1; i <= nextMonthDays; i++) {
             days.push({
@@ -380,7 +374,6 @@ export default function Schedules() {
         applyCurrentFilter(events);
     };
 
-    // إضافة useEffect لتطبيق الفلترة عند تغيير الأحداث
     useEffect(() => {
         applyCurrentFilter();
     }, [events, viewType, customFilterActive, selectedDate, selectedMonth, selectedYear]);
