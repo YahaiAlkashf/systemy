@@ -22,7 +22,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import SendMessageModal from "./components/sendMessageModel";
 
 export default function Members() {
-    const { app_url } = usePage().props;
+    const { app_url ,auth} = usePage().props;
     const { t } = useTranslation();
     const [selectedMember, setSelectedMember] = useState(null);
     const [addModal, setAddModal] = useState(false);
