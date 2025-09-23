@@ -320,8 +320,8 @@ export default function Members() {
     const indexOfLastMember = currentPage * rowsPerPage;
     const indexOfFirstMember = indexOfLastMember - rowsPerPage;
     const currentMembers = filteredMembers.slice(indexOfFirstMember, indexOfLastMember);
-
-    return (
+if(auth.user.add_members === 1 || auth.user.role === "superadmin"){
+       return (
         <AdminLayout>
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
                 <div className="flex flex-col gap-4 mb-4">
@@ -592,4 +592,6 @@ export default function Members() {
             </div>
         </AdminLayout>
     );
+}
+
 }

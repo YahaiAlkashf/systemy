@@ -22,7 +22,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const sidebarWidth = isOpen ? "w-56" : "w-20";
     const { auth } = usePage().props;
     let navItems =[];
-    if((auth.user.role === 'superadmin' || auth.user.system_type === 'manager' || auth.user.company.role === 'manager') ){
+    if((auth.user.role === 'superadmin') ){
     navItems = [
         { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {
