@@ -13,7 +13,8 @@ class RedirectIfAuthenticated
     {
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->hasVerifiedEmail()) {
+
+
                 if ($user->system_type === 'clubs') {
                     return redirect('/clubs');
                 } else if ($user->system_type === 'manager') {
@@ -23,9 +24,6 @@ class RedirectIfAuthenticated
                 } else {
                     return redirect('/');
                 }
-            }else{
-                return  redirect('/verify-email');
-            }
         }
 
         return $next($request);

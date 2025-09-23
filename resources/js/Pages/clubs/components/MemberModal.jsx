@@ -49,7 +49,7 @@ export default function MemberModal({
                         {t("البريد الإلكتروني")}
                     </label>
                     <input
-                        type="email"
+                        type="text"
                         value={member.email}
                         onChange={(e) => setMember({ ...member, email: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
@@ -64,7 +64,7 @@ export default function MemberModal({
                                 {t("كلمة المرور")}
                             </label>
                             <input
-                                type="password"
+                                type="text"
                                 value={member.password}
                                 onChange={(e) => setMember({ ...member, password: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
@@ -77,7 +77,7 @@ export default function MemberModal({
                                 {t("تأكيد كلمة المرور")}
                             </label>
                             <input
-                                type="password"
+                                type="text"
                                 value={member.password_confirmation}
                                 onChange={(e) => setMember({ ...member, password_confirmation: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
