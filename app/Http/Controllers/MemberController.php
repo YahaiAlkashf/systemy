@@ -109,7 +109,7 @@ class MemberController extends Controller
             'user_id' => $user->id,
             'member_id' => $request->member_id,
             'company_id' => Auth::user()->company_id,
-            'add_members'=>$request->add_members
+            'add_members' => $request->add_members ?? false
         ]);
 
         return response()->json([
@@ -195,7 +195,7 @@ class MemberController extends Controller
             'role' => $request->role,
             'rating' => $request->rating,
             'member_id' => $request->member_id,
-            'add_members'=>$request->add_members,
+           'add_members' => $request->add_members ?? false
         ]);
 
         return response()->json([
