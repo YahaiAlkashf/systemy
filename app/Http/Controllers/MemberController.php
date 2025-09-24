@@ -121,12 +121,7 @@ class MemberController extends Controller
 
     public function update(Request $request, Member $member)
     {
-        if (Auth::user()->company_id !== $member->company_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح بالتعديل على هذا العضو'
-            ], 403);
-        }
+
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -213,12 +208,7 @@ class MemberController extends Controller
     public function destroy($id)
     {
         $member = Member::findOrFail($id);
-        if (Auth::user()->company_id !== $member->company_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح بحذف هذا العضو'
-            ], 403);
-        }
+
         $user = User::findOrFail($member->user_id);
         if ($user->role == 'superadmin') {
             return response()->json(['error' => 'لا يمكن حذف هذا المستخدم'], 422);
