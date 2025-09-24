@@ -5,7 +5,6 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import en from "./locales/en.json";
 import ar from "./locales/ar.json";
 
-// الحصول على اللغة المحفوظة مسبقاً من localStorage
 const savedLanguage = localStorage.getItem("i18nextLng");
 
 i18n
@@ -17,7 +16,7 @@ i18n
       ar: { translation: ar }
     },
     fallbackLng: "ar",
-    lng: savedLanguage || "ar", 
+    lng: savedLanguage || "ar",
     interpolation: {
       escapeValue: false
     },
