@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminLayout from "./layout";
 import axios from "axios";
 import { usePage } from "@inertiajs/react";
@@ -60,6 +60,9 @@ export default function Members() {
     const roles = ["manager", "member"];
     const rowsPerPage = 10;
 
+    // استخدام useRef لتتبع إذا كان التحديث بسبب إجراء مستخدم
+    const isUserActionRef = useRef(false);
+
     const fetchMembersWithDetails = async () => {
         try {
             const response = await axios.get(`${app_url}/members-with-details`);
@@ -78,28 +81,30 @@ export default function Members() {
             console.log(t("Error fetching cycles:"), error);
         }
     };
-    const handleSendMessage = async () => {
-                console.log(messageForm);
-                try {
-                    await axios.post(`${app_url}/whatsapp/send`, {
-                        phone: selectedMember.phone,
-                        message: messageForm.message,
-                    });
-                    closeModal();
-                    setSendModal(false);
-                } catch (error) {
-                    console.log(error);
-                }
-            };
-    const handleSendMessageToMember = (member) => {
-            setSelectedMember(member);
-                setMessageForm({
-                    phone: member.phone,
-                    message: ""
-              });
-                setSendModal(true);
 
-        };
+    const handleSendMessage = async () => {
+        console.log(messageForm);
+        try {
+            await axios.post(`${app_url}/whatsapp/send`, {
+                phone: selectedMember.phone,
+                message: messageForm.message,
+            });
+            closeModal();
+            setSendModal(false);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleSendMessageToMember = (member) => {
+        setSelectedMember(member);
+        setMessageForm({
+            phone: member.phone,
+            message: ""
+        });
+        setSendModal(true);
+    };
+
     useEffect(() => {
         fetchMembersWithDetails();
         fetchCycles();
@@ -117,12 +122,33 @@ export default function Members() {
 
         result = sortMembers(result, sortBy);
         setFilteredMembers(result);
-        setCurrentPage(1);
+
+        // أعيد تعيين الصفحة فقط إذا كان الإجراء من المستخدم (بحث أو ترتيب)
+        if (isUserActionRef.current) {
+            setCurrentPage(1);
+            isUserActionRef.current = false; // إعادة تعيين العلامة
+        }
     }, [search, sortBy, members]);
 
-    const handleSortByTasks = () => setSortBy("completed_tasks");
-    const handleSortByAttendance = () => setSortBy("attended_events");
-    const handleSortByRank = () => setSortBy("total_score");
+    const handleSortByTasks = () => {
+        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        setSortBy("completed_tasks");
+    };
+
+    const handleSortByAttendance = () => {
+        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        setSortBy("attended_events");
+    };
+
+    const handleSortByRank = () => {
+        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        setSortBy("total_score");
+    };
+
+    const handleSearch = () => {
+        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        setCurrentPage(1);
+    };
 
     const sortMembers = (membersList, sortType) => {
         const sorted = [...membersList];
@@ -321,7 +347,7 @@ export default function Members() {
     const indexOfFirstMember = indexOfLastMember - rowsPerPage;
     const currentMembers = filteredMembers.slice(indexOfFirstMember, indexOfLastMember);
 
-       return (
+    return (
         <AdminLayout>
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
                 <div className="flex flex-col gap-4 mb-4">
@@ -345,8 +371,16 @@ export default function Members() {
 
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                         <div className="flex items-center w-full sm:w-auto">
-                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("بحث  عن عضو")} className="flex-1 px-3 py-2 border border-gray-300 rounded-r-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                            <button onClick={() => setCurrentPage(1)} className="px-4 py-2 bg-primary text-white rounded-l-lg hover:bg-primary-dark transition-colors border border-primary">{t("بحث")}</button>
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={t("بحث عن عضو")}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-r-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            />
+                            <button onClick={handleSearch} className="px-4 py-2 bg-primary text-white rounded-l-lg hover:bg-primary-dark transition-colors border border-primary">
+                                {t("بحث")}
+                            </button>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             <button onClick={handleExportPDF} className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
@@ -438,16 +472,12 @@ export default function Members() {
                                                 {t('إرسال إيميل')}
                                             </button>
                                             <button
-                                          onClick={() =>
-                                                    handleSendMessageToMember(
-                                                        member
-                                                    )
-                                                }
-                                                    className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors flex items-center gap-2"
-                                                >
-                                                    <FaWhatsapp className="text-green-600 text-lg" />
-                                                    {t('إرسال رسالة ')}
-                                                </button>
+                                                onClick={() => handleSendMessageToMember(member)}
+                                                className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors flex items-center gap-2"
+                                            >
+                                                <FaWhatsapp className="text-green-600 text-lg" />
+                                                {t('إرسال رسالة ')}
+                                            </button>
                                             <button onClick={() => handleEditMember(member)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors">
                                                 <PencilIcon className="h-4 w-4" />
                                             </button>
@@ -577,18 +607,17 @@ export default function Members() {
                 </div>
             </div>
             )}
-                                {sendModal && (
-                                    <SendMessageModal
-                                        messageForm={messageForm}
-                                        setMessageForm={setMessageForm}
-                                        member={selectedMember}
-                                        closeModal={closeModal}
-                                        handleSendMessage={handleSendMessage}
-
-                                    />
-                                )}
-                {activitiesModal && selectedMember && <ActivitiesModal member={selectedMember} closeModal={closeModal} />}
-                {tasksModal && selectedMember && <TasksModal member={selectedMember} closeModal={closeModal} />}
+            {sendModal && (
+                <SendMessageModal
+                    messageForm={messageForm}
+                    setMessageForm={setMessageForm}
+                    member={selectedMember}
+                    closeModal={closeModal}
+                    handleSendMessage={handleSendMessage}
+                />
+            )}
+            {activitiesModal && selectedMember && <ActivitiesModal member={selectedMember} closeModal={closeModal} />}
+            {tasksModal && selectedMember && <TasksModal member={selectedMember} closeModal={closeModal} />}
             </div>
         </AdminLayout>
     );
