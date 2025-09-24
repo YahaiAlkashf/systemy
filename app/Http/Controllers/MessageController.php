@@ -57,7 +57,7 @@ class MessageController extends Controller
     {
        $user = Auth::user();
         $message=Message::findOrFail($id);
-        if ($user->member->role !== 'manager' && $message->user_id !== $user->id && $user->company_id !== $message->company_id) {
+        if ($user->member->role !== 'manager'  && $user->company_id !== $message->company_id) {
             return response()->json([
                 'message' => 'غير مصرح لك بحذف هذه الرسالة'
             ], 403);
