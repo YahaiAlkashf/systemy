@@ -363,22 +363,30 @@ const handleEditTask = async () => {
         }
     };
 
-    const openEditModal = (task) => {
-        setSelectedTask(task);
-        if(task.task_id){
-            const assignedMember = tasks.filter(
-                (t) => t.task_id === task.task_id
-            ).map((t) => (t.assigned_to));
-            setSelectedMemberEdit(assignedMember || null);
-        }else{
-            const assignedMember = members.find(
-                (member) => member.user_id === task.assigned_to
-            );
-                    setSelectedMemberEdit(assignedMember || null);
-        }
+const openEditModal = (task) => {
+    setSelectedTask(task);
 
-        setEditTaskModal(true);
-    };
+    if(task.task_id){
+        // للمهام الجماعية: نجمع كل assigned_to من كل المهام في المجموعة
+        const groupTasks = tasks.filter((t) => t.task_id === task.task_id);
+        const assignedUserIds = groupTasks.map((t) => t.assigned_to).filter(Boolean);
+
+        setSelectedTask({
+            ...task,
+            assigned_to: assignedUserIds, // array من كل الـ user_ids
+        });
+    } else {
+        // للمهام الفردية: نستخدم assigned_to كما هو
+        const assignedUserIds = task.assigned_to ? [task.assigned_to] : [];
+
+        setSelectedTask({
+            ...task,
+            assigned_to: assignedUserIds,
+        });
+    }
+
+    setEditTaskModal(true);
+};
 
     const openDeleteModal = (task) => {
         setSelectedTask(task);
@@ -1234,330 +1242,330 @@ const handleEditTask = async () => {
                 )}
 
 {/* Edit Task Modal */}
-{editTaskModal && selectedTask && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    {t("تعديل المهمة")}
-                </h3>
-                <button
-                    onClick={() => {
-                        setEditTaskModal(false);
-                        setSelectedMemberEdit(null);
-                        setMemberNameSearch("");
-                        setMemberIdSearch("");
-                    }}
-                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
-                >
-                    <XMarkIcon className="h-6 w-6" />
-                </button>
-            </div>
-            <div className="p-6 space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("عنوان المهمة")}
-                    </label>
-                    <input
-                        type="text"
-                        value={selectedTask.title}
-                        onChange={(e) =>
-                            setSelectedTask({
-                                ...selectedTask,
-                                title: e.target.value,
-                            })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("وصف المهمة")}
-                    </label>
-                    <textarea
-                        value={selectedTask.description}
-                        onChange={(e) =>
-                            setSelectedTask({
-                                ...selectedTask,
-                                description: e.target.value,
-                            })
-                        }
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("اختيار العضو")}
-                    </label>
-                    <div>
-                        <button
-                            className="bg-primary dark:bg-primary-dark text-white rounded-md p-4 m-2"
-                            onClick={() => handelSelectedAllEdit()}
-                        >
-                            {t("تحديد الكل")}
-                        </button>
-                        <select
-                            className="bg-primary px-8 dark:bg-primary-dark text-white rounded-md py-2 m-2"
-                            onChange={(e) => handelSelectedcycleEdit(e.target.value)}
-                            defaultValue=""
-                        >
-                            <option value="" >
-                                {t("تحديد حسب المسمى الوظيفى")}
-                            </option>
-                            {cycles?.map((cycle) => (
-                                <option key={cycle.id} value={cycle.id}>
-                                    {cycle.name}
-                                </option>
-                            ))}
-                        </select>
-                        <select
-                            className="bg-primary dark:bg-primary-dark px-8 text-white rounded-md py-2 m-2"
-                            onChange={(e) => handelSelectedroleEdit(e.target.value)}
-                            defaultValue=""
-                        >
-                            <option value="" >
-                                {t("تحديد حسب الرتبة")}
-                            </option>
-                            <option value="member">members</option>
-                            <option value="manager">managers</option>
-                        </select>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        <div className="relative">
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                {editTaskModal && selectedTask && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                    {t("تعديل المهمة")}
+                                </h3>
+                                <button
+                                    onClick={() => {
+                                        setEditTaskModal(false);
+                                        setSelectedMemberEdit(null);
+                                        setMemberNameSearch("");
+                                        setMemberIdSearch("");
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
                             </div>
-                            <input
-                                type="text"
-                                placeholder={t("البحث بالاسم...")}
-                                value={memberNameSearch}
-                                onChange={(e) => setMemberNameSearch(e.target.value)}
-                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            />
-                        </div>
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("عنوان المهمة")}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={selectedTask.title}
+                                        onChange={(e) =>
+                                            setSelectedTask({
+                                                ...selectedTask,
+                                                title: e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
 
-                        <div className="relative">
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder={t("البحث برقم العضوية...")}
-                                value={memberIdSearch}
-                                onChange={(e) => setMemberIdSearch(e.target.value)}
-                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            />
-                        </div>
-                    </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("وصف المهمة")}
+                                    </label>
+                                    <textarea
+                                        value={selectedTask.description}
+                                        onChange={(e) =>
+                                            setSelectedTask({
+                                                ...selectedTask,
+                                                description: e.target.value,
+                                            })
+                                        }
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
 
-                    <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-700 max-h-60 overflow-y-auto">
-                        {filteredMembers.length > 0 ? (
-                            <div className="space-y-2">
-                                {filteredMembers.map((member) => {
-                                    const currentAssignees = Array.isArray(selectedTask.assigned_to)
-                                        ? selectedTask.assigned_to
-                                        : (selectedTask.assigned_to ? [selectedTask.assigned_to] : []);
-
-                                    const isSelected = currentAssignees.includes(member.user_id);
-
-                                    return (
-                                        <div
-                                            key={member.id}
-                                            className={`flex items-center justify-between p-2 rounded cursor-pointer ${
-                                                isSelected
-                                                    ? "bg-primary-100 border border-primary-300 dark:bg-primary-900 dark:border-primary-700"
-                                                    : "hover:bg-gray-100 dark:hover:bg-gray-600"
-                                            }`}
-                                            onClick={() => {
-                                                const updatedAssignees = isSelected
-                                                    ? currentAssignees.filter(id => id !== member.user_id)
-                                                    : [...currentAssignees, member.user_id];
-
-                                                setSelectedTask({
-                                                    ...selectedTask,
-                                                    assigned_to: updatedAssignees,
-                                                });
-                                            }}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("اختيار العضو")}
+                                    </label>
+                                    <div>
+                                        <button
+                                            className="bg-primary dark:bg-primary-dark text-white rounded-md p-4 m-2"
+                                            onClick={() => handelSelectedAllEdit()}
                                         >
-                                            <div className="flex items-center">
-                                                <div className="ml-3">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                        {member.name}
+                                            {t("تحديد الكل")}
+                                        </button>
+                                        <select
+                                            className="bg-primary px-8 dark:bg-primary-dark text-white rounded-md py-2 m-2"
+                                            onChange={(e) => handelSelectedcycleEdit(e.target.value)}
+                                            defaultValue=""
+                                        >
+                                            <option value="" >
+                                                {t("تحديد حسب المسمى الوظيفى")}
+                                            </option>
+                                            {cycles?.map((cycle) => (
+                                                <option key={cycle.id} value={cycle.id}>
+                                                    {cycle.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            className="bg-primary dark:bg-primary-dark px-8 text-white rounded-md py-2 m-2"
+                                            onChange={(e) => handelSelectedroleEdit(e.target.value)}
+                                            defaultValue=""
+                                        >
+                                            <option value="" >
+                                                {t("تحديد حسب الرتبة")}
+                                            </option>
+                                            <option value="member">members</option>
+                                            <option value="manager">managers</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder={t("البحث بالاسم...")}
+                                                value={memberNameSearch}
+                                                onChange={(e) => setMemberNameSearch(e.target.value)}
+                                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            />
+                                        </div>
+
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder={t("البحث برقم العضوية...")}
+                                                value={memberIdSearch}
+                                                onChange={(e) => setMemberIdSearch(e.target.value)}
+                                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-700 max-h-60 overflow-y-auto">
+                                        {filteredMembers.length > 0 ? (
+                                            <div className="space-y-2">
+                                                {filteredMembers.map((member) => {
+                                                    const currentAssignees = Array.isArray(selectedTask.assigned_to)
+                                                        ? selectedTask.assigned_to
+                                                        : (selectedTask.assigned_to ? [selectedTask.assigned_to] : []);
+
+                                                    const isSelected = currentAssignees.includes(member.user_id);
+
+                                                    return (
+                                                        <div
+                                                            key={member.id}
+                                                            className={`flex items-center justify-between p-2 rounded cursor-pointer ${
+                                                                isSelected
+                                                                    ? "bg-primary-100 border border-primary-300 dark:bg-primary-900 dark:border-primary-700"
+                                                                    : "hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                            }`}
+                                                            onClick={() => {
+                                                                const updatedAssignees = isSelected
+                                                                    ? currentAssignees.filter(id => id !== member.user_id)
+                                                                    : [...currentAssignees, member.user_id];
+
+                                                                setSelectedTask({
+                                                                    ...selectedTask,
+                                                                    assigned_to: updatedAssignees,
+                                                                });
+                                                            }}
+                                                        >
+                                                            <div className="flex items-center">
+                                                                <div className="ml-3">
+                                                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                        {member.name}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                        {t("رقم العضوية:")} {member.member_id || t("غير محدد")} | {member.role?.name || t("بدور")}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {isSelected && (
+                                                                <CheckCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                                                {t("لا توجد نتائج")}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {selectedTask.assigned_to && selectedTask.assigned_to.length > 0 && (
+                                        <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                                                        {t("الأعضاء المحددون:")} {selectedTask.assigned_to.length}
+                                                    </p>
+                                                    <p className="text-xs text-green-600 dark:text-green-400">
+                                                        {selectedTask.assigned_to.map(userId => {
+                                                            const member = members.find(m => m.user_id === userId);
+                                                            return member?.name;
+                                                        }).filter(Boolean).join('، ')}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedTask({
+                                                            ...selectedTask,
+                                                            assigned_to: [],
+                                                        });
+                                                    }}
+                                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                                >
+                                                    <XMarkIcon className="h-5 w-5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("تاريخ التسليم")}
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={selectedTask.due_date}
+                                        onChange={(e) =>
+                                            setSelectedTask({
+                                                ...selectedTask,
+                                                due_date: e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("الملفات الحالية")}
+                                    </label>
+                                    <div className="space-y-2">
+                                        {selectedTask.files && selectedTask.files.length > 0 ? (
+                                            selectedTask.files.map((file, index) => (
+                                                <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                                                    <div className="flex items-center">
+                                                        <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                        <span className="text-sm">{file.file_name}</span>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                        {t("رقم العضوية:")} {member.member_id || t("غير محدد")} | {member.role?.name || t("بدور")}
+                                                    <div className="flex items-center space-x-2">
+                                                        <a
+                                                            href={`${app_url}/storage/${file.file_path}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            <EyeIcon className="h-4 w-4" />
+                                                        </a>
+                                                        <button
+                                                            onClick={() => handleRemoveExistingFile(file.id)}
+                                                            className="text-red-600 hover:text-red-800"
+                                                        >
+                                                            <XMarkIcon className="h-4 w-4" />
+                                                        </button>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            {isSelected && (
-                                                <CheckCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                                {t("لا توجد نتائج")}
-                            </div>
-                        )}
-                    </div>
-
-                    {selectedTask.assigned_to && selectedTask.assigned_to.length > 0 && (
-                        <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
-                                        {t("الأعضاء المحددون:")} {selectedTask.assigned_to.length}
-                                    </p>
-                                    <p className="text-xs text-green-600 dark:text-green-400">
-                                        {selectedTask.assigned_to.map(userId => {
-                                            const member = members.find(m => m.user_id === userId);
-                                            return member?.name;
-                                        }).filter(Boolean).join('، ')}
-                                    </p>
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-500 text-sm">{t("لا توجد ملفات مرفقة")}</p>
+                                        )}
+                                    </div>
                                 </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("إضافة ملفات جديدة")}
+                                    </label>
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                        <input
+                                            type="file"
+                                            multiple
+                                            onChange={(e) => handleFileUpload(e, true)}
+                                            className="hidden"
+                                            id="file-upload-edit"
+                                        />
+                                        <label
+                                            htmlFor="file-upload-edit"
+                                            className="cursor-pointer text-primary hover:text-primary-dark"
+                                        >
+                                            <PaperClipIcon className="h-8 w-8 mx-auto mb-2" />
+                                            <span>{t("انقر لرفع الملفات أو اسحبها هنا")}</span>
+                                        </label>
+                                    </div>
+                                    <div className="mt-2 space-y-2">
+                                        {editFileUploads.map((file, index) => (
+                                            <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                                                <span className="text-sm">{file.name}</span>
+                                                <button
+                                                    onClick={() => removeFile(index, true)}
+                                                    className="text-red-600"
+                                                >
+                                                    <XMarkIcon className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {errors && Object.entries(errors).map(([field, msgs], i) => (
+                                <div key={i} className="bg-red-100 text-red-700 p-2 rounded mb-1 text-sm mx-6">
+                                    {msgs.map((msg, j) => (
+                                        <p key={j}>{msg}</p>
+                                    ))}
+                                </div>
+                            ))}
+
+                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                                 <button
-                                    type="button"
                                     onClick={() => {
-                                        setSelectedTask({
-                                            ...selectedTask,
-                                            assigned_to: [],
-                                        });
+                                        setEditTaskModal(false);
+                                        setSelectedMemberEdit(null);
+                                        setMemberNameSearch("");
+                                        setMemberIdSearch("");
                                     }}
-                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                                 >
-                                    <XMarkIcon className="h-5 w-5" />
+                                    {t("إلغاء")}
+                                </button>
+                                <button
+                                    onClick={handleEditTask}
+                                    disabled={loading}
+                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? t("جاري التعديل...") : t("حفظ التعديلات")}
                                 </button>
                             </div>
                         </div>
-                    )}
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("تاريخ التسليم")}
-                    </label>
-                    <input
-                        type="date"
-                        value={selectedTask.due_date}
-                        onChange={(e) =>
-                            setSelectedTask({
-                                ...selectedTask,
-                                due_date: e.target.value,
-                            })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("الملفات الحالية")}
-                    </label>
-                    <div className="space-y-2">
-                        {selectedTask.files && selectedTask.files.length > 0 ? (
-                            selectedTask.files.map((file, index) => (
-                                <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
-                                    <div className="flex items-center">
-                                        <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
-                                        <span className="text-sm">{file.file_name}</span>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <a
-                                            href={`${app_url}/storage/${file.file_path}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800"
-                                        >
-                                            <EyeIcon className="h-4 w-4" />
-                                        </a>
-                                        <button
-                                            onClick={() => handleRemoveExistingFile(file.id)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            <XMarkIcon className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-gray-500 text-sm">{t("لا توجد ملفات مرفقة")}</p>
-                        )}
                     </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("إضافة ملفات جديدة")}
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <input
-                            type="file"
-                            multiple
-                            onChange={(e) => handleFileUpload(e, true)}
-                            className="hidden"
-                            id="file-upload-edit"
-                        />
-                        <label
-                            htmlFor="file-upload-edit"
-                            className="cursor-pointer text-primary hover:text-primary-dark"
-                        >
-                            <PaperClipIcon className="h-8 w-8 mx-auto mb-2" />
-                            <span>{t("انقر لرفع الملفات أو اسحبها هنا")}</span>
-                        </label>
-                    </div>
-                    <div className="mt-2 space-y-2">
-                        {editFileUploads.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
-                                <span className="text-sm">{file.name}</span>
-                                <button
-                                    onClick={() => removeFile(index, true)}
-                                    className="text-red-600"
-                                >
-                                    <XMarkIcon className="h-4 w-4" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {errors && Object.entries(errors).map(([field, msgs], i) => (
-                <div key={i} className="bg-red-100 text-red-700 p-2 rounded mb-1 text-sm mx-6">
-                    {msgs.map((msg, j) => (
-                        <p key={j}>{msg}</p>
-                    ))}
-                </div>
-            ))}
-
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
-                <button
-                    onClick={() => {
-                        setEditTaskModal(false);
-                        setSelectedMemberEdit(null);
-                        setMemberNameSearch("");
-                        setMemberIdSearch("");
-                    }}
-                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                >
-                    {t("إلغاء")}
-                </button>
-                <button
-                    onClick={handleEditTask}
-                    disabled={loading}
-                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {loading ? t("جاري التعديل...") : t("حفظ التعديلات")}
-                </button>
-            </div>
-        </div>
-    </div>
-)}
+                )}
 
                 {/* Delete Confirmation Modal */}
                 {deleteTaskModal && (
