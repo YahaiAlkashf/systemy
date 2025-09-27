@@ -17,11 +17,11 @@ class TaskController extends Controller
     {
         $user = Auth::user();
 
-        $tasks = Task::with(['files','assigner','assignee'])
+        $tasks = Task::with(['files', 'assigner', 'assignee'])
             ->where('company_id', $user->company_id)
-            ->where(function($query) use ($user) {
+            ->where(function ($query) use ($user) {
                 $query->where('assigned_to', $user->id)
-                      ->orWhere('assigned_by', $user->id);
+                    ->orWhere('assigned_by', $user->id);
             })
             ->get();
 
@@ -30,30 +30,30 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-    $validator = Validator::make($request->all(), [
-    'title' => 'required|string|max:255',
-    'description' => 'nullable|string',
-    'assigned_to' => 'required|array',
-    'assigned_to.*' => 'required|exists:users,id',
-    'due_date' => 'required|date|after_or_equal:today',
-    'files.*' => 'nullable|file|max:40960',
-], [
-    'title.required' => 'العنوان مطلوب',
-    'title.string' => 'العنوان يجب أن يكون نصًا',
-    'title.max' => 'العنوان يجب ألا يزيد عن 255 حرفًا',
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'assigned_to' => 'required|array',
+            'assigned_to.*' => 'required|exists:users,id',
+            'due_date' => 'required|date|after_or_equal:today',
+            'files.*' => 'nullable|file|max:40960',
+        ], [
+            'title.required' => 'العنوان مطلوب',
+            'title.string' => 'العنوان يجب أن يكون نصًا',
+            'title.max' => 'العنوان يجب ألا يزيد عن 255 حرفًا',
 
-    'description.string' => 'الوصف يجب أن يكون نصًا',
+            'description.string' => 'الوصف يجب أن يكون نصًا',
 
-    'assigned_to.required' => 'يجب تحديد المسؤول',
-    'assigned_to.exists' => 'المسؤول المحدد غير موجود',
+            'assigned_to.required' => 'يجب تحديد المسؤول',
+            'assigned_to.exists' => 'المسؤول المحدد غير موجود',
 
-    'due_date.required' => 'تاريخ الاستحقاق مطلوب',
-    'due_date.date' => 'تاريخ الاستحقاق غير صالح',
-    'due_date.after_or_equal' => 'تاريخ الاستحقاق يجب أن يكون اليوم أو بعده',
+            'due_date.required' => 'تاريخ الاستحقاق مطلوب',
+            'due_date.date' => 'تاريخ الاستحقاق غير صالح',
+            'due_date.after_or_equal' => 'تاريخ الاستحقاق يجب أن يكون اليوم أو بعده',
 
-    'files.*.file' => 'يجب أن يكون العنصر ملفًا صالحًا',
-    'files.*.max' => 'حجم الملف لا يجب أن يتجاوز 40 ميجابايت',
-]);
+            'files.*.file' => 'يجب أن يكون العنصر ملفًا صالحًا',
+            'files.*.max' => 'حجم الملف لا يجب أن يتجاوز 40 ميجابايت',
+        ]);
 
 
         if ($validator->fails()) {
@@ -62,34 +62,53 @@ class TaskController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-        foreach($request->assigned_to as $user_id){
+        $arr = count($request->assigned_to);
+        $countTasks = Task::where('company_id', Auth::user()->company_id)
+         ->max('task_id');
+
+        $newTaskId = $countTasks ? $countTasks + 1 : 1;
+        $countTasks = Task::where('company_id', Auth::user()->company_id)->count();
+
+        foreach ($request->assigned_to as $user_id) {
             $user = User::findOrFail($user_id);
-         $assignedUser = User::findOrFail($user_id);
-        if ($assignedUser->company_id !== Auth::user()->company_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'لا يمكن تعيين المهمة لمستخدم من شركة أخرى'
-            ], 403);
-        }
+            $assignedUser = User::findOrFail($user_id);
+            if ($assignedUser->company_id !== Auth::user()->company_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يمكن تعيين المهمة لمستخدم من شركة أخرى'
+                ], 403);
+            }
+            if ($arr > 1) {
+                $task = Task::create([
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'assigned_to' => $user_id,
+                    'assigned_by' => Auth::id(),
+                    'due_date' => $request->due_date,
+                    'status' => 'pending',
+                    'company_id' => Auth::user()->company_id,
+                    'task_id' => $newTaskId,
+                ]);
+            } else {
+                $task = Task::create([
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'assigned_to' => $user_id,
+                    'assigned_by' => Auth::id(),
+                    'due_date' => $request->due_date,
+                    'status' => 'pending',
+                    'company_id' => Auth::user()->company_id,
+                ]);
+            }
 
-        $task = Task::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'assigned_to' => $user_id,
-            'assigned_by' => Auth::id(),
-            'due_date' => $request->due_date,
-            'status' => 'pending',
-            'company_id' => Auth::user()->company_id,
-        ]);
 
 
-        $user = User::find($user_id);
+            $user = User::find($user_id);
 
-        if($user && $user->email){
-            Mail::to($user->email)->send(new TaskAssignedMail($task,$user));
-        }
-        }
-        if ($request->hasFile('files')) {
+            if ($user && $user->email) {
+                Mail::to($user->email)->send(new TaskAssignedMail($task, $user));
+            }
+                    if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
                 $path = $file->store("tasks/{$task->id}", 'public');
 
@@ -101,6 +120,8 @@ class TaskController extends Controller
                 ]);
             }
         }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'تم إنشاء المهمة بنجاح',
@@ -108,52 +129,83 @@ class TaskController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, $id)
-    {
-        $task = Task::where('id', $id)
+ public function update(Request $request, $id)
+{
+    $originalTask = Task::where('id', $id)
+        ->where('company_id', Auth::user()->company_id)
+        ->firstOrFail();
+
+    if ($originalTask->assigned_by !== Auth::id()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'غير مصرح بتعديل هذه المهمة'
+        ], 403);
+    }
+
+    $validator = Validator::make($request->all(), [
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'assigned_to' => 'required|array',
+        'assigned_to.*' => 'required|exists:users,id',
+        'due_date' => 'required|date|after_or_equal:today',
+        'files.*' => 'nullable|file|max:40960',
+    ], [
+        'title.required' => 'العنوان مطلوب',
+        'title.string' => 'العنوان يجب أن يكون نصًا',
+        'title.max' => 'العنوان يجب ألا يزيد عن 255 حرفًا',
+
+        'description.string' => 'الوصف يجب أن يكون نصًا',
+
+        'assigned_to.required' => 'يجب تحديد المسؤول',
+        'assigned_to.exists' => 'المسؤول المحدد غير موجود',
+
+        'due_date.required' => 'تاريخ الاستحقاق مطلوب',
+        'due_date.date' => 'تاريخ الاستحقاق غير صالح',
+        'due_date.after_or_equal' => 'تاريخ الاستحقاق يجب أن يكون اليوم أو بعده',
+
+        'files.*.file' => 'يجب أن يكون العنصر ملفًا صالحًا',
+        'files.*.max' => 'حجم الملف لا يجب أن يتجاوز 40 ميجابايت',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    $arr = count($request->assigned_to);
+
+    $taskIdToUse = $originalTask->task_id;
+    if ($arr > 1 && !$originalTask->task_id) {
+        $maxTaskId = Task::where('company_id', Auth::user()->company_id)->max('task_id');
+        $taskIdToUse = $maxTaskId ? $maxTaskId + 1 : 1;
+    }
+
+    if ($originalTask->task_id) {
+        $groupTasks = Task::where('task_id', $originalTask->task_id)
             ->where('company_id', Auth::user()->company_id)
-            ->firstOrFail();
+            ->get();
 
-        if ($task->assigned_by !== Auth::id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح بتعديل هذه المهمة'
-            ], 403);
+        foreach ($groupTasks as $groupTask) {
+            foreach ($groupTask->files as $file) {
+                Storage::disk('public')->delete($file->file_path);
+                $file->delete();
+            }
+            $groupTask->delete();
         }
-
-$validator = Validator::make($request->all(), [
-    'title' => 'required|string|max:255',
-    'description' => 'nullable|string',
-    'assigned_to' => 'required|exists:users,id',
-    'due_date' => 'required|date|after_or_equal:today',
-    'files.*' => 'nullable|file|max:40960',
-], [
-    'title.required' => 'العنوان مطلوب',
-    'title.string' => 'العنوان يجب أن يكون نصًا',
-    'title.max' => 'العنوان يجب ألا يزيد عن 255 حرفًا',
-
-    'description.string' => 'الوصف يجب أن يكون نصًا',
-
-    'assigned_to.required' => 'يجب تحديد المسؤول',
-    'assigned_to.exists' => 'المسؤول المحدد غير موجود',
-
-    'due_date.required' => 'تاريخ الاستحقاق مطلوب',
-    'due_date.date' => 'تاريخ الاستحقاق غير صالح',
-    'due_date.after_or_equal' => 'تاريخ الاستحقاق يجب أن يكون اليوم أو بعده',
-
-    'files.*.file' => 'يجب أن يكون العنصر ملفًا صالحًا',
-    'files.*.max' => 'حجم الملف لا يجب أن يتجاوز 40 ميجابايت',
-]);
-
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+    } else {
+        foreach ($originalTask->files as $file) {
+            Storage::disk('public')->delete($file->file_path);
+            $file->delete();
         }
+        $originalTask->delete();
+    }
 
-        $assignedUser = User::findOrFail($request->assigned_to);
+    $createdTasks = [];
+
+    foreach ($request->assigned_to as $user_id) {
+        $assignedUser = User::findOrFail($user_id);
         if ($assignedUser->company_id !== Auth::user()->company_id) {
             return response()->json([
                 'success' => false,
@@ -161,19 +213,29 @@ $validator = Validator::make($request->all(), [
             ], 403);
         }
 
-        $task->update([
+        $taskData = [
             'title' => $request->title,
             'description' => $request->description,
-            'assigned_to' => $request->assigned_to,
+            'assigned_to' => $user_id,
+            'assigned_by' => Auth::id(),
             'due_date' => $request->due_date,
-        ]);
+            'status' => 'pending',
+            'company_id' => Auth::user()->company_id,
+        ];
+
+        if ($arr > 1) {
+            $taskData['task_id'] = $taskIdToUse;
+        }
+
+        $task = Task::create($taskData);
+        $createdTasks[] = $task;
+
+        $user = User::find($user_id);
+        if ($user && $user->email) {
+            Mail::to($user->email)->send(new TaskAssignedMail($task, $user));
+        }
 
         if ($request->hasFile('files')) {
-            foreach ($task->files as $file) {
-                Storage::disk('public')->delete($file->file_path);
-                $file->delete();
-            }
-
             foreach ($request->file('files') as $file) {
                 $path = $file->store("tasks/{$task->id}", 'public');
 
@@ -185,25 +247,40 @@ $validator = Validator::make($request->all(), [
                 ]);
             }
         }
-
-        return response()->json([
-            'message' => 'تم تحديث المهمة بنجاح',
-            'task' => $task->load('assignee')
-        ]);
     }
 
-    public function destroy( $id)
+    return response()->json([
+        'success' => true,
+        'message' => 'تم تحديث المهمة بنجاح',
+        'tasks' => $createdTasks
+    ]);
+}
+
+    public function destroy($id)
     {
         $task = Task::where('id', $id)
             ->where('company_id', Auth::user()->company_id)
             ->firstOrFail();
 
-
-        foreach ($task->files as $file) {
-            Storage::disk('public')->delete($file->file_path);
-            $file->delete();
+        if($task->task_id ){
+            $tasks=Task::where('company_id', Auth::user()->company_id)->where('task_id', $task->task_id)->get();
+            foreach ($tasks as $task) {
+                foreach ($task->files as $file) {
+                 Storage::disk('public')->delete($file->file_path);
+                $file->delete();
+            }
+            $task->delete();
         }
-        $task->delete();
+        }else{
+            foreach ($task->files as $file) {
+                Storage::disk('public')->delete($file->file_path);
+                $file->delete();
+            }
+             $task->delete();
+        }
+
+
+
 
         return response()->json([
             'success' => true,

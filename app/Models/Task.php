@@ -17,7 +17,8 @@ class Task extends Model
         'assigned_to',
         'due_date',
         'status',
-        'company_id'
+        'company_id',
+        'task_id'
     ];
 
    public $timestamps = false;

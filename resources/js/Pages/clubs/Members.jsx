@@ -60,7 +60,6 @@ export default function Members() {
     const roles = ["manager", "member"];
     const rowsPerPage = 10;
 
-    // استخدام useRef لتتبع إذا كان التحديث بسبب إجراء مستخدم
     const isUserActionRef = useRef(false);
 
     const fetchMembersWithDetails = async () => {
