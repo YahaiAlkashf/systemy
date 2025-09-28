@@ -563,7 +563,7 @@ const openEditModal = (task) => {
                                                 {getStatusBadge(task.status)}
                                             </div>
                                         </div>
-                                        {task.status !== "completed" && (
+                                        {t(task.status !== "completed" && task.status !== "overdue" ) &&  (
                                             <button
                                                 onClick={() =>
                                                     handleTaskStatusChange(
@@ -1674,7 +1674,7 @@ const openEditModal = (task) => {
                                             {getStatusBadge(task.status)}
                                         </div>
                                     </div>
-                                    {task.status !== "completed" && (
+                                    {(task.status !== "completed" && task.status !== "overdue" )&& (
                                         <button
                                             onClick={() =>
                                                 handleTaskStatusChange(
