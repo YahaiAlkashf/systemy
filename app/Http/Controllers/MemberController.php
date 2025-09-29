@@ -482,70 +482,101 @@ class MemberController extends Controller
         exit;
     }
 
-    public function exportExcel(Request $request)
-    {
-        $sortBy = $request->get('sort_by', 'default');
-        $search = $request->get('search', '');
+public function exportExcel(Request $request)
+{
+    $sortBy = $request->get('sort_by', 'default');
+    $search = $request->get('search', '');
 
-        $members = $this->getFilteredMembers($sortBy, $search);
+    $members = $this->getFilteredMembers($sortBy, $search);
 
-        $fileName = 'أعضاء_' . date('Y-m-d') . '.xlsx';
+    $fileName = 'أعضاء_' . date('Y-m-d') . '.xlsx';
 
-        $spreadsheet = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-            <Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:x=\"urn:schemas-microsoft-com:office:excel\"
-                    xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:html=\"http://www.w3.org/TR/REC-html40\">
-            <Worksheet ss:Name=\"الأعضاء\">
-            <Table>
-            <Row>
-                <Cell><Data ss:Type=\"String\">#</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الاسم</Data></Cell>
-                <Cell><Data ss:Type=\"String\">البريد الإلكتروني</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الدور</Data></Cell>
-                <Cell><Data ss:Type=\"String\">رقم التليفون</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الرقم التعريفى (ID)</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الرتبة</Data></Cell>
-                <Cell><Data ss:Type=\"String\">التقييم</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الأحداث الحاضرة</Data></Cell>
-                <Cell><Data ss:Type=\"String\">المهام المكتملة</Data></Cell>
-                <Cell><Data ss:Type=\"String\">المجموع الكلي</Data></Cell>
-            </Row>";
+    $spreadsheet = '<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:html="http://www.w3.org/TR/REC-html40">
+<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+    <Title>أعضاء</Title>
+    <Created>' . date('c') . '</Created>
+</DocumentProperties>
+<Styles>
+    <Style ss:ID="Default" ss:Name="Normal">
+        <Alignment ss:Vertical="Center"/>
+        <Borders/>
+        <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="12"/>
+        <Interior/>
+        <NumberFormat/>
+        <Protection/>
+    </Style>
+    <Style ss:ID="Header">
+        <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="12" ss:Bold="1"/>
+        <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+    </Style>
+</Styles>
+<Worksheet ss:Name="الأعضاء">
+<Table ss:ExpandedColumnCount="11" ss:ExpandedRowCount="' . (count($members) + 1) . '" x:FullColumns="1" x:FullRows="1">
+<Column ss:AutoFitWidth="1" ss:Width="50"/>
+<Column ss:AutoFitWidth="1" ss:Width="100"/>
+<Column ss:AutoFitWidth="1" ss:Width="120"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="100"/>
+<Column ss:AutoFitWidth="1" ss:Width="120"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Column ss:AutoFitWidth="1" ss:Width="100"/>
+<Column ss:AutoFitWidth="1" ss:Width="100"/>
+<Column ss:AutoFitWidth="1" ss:Width="80"/>
+<Row ss:StyleID="Header">
+    <Cell><Data ss:Type="String">#</Data></Cell>
+    <Cell><Data ss:Type="String">الاسم</Data></Cell>
+    <Cell><Data ss:Type="String">البريد الإلكتروني</Data></Cell>
+    <Cell><Data ss:Type="String">الدور</Data></Cell>
+    <Cell><Data ss:Type="String">رقم التليفون</Data></Cell>
+    <Cell><Data ss:Type="String">الرقم التعريفى (ID)</Data></Cell>
+    <Cell><Data ss:Type="String">الرتبة</Data></Cell>
+    <Cell><Data ss:Type="String">التقييم</Data></Cell>
+    <Cell><Data ss:Type="String">الأحداث الحاضرة</Data></Cell>
+    <Cell><Data ss:Type="String">المهام المكتملة</Data></Cell>
+    <Cell><Data ss:Type="String">المجموع الكلي</Data></Cell>
+</Row>';
 
-        foreach ($members as $index => $member) {
-            $stars = '';
-            for ($i = 1; $i <= 5; $i++) {
-                $stars .= $i <= $member->rating ? '★' : '☆';
-            }
-
-            $spreadsheet .= "
-            <Row>
-                <Cell><Data ss:Type=\"Number\">" . ($index + 1) . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$member->name}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">" . ($member->user->email ?? 'لا يوجد') . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">" . ($member->cycle->name ?? 'لا يوجد') . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$member->phone}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$member->member_id}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$member->role}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$stars}</Data></Cell>
-                <Cell><Data ss:Type=\"Number\">" . ($member->attended_events_count ?? 0) . "</Data></Cell>
-                <Cell><Data ss:Type=\"Number\">" . ($member->completed_tasks_count ?? 0) . "</Data></Cell>
-                <Cell><Data ss:Type=\"Number\">" . ($member->total_score ?? 0) . "</Data></Cell>
-            </Row>";
+    foreach ($members as $index => $member) {
+        $stars = '';
+        for ($i = 1; $i <= 5; $i++) {
+            $stars .= $i <= $member->rating ? '★' : '☆';
         }
 
-        $spreadsheet .= "
-            </Table>
-            </Worksheet>
-            </Workbook>";
-
-        $headers = [
-            'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response($spreadsheet, 200, $headers);
+        $spreadsheet .= '
+<Row>
+    <Cell><Data ss:Type="Number">' . ($index + 1) . '</Data></Cell>
+    <Cell><Data ss:Type="String">' . htmlspecialchars($member->name) . '</Data></Cell>
+    <Cell><Data ss:Type="String">' . htmlspecialchars($member->user->email ?? 'لا يوجد') . '</Data></Cell>
+    <Cell><Data ss:Type="String">' . htmlspecialchars($member->cycle->name ?? 'لا يوجد') . '</Data></Cell>
+    <Cell><Data ss:Type="String">' . htmlspecialchars($member->phone) . '</Data></Cell>
+    <Cell><Data ss:Type="String">' . htmlspecialchars($member->member_id) . '</Data></Cell>
+    <Cell><Data ss:Type="String">' . htmlspecialchars($member->role) . '</Data></Cell>
+    <Cell><Data ss:Type="String">' . $stars . '</Data></Cell>
+    <Cell><Data ss:Type="Number">' . ($member->attended_events_count ?? 0) . '</Data></Cell>
+    <Cell><Data ss:Type="Number">' . ($member->completed_tasks_count ?? 0) . '</Data></Cell>
+    <Cell><Data ss:Type="Number">' . ($member->total_score ?? 0) . '</Data></Cell>
+</Row>';
     }
+
+    $spreadsheet .= '
+</Table>
+</Worksheet>
+</Workbook>';
+
+    $headers = [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+    ];
+
+    return response($spreadsheet, 200, $headers);
+}
 
     private function getFilteredMembers($sortBy, $search)
     {

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
+use function Termwind\ask;
+
 class TaskController extends Controller
 {
     public function index(Request $request)
@@ -22,7 +24,7 @@ class TaskController extends Controller
             ->where(function ($query) use ($user) {
                 $query->where('assigned_to', $user->id)
                     ->orWhere('assigned_by', $user->id);
-            })
+            })->latest()
             ->get();
 
         return response()->json(['tasks' => $tasks]);
