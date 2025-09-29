@@ -46,6 +46,11 @@ export default function Tasks() {
         files: [],
         status: "pending",
     });
+    const [tastText, setTaskText] = useState({
+        task_text: "",
+        task_file: null
+    });
+    const [modelTaskText, setModelTaskText] = useState(false);
     const [selectedMember, setSelectedMember] = useState(null);
     const [selectedMemberEdit, setSelectedMemberEdit] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -66,79 +71,90 @@ export default function Tasks() {
         }
     };
 
-const handelSelectedAllEdit = () => {
-    // نفس لوجيك الإضافة - toggle بدلاً من set مباشر
-    const currentAssignees = Array.isArray(selectedTask.assigned_to)
-        ? selectedTask.assigned_to
-        : (selectedTask.assigned_to ? [selectedTask.assigned_to] : []);
+    const handelSelectedAllEdit = () => {
+        const currentAssignees = Array.isArray(selectedTask.assigned_to)
+            ? selectedTask.assigned_to
+            : selectedTask.assigned_to
+            ? [selectedTask.assigned_to]
+            : [];
 
-    const allUserIds = filteredMembers.map(member => Number(member.user_id));
+        const allUserIds = filteredMembers.map((member) =>
+            Number(member.user_id)
+        );
 
-    if (currentAssignees.length === allUserIds.length) {
-        // إذا كل الأعضاء محددين، نفضي التحديد
+        if (currentAssignees.length === allUserIds.length) {
+            setSelectedTask({
+                ...selectedTask,
+                assigned_to: [],
+            });
+        } else {
+            setSelectedTask({
+                ...selectedTask,
+                assigned_to: allUserIds,
+            });
+        }
+    };
+
+    const handelSelectedcycleEdit = (cycleId) => {
+        if (!cycleId) return;
+
+        const id = Number(cycleId);
+        const selectMem = members
+            .filter((member) => member.cycle_id === id)
+            .map((member) => Number(member.user_id));
+
+        const currentAssignees = Array.isArray(selectedTask.assigned_to)
+            ? selectedTask.assigned_to
+            : selectedTask.assigned_to
+            ? [selectedTask.assigned_to]
+            : [];
+
         setSelectedTask({
             ...selectedTask,
-            assigned_to: [],
+            assigned_to: Array.from(
+                new Set([...currentAssignees, ...selectMem])
+            ),
         });
-    } else {
-        // إذا مش كلهم محددين، نحدد الكل
+    };
+
+    const handelSelectedroleEdit = (role) => {
+        if (!role) return;
+
+        const selectMem = members
+            .filter((member) => member.role === role)
+            .map((member) => Number(member.user_id));
+
+        const currentAssignees = Array.isArray(selectedTask.assigned_to)
+            ? selectedTask.assigned_to
+            : selectedTask.assigned_to
+            ? [selectedTask.assigned_to]
+            : [];
+
+        console.log(role, selectMem);
         setSelectedTask({
             ...selectedTask,
-            assigned_to: allUserIds,
+            assigned_to: Array.from(
+                new Set([...currentAssignees, ...selectMem])
+            ),
         });
-    }
-};
+    };
 
-const handelSelectedcycleEdit = (cycleId) => {
-    if (!cycleId) return;
+    const handleRemoveExistingFile = async (fileId) => {
+        if (window.confirm("هل أنت متأكد من حذف هذا الملف؟")) {
+            try {
+                await axios.delete(`/api/tasks/files/${fileId}`);
 
-    const id = Number(cycleId);
-    const selectMem = members
-        .filter((member) => member.cycle_id === id)
-        .map((member) => Number(member.user_id));
-
-    const currentAssignees = Array.isArray(selectedTask.assigned_to)
-        ? selectedTask.assigned_to
-        : (selectedTask.assigned_to ? [selectedTask.assigned_to] : []);
-
-    setSelectedTask({
-        ...selectedTask,
-        assigned_to: Array.from(new Set([...currentAssignees, ...selectMem])),
-    });
-};
-
-const handelSelectedroleEdit = (role) => {
-    if (!role) return;
-
-    const selectMem = members
-        .filter((member) => member.role === role)
-        .map((member) => Number(member.user_id));
-
-    const currentAssignees = Array.isArray(selectedTask.assigned_to)
-        ? selectedTask.assigned_to
-        : (selectedTask.assigned_to ? [selectedTask.assigned_to] : []);
-
-    console.log(role, selectMem);
-    setSelectedTask({
-        ...selectedTask,
-        assigned_to: Array.from(new Set([...currentAssignees, ...selectMem])),
-    });
-};
-
-  const handleRemoveExistingFile = async (fileId) => {
-            if (window.confirm('هل أنت متأكد من حذف هذا الملف؟')) {
-                try {
-                    await axios.delete(`/api/tasks/files/${fileId}`);
-
-                    setSelectedTask({
-                        ...selectedTask,
-                        files: selectedTask.files.filter(file => file.id !== fileId)
-                    });
-                } catch (error) {
-                    console.error('Error deleting file:', error);
-                }
+                setSelectedTask({
+                    ...selectedTask,
+                    files: selectedTask.files.filter(
+                        (file) => file.id !== fileId
+                    ),
+                });
+            } catch (error) {
+                console.error("Error deleting file:", error);
             }
-        };
+        }
+    };
     const fetchCycles = async () => {
         try {
             const response = await axios.get(`${app_url}/cycles`);
@@ -266,95 +282,97 @@ const handelSelectedroleEdit = (role) => {
         }
     };
 
-const handleEditTask = async () => {
-    setLoading(true);
-    setErrors({});
+    const handleEditTask = async () => {
+        setLoading(true);
+        setErrors({});
 
-    try {
-
-        if (
-            !selectedTask.title ||
-            !selectedTask.due_date ||
-            (Array.isArray(selectedTask.assigned_to) && selectedTask.assigned_to.length === 0) ||
-            (!Array.isArray(selectedTask.assigned_to) && !selectedTask.assigned_to)
-        ) {
-            setErrors({
-                general: ["جميع الحقول المطلوبة يجب ملؤها"],
-            });
-            setLoading(false);
-            return;
-        }
-
-        const formData = new FormData();
-
-        formData.append("title", selectedTask.title);
-        formData.append("description", selectedTask.description || "");
-        formData.append("due_date", selectedTask.due_date);
-
-        if (Array.isArray(selectedTask.assigned_to)) {
-            selectedTask.assigned_to.forEach((userId) => {
-                formData.append("assigned_to[]", userId);
-            });
-        } else {
-            formData.append("assigned_to[]", selectedTask.assigned_to);
-        }
-
-        editFileUploads.forEach((file) => {
-            formData.append("files[]", file);
-        });
-
-        console.log("Sending update data:", {
-            title: selectedTask.title,
-            description: selectedTask.description,
-            assigned_to: selectedTask.assigned_to,
-            due_date: selectedTask.due_date,
-            newFilesCount: editFileUploads.length,
-        });
-
-        const response = await axios.post(
-            `${app_url}/tasks/${selectedTask.id}`,
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
+        try {
+            if (
+                !selectedTask.title ||
+                !selectedTask.due_date ||
+                (Array.isArray(selectedTask.assigned_to) &&
+                    selectedTask.assigned_to.length === 0) ||
+                (!Array.isArray(selectedTask.assigned_to) &&
+                    !selectedTask.assigned_to)
+            ) {
+                setErrors({
+                    general: ["جميع الحقول المطلوبة يجب ملؤها"],
+                });
+                setLoading(false);
+                return;
             }
-        );
 
-        console.log("Edit task response:", response.data);
+            const formData = new FormData();
 
-        if (response.data.success || response.data.message) {
-            showAllTasks();
-            setEditTaskModal(false);
-            setEditFileUploads([]);
-            setSelectedMemberEdit(null);
-            setMemberNameSearch("");
-            setMemberIdSearch("");
-        }
-    } catch (error) {
-        console.error("Error editing task:", error);
+            formData.append("title", selectedTask.title);
+            formData.append("description", selectedTask.description || "");
+            formData.append("due_date", selectedTask.due_date);
 
-        if (error.response) {
-            setErrors(error.response.data.errors || {});
-            console.error("Server error:", error.response.data);
-        } else if (error.request) {
-            setErrors({
-                general: ["تعذر الاتصال بالخادم"],
+            if (Array.isArray(selectedTask.assigned_to)) {
+                selectedTask.assigned_to.forEach((userId) => {
+                    formData.append("assigned_to[]", userId);
+                });
+            } else {
+                formData.append("assigned_to[]", selectedTask.assigned_to);
+            }
+
+            editFileUploads.forEach((file) => {
+                formData.append("files[]", file);
             });
-        } else {
-            setErrors({
-                general: ["حدث خطأ أثناء إعداد الطلب"],
+
+            console.log("Sending update data:", {
+                title: selectedTask.title,
+                description: selectedTask.description,
+                assigned_to: selectedTask.assigned_to,
+                due_date: selectedTask.due_date,
+                newFilesCount: editFileUploads.length,
             });
+
+            const response = await axios.post(
+                `${app_url}/tasks/${selectedTask.id}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            console.log("Edit task response:", response.data);
+
+            if (response.data.success || response.data.message) {
+                showAllTasks();
+                setEditTaskModal(false);
+                setEditFileUploads([]);
+                setSelectedMemberEdit(null);
+                setMemberNameSearch("");
+                setMemberIdSearch("");
+            }
+        } catch (error) {
+            console.error("Error editing task:", error);
+
+            if (error.response) {
+                setErrors(error.response.data.errors || {});
+                console.error("Server error:", error.response.data);
+            } else if (error.request) {
+                setErrors({
+                    general: ["تعذر الاتصال بالخادم"],
+                });
+            } else {
+                setErrors({
+                    general: ["حدث خطأ أثناء إعداد الطلب"],
+                });
+            }
+        } finally {
+            setLoading(false);
         }
-    } finally {
-        setLoading(false);
-    }
-};
+    };
+
     const handleDeleteTask = () => {
         try {
             const response = axios.delete(
                 `${app_url}/tasks/${selectedTask.id}`
-                );
+            );
             showAllTasks();
             setDeleteTaskModal(false);
             setSelectedTask(null);
@@ -363,34 +381,39 @@ const handleEditTask = async () => {
         }
     };
 
-const openEditModal = (task) => {
-    setSelectedTask(task);
+    const openEditModal = (task) => {
+        setSelectedTask(task);
 
-    if(task.task_id){
-        // للمهام الجماعية: نجمع كل assigned_to من كل المهام في المجموعة
-        const groupTasks = tasks.filter((t) => t.task_id === task.task_id);
-        const assignedUserIds = groupTasks.map((t) => t.assigned_to).filter(Boolean);
+        if (task.task_id) {
+            const groupTasks = tasks.filter((t) => t.task_id === task.task_id);
+            const assignedUserIds = groupTasks
+                .map((t) => t.assigned_to)
+                .filter(Boolean);
 
-        setSelectedTask({
-            ...task,
-            assigned_to: assignedUserIds, // array من كل الـ user_ids
-        });
-    } else {
-        // للمهام الفردية: نستخدم assigned_to كما هو
-        const assignedUserIds = task.assigned_to ? [task.assigned_to] : [];
+            setSelectedTask({
+                ...task,
+                assigned_to: assignedUserIds,
+            });
+        } else {
+            const assignedUserIds = task.assigned_to ? [task.assigned_to] : [];
 
-        setSelectedTask({
-            ...task,
-            assigned_to: assignedUserIds,
-        });
-    }
+            setSelectedTask({
+                ...task,
+                assigned_to: assignedUserIds,
+            });
+        }
 
-    setEditTaskModal(true);
-};
+        setEditTaskModal(true);
+    };
 
     const openDeleteModal = (task) => {
         setSelectedTask(task);
         setDeleteTaskModal(true);
+    };
+
+    const handleTaskTextChange = (task) => {
+        setSelectedTask(task);
+        setModelTaskText(true);
     };
 
     const handleFileUpload = (e, isEdit = false) => {
@@ -490,6 +513,30 @@ const openEditModal = (task) => {
             assigned_to: [...newTask.assigned_to, ...selectMem],
         });
     };
+    const handleSendTaskText = async()=>{
+        try{
+            const formData = new FormData();
+            formData.append("task_text", tastText.task_text);
+            if (tastText.task_file) {
+                formData.append("task_file", tastText.task_file);
+            }
+                 const response = await axios.post(`${app_url}/tasktext/${selectedTask.id}`,formData,{
+                         headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+        );
+        setModelTaskText(false);
+        setTaskText({
+                task_text: "",
+                 task_file: null
+        })
+        }catch(error){
+            console.log(error);
+            setErrors(error.response.data.errors || {});
+        }
+    }
+
     // if user is member
     if (auth.user?.member?.role !== "manager") {
         return (
@@ -563,18 +610,33 @@ const openEditModal = (task) => {
                                                 {getStatusBadge(task.status)}
                                             </div>
                                         </div>
-                                        {t(task.status !== "completed" && task.status !== "overdue" ) &&  (
-                                            <button
-                                                onClick={() =>
-                                                    handleTaskStatusChange(
-                                                        task.id,
-                                                        "completed"
-                                                    )
-                                                }
-                                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-                                            >
-                                                {t("تم الإكمال")}
-                                            </button>
+                                        {t(
+                                            task.status !== "completed" &&
+                                                task.status !== "overdue"
+                                        ) && (
+                                            <>
+                                                <button
+                                                    onClick={() =>
+                                                        handleTaskStatusChange(
+                                                            task.id,
+                                                            "completed"
+                                                        )
+                                                    }
+                                                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                                                >
+                                                    {t("تم الإكمال")}
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        handleTaskTextChange(
+                                                            task
+                                                        )
+                                                    }
+                                                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                                                >
+                                                    {t("رفع رد")}
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 ))}
@@ -652,6 +714,9 @@ const openEditModal = (task) => {
                                         <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                             {t("الحالة")}
                                         </th>
+                                        <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                            {t("رد العضو")}
+                                        </th>
                                         <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                             {t("الإجراءات")}
                                         </th>
@@ -676,7 +741,6 @@ const openEditModal = (task) => {
                                             <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
                                                 {task?.task_id && (
                                                     <div className="flex flex-col space-y-2">
-
                                                         <div className="mb-2">
                                                             <span className="font-medium">
                                                                 الأعضاء:
@@ -726,29 +790,44 @@ const openEditModal = (task) => {
                                             <td className="px-4 py-3 text-right">
                                                 {getStatusBadge(task.status)}
                                             </td>
-                                            {!task?.task_id && (
-                                            <td className="px-4 py-3 text-center">
-                                                <div className="flex justify-center space-x-2">
-                                                    <button
-                                                        onClick={() =>
-                                                            openEditModal(task)
-                                                        }
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg"
-                                                    >
-                                                        <PencilIcon className="h-4 w-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            openDeleteModal(
-                                                                task
-                                                            )
-                                                        }
-                                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg"
-                                                    >
-                                                        <TrashIcon className="h-4 w-4" />
-                                                    </button>
+                                            <td className="px-4 py-3 text-right dark:text-white">
+                                                <div className="flex items-center space-x-2 gap-2">
+                                                    {task.task_text}
+                                                    {task.task_file &&(
+                                                        <a href={`${app_url}/storage/${task.task_file}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 w-5 h-5">
+                                                            <EyeIcon className="w-4 h-5" />
+                                                        </a>
+                                                    )}
+
                                                 </div>
-                                            </td>)}
+
+                                            </td>
+                                            {!task?.task_id && (
+                                                <td className="px-4 py-3 text-center">
+                                                    <div className="flex justify-center space-x-2">
+                                                        <button
+                                                            onClick={() =>
+                                                                openEditModal(
+                                                                    task
+                                                                )
+                                                            }
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg"
+                                                        >
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                openDeleteModal(
+                                                                    task
+                                                                )
+                                                            }
+                                                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -949,7 +1028,7 @@ const openEditModal = (task) => {
                                             }
                                             defaultValue=""
                                         >
-                                            <option value="" >
+                                            <option value="">
                                                 {t("تحديد حسب المسمى الوظيفى")}
                                             </option>
 
@@ -972,7 +1051,7 @@ const openEditModal = (task) => {
                                             name="member"
                                             id="member"
                                         >
-                                            <option value="" >
+                                            <option value="">
                                                 {t("تحديد حسب الرتبة")}
                                             </option>
                                             <option value="member">
@@ -1241,7 +1320,7 @@ const openEditModal = (task) => {
                     </div>
                 )}
 
-{/* Edit Task Modal */}
+                {/* Edit Task Modal */}
                 {editTaskModal && selectedTask && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -1303,34 +1382,51 @@ const openEditModal = (task) => {
                                     <div>
                                         <button
                                             className="bg-primary dark:bg-primary-dark text-white rounded-md p-4 m-2"
-                                            onClick={() => handelSelectedAllEdit()}
+                                            onClick={() =>
+                                                handelSelectedAllEdit()
+                                            }
                                         >
                                             {t("تحديد الكل")}
                                         </button>
                                         <select
                                             className="bg-primary px-8 dark:bg-primary-dark text-white rounded-md py-2 m-2"
-                                            onChange={(e) => handelSelectedcycleEdit(e.target.value)}
+                                            onChange={(e) =>
+                                                handelSelectedcycleEdit(
+                                                    e.target.value
+                                                )
+                                            }
                                             defaultValue=""
                                         >
-                                            <option value="" >
+                                            <option value="">
                                                 {t("تحديد حسب المسمى الوظيفى")}
                                             </option>
                                             {cycles?.map((cycle) => (
-                                                <option key={cycle.id} value={cycle.id}>
+                                                <option
+                                                    key={cycle.id}
+                                                    value={cycle.id}
+                                                >
                                                     {cycle.name}
                                                 </option>
                                             ))}
                                         </select>
                                         <select
                                             className="bg-primary dark:bg-primary-dark px-8 text-white rounded-md py-2 m-2"
-                                            onChange={(e) => handelSelectedroleEdit(e.target.value)}
+                                            onChange={(e) =>
+                                                handelSelectedroleEdit(
+                                                    e.target.value
+                                                )
+                                            }
                                             defaultValue=""
                                         >
-                                            <option value="" >
+                                            <option value="">
                                                 {t("تحديد حسب الرتبة")}
                                             </option>
-                                            <option value="member">members</option>
-                                            <option value="manager">managers</option>
+                                            <option value="member">
+                                                members
+                                            </option>
+                                            <option value="manager">
+                                                managers
+                                            </option>
                                         </select>
                                     </div>
 
@@ -1341,9 +1437,15 @@ const openEditModal = (task) => {
                                             </div>
                                             <input
                                                 type="text"
-                                                placeholder={t("البحث بالاسم...")}
+                                                placeholder={t(
+                                                    "البحث بالاسم..."
+                                                )}
                                                 value={memberNameSearch}
-                                                onChange={(e) => setMemberNameSearch(e.target.value)}
+                                                onChange={(e) =>
+                                                    setMemberNameSearch(
+                                                        e.target.value
+                                                    )
+                                                }
                                                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                             />
                                         </div>
@@ -1354,9 +1456,15 @@ const openEditModal = (task) => {
                                             </div>
                                             <input
                                                 type="text"
-                                                placeholder={t("البحث برقم العضوية...")}
+                                                placeholder={t(
+                                                    "البحث برقم العضوية..."
+                                                )}
                                                 value={memberIdSearch}
-                                                onChange={(e) => setMemberIdSearch(e.target.value)}
+                                                onChange={(e) =>
+                                                    setMemberIdSearch(
+                                                        e.target.value
+                                                    )
+                                                }
                                                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                             />
                                         </div>
@@ -1365,48 +1473,88 @@ const openEditModal = (task) => {
                                     <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-700 max-h-60 overflow-y-auto">
                                         {filteredMembers.length > 0 ? (
                                             <div className="space-y-2">
-                                                {filteredMembers.map((member) => {
-                                                    const currentAssignees = Array.isArray(selectedTask.assigned_to)
-                                                        ? selectedTask.assigned_to
-                                                        : (selectedTask.assigned_to ? [selectedTask.assigned_to] : []);
+                                                {filteredMembers.map(
+                                                    (member) => {
+                                                        const currentAssignees =
+                                                            Array.isArray(
+                                                                selectedTask.assigned_to
+                                                            )
+                                                                ? selectedTask.assigned_to
+                                                                : selectedTask.assigned_to
+                                                                ? [
+                                                                      selectedTask.assigned_to,
+                                                                  ]
+                                                                : [];
 
-                                                    const isSelected = currentAssignees.includes(member.user_id);
+                                                        const isSelected =
+                                                            currentAssignees.includes(
+                                                                member.user_id
+                                                            );
 
-                                                    return (
-                                                        <div
-                                                            key={member.id}
-                                                            className={`flex items-center justify-between p-2 rounded cursor-pointer ${
-                                                                isSelected
-                                                                    ? "bg-primary-100 border border-primary-300 dark:bg-primary-900 dark:border-primary-700"
-                                                                    : "hover:bg-gray-100 dark:hover:bg-gray-600"
-                                                            }`}
-                                                            onClick={() => {
-                                                                const updatedAssignees = isSelected
-                                                                    ? currentAssignees.filter(id => id !== member.user_id)
-                                                                    : [...currentAssignees, member.user_id];
+                                                        return (
+                                                            <div
+                                                                key={member.id}
+                                                                className={`flex items-center justify-between p-2 rounded cursor-pointer ${
+                                                                    isSelected
+                                                                        ? "bg-primary-100 border border-primary-300 dark:bg-primary-900 dark:border-primary-700"
+                                                                        : "hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                                }`}
+                                                                onClick={() => {
+                                                                    const updatedAssignees =
+                                                                        isSelected
+                                                                            ? currentAssignees.filter(
+                                                                                  (
+                                                                                      id
+                                                                                  ) =>
+                                                                                      id !==
+                                                                                      member.user_id
+                                                                              )
+                                                                            : [
+                                                                                  ...currentAssignees,
+                                                                                  member.user_id,
+                                                                              ];
 
-                                                                setSelectedTask({
-                                                                    ...selectedTask,
-                                                                    assigned_to: updatedAssignees,
-                                                                });
-                                                            }}
-                                                        >
-                                                            <div className="flex items-center">
-                                                                <div className="ml-3">
-                                                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                        {member.name}
-                                                                    </div>
-                                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                        {t("رقم العضوية:")} {member.member_id || t("غير محدد")} | {member.role?.name || t("بدور")}
+                                                                    setSelectedTask(
+                                                                        {
+                                                                            ...selectedTask,
+                                                                            assigned_to:
+                                                                                updatedAssignees,
+                                                                        }
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <div className="flex items-center">
+                                                                    <div className="ml-3">
+                                                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            {
+                                                                                member.name
+                                                                            }
+                                                                        </div>
+                                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                            {t(
+                                                                                "رقم العضوية:"
+                                                                            )}{" "}
+                                                                            {member.member_id ||
+                                                                                t(
+                                                                                    "غير محدد"
+                                                                                )}{" "}
+                                                                            |{" "}
+                                                                            {member
+                                                                                .role
+                                                                                ?.name ||
+                                                                                t(
+                                                                                    "بدور"
+                                                                                )}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
+                                                                {isSelected && (
+                                                                    <CheckCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                                                                )}
                                                             </div>
-                                                            {isSelected && (
-                                                                <CheckCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    }
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="text-center py-4 text-gray-500 dark:text-gray-400">
@@ -1415,35 +1563,57 @@ const openEditModal = (task) => {
                                         )}
                                     </div>
 
-                                    {selectedTask.assigned_to && selectedTask.assigned_to.length > 0 && (
-                                        <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
-                                                        {t("الأعضاء المحددون:")} {selectedTask.assigned_to.length}
-                                                    </p>
-                                                    <p className="text-xs text-green-600 dark:text-green-400">
-                                                        {selectedTask.assigned_to.map(userId => {
-                                                            const member = members.find(m => m.user_id === userId);
-                                                            return member?.name;
-                                                        }).filter(Boolean).join('، ')}
-                                                    </p>
+                                    {selectedTask.assigned_to &&
+                                        selectedTask.assigned_to.length > 0 && (
+                                            <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                                                            {t(
+                                                                "الأعضاء المحددون:"
+                                                            )}{" "}
+                                                            {
+                                                                selectedTask
+                                                                    .assigned_to
+                                                                    .length
+                                                            }
+                                                        </p>
+                                                        <p className="text-xs text-green-600 dark:text-green-400">
+                                                            {selectedTask.assigned_to
+                                                                .map(
+                                                                    (
+                                                                        userId
+                                                                    ) => {
+                                                                        const member =
+                                                                            members.find(
+                                                                                (
+                                                                                    m
+                                                                                ) =>
+                                                                                    m.user_id ===
+                                                                                    userId
+                                                                            );
+                                                                        return member?.name;
+                                                                    }
+                                                                )
+                                                                .filter(Boolean)
+                                                                .join("، ")}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSelectedTask({
+                                                                ...selectedTask,
+                                                                assigned_to: [],
+                                                            });
+                                                        }}
+                                                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                                    >
+                                                        <XMarkIcon className="h-5 w-5" />
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedTask({
-                                                            ...selectedTask,
-                                                            assigned_to: [],
-                                                        });
-                                                    }}
-                                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                >
-                                                    <XMarkIcon className="h-5 w-5" />
-                                                </button>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
                                 </div>
 
                                 <div>
@@ -1468,33 +1638,47 @@ const openEditModal = (task) => {
                                         {t("الملفات الحالية")}
                                     </label>
                                     <div className="space-y-2">
-                                        {selectedTask.files && selectedTask.files.length > 0 ? (
-                                            selectedTask.files.map((file, index) => (
-                                                <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
-                                                    <div className="flex items-center">
-                                                        <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
-                                                        <span className="text-sm">{file.file_name}</span>
+                                        {selectedTask.files &&
+                                        selectedTask.files.length > 0 ? (
+                                            selectedTask.files.map(
+                                                (file, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded"
+                                                    >
+                                                        <div className="flex items-center">
+                                                            <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                            <span className="text-sm">
+                                                                {file.file_name}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <a
+                                                                href={`${app_url}/storage/${file.file_path}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800"
+                                                            >
+                                                                <EyeIcon className="h-4 w-4" />
+                                                            </a>
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleRemoveExistingFile(
+                                                                        file.id
+                                                                    )
+                                                                }
+                                                                className="text-red-600 hover:text-red-800"
+                                                            >
+                                                                <XMarkIcon className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <a
-                                                            href={`${app_url}/storage/${file.file_path}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-blue-600 hover:text-blue-800"
-                                                        >
-                                                            <EyeIcon className="h-4 w-4" />
-                                                        </a>
-                                                        <button
-                                                            onClick={() => handleRemoveExistingFile(file.id)}
-                                                            className="text-red-600 hover:text-red-800"
-                                                        >
-                                                            <XMarkIcon className="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))
+                                                )
+                                            )
                                         ) : (
-                                            <p className="text-gray-500 text-sm">{t("لا توجد ملفات مرفقة")}</p>
+                                            <p className="text-gray-500 text-sm">
+                                                {t("لا توجد ملفات مرفقة")}
+                                            </p>
                                         )}
                                     </div>
                                 </div>
@@ -1507,7 +1691,9 @@ const openEditModal = (task) => {
                                         <input
                                             type="file"
                                             multiple
-                                            onChange={(e) => handleFileUpload(e, true)}
+                                            onChange={(e) =>
+                                                handleFileUpload(e, true)
+                                            }
                                             className="hidden"
                                             id="file-upload-edit"
                                         />
@@ -1516,15 +1702,26 @@ const openEditModal = (task) => {
                                             className="cursor-pointer text-primary hover:text-primary-dark"
                                         >
                                             <PaperClipIcon className="h-8 w-8 mx-auto mb-2" />
-                                            <span>{t("انقر لرفع الملفات أو اسحبها هنا")}</span>
+                                            <span>
+                                                {t(
+                                                    "انقر لرفع الملفات أو اسحبها هنا"
+                                                )}
+                                            </span>
                                         </label>
                                     </div>
                                     <div className="mt-2 space-y-2">
                                         {editFileUploads.map((file, index) => (
-                                            <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded">
-                                                <span className="text-sm">{file.name}</span>
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded"
+                                            >
+                                                <span className="text-sm">
+                                                    {file.name}
+                                                </span>
                                                 <button
-                                                    onClick={() => removeFile(index, true)}
+                                                    onClick={() =>
+                                                        removeFile(index, true)
+                                                    }
                                                     className="text-red-600"
                                                 >
                                                     <XMarkIcon className="h-4 w-4" />
@@ -1535,13 +1732,19 @@ const openEditModal = (task) => {
                                 </div>
                             </div>
 
-                            {errors && Object.entries(errors).map(([field, msgs], i) => (
-                                <div key={i} className="bg-red-100 text-red-700 p-2 rounded mb-1 text-sm mx-6">
-                                    {msgs.map((msg, j) => (
-                                        <p key={j}>{msg}</p>
-                                    ))}
-                                </div>
-                            ))}
+                            {errors &&
+                                Object.entries(errors).map(
+                                    ([field, msgs], i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-red-100 text-red-700 p-2 rounded mb-1 text-sm mx-6"
+                                        >
+                                            {msgs.map((msg, j) => (
+                                                <p key={j}>{msg}</p>
+                                            ))}
+                                        </div>
+                                    )
+                                )}
 
                             <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                                 <button
@@ -1560,7 +1763,9 @@ const openEditModal = (task) => {
                                     disabled={loading}
                                     className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? t("جاري التعديل...") : t("حفظ التعديلات")}
+                                    {loading
+                                        ? t("جاري التعديل...")
+                                        : t("حفظ التعديلات")}
                                 </button>
                             </div>
                         </div>
@@ -1609,7 +1814,93 @@ const openEditModal = (task) => {
                         </div>
                     </div>
                 )}
+                {/* Edit Task Text Modal */}
+                {modelTaskText && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <button
+                                    onClick={() => {
+                                        setModelTaskText(false);
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("ارسال رد")}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={tastText.task_text}
+                                        onChange={(e) =>
+                                            setTaskText({
+                                                ...tastText,
+                                                task_text: e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("إرفاق ملف")}
+                                    </label>
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                        <input
+                                            type="file"
+                                            onChange={(e) =>
+                                                setTaskText({
+                                                    ...tastText,
+                                                    task_file:
+                                                        e.target.files[0],
+                                                })
+                                            }
+                                            id="file-upload"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            {errors &&
+                                Object.entries(errors).map(
+                                    ([field, msgs], i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-red-100 text-red-700 p-2 rounded mb-1 text-sm mx-6"
+                                        >
+                                            {msgs.map((msg, j) => (
+                                                <p key={j}>{msg}</p>
+                                            ))}
+                                        </div>
+                                    )
+                                )}
+                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setModelTaskText(false);
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                                >
+                                    {t("إلغاء")}
+                                </button>
+                                <button
+                                    onClick={handleSendTaskText}
+                                    disabled={loading}
+                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading
+                                        ? t("جاري الارسال...")
+                                        : t("ارسال  ")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
+
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
                     {t("لوحة المهام")}
@@ -1674,24 +1965,38 @@ const openEditModal = (task) => {
                                             {getStatusBadge(task.status)}
                                         </div>
                                     </div>
-                                    {(task.status !== "completed" && task.status !== "overdue" )&& (
-                                        <button
-                                            onClick={() =>
-                                                handleTaskStatusChange(
-                                                    task.id,
-                                                    "completed"
-                                                )
-                                            }
-                                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-                                        >
-                                            {t("تم الإكمال")}
-                                        </button>
-                                    )}
+                                    {task.status !== "completed" &&
+                                        task.status !== "overdue" && (
+                                            <div className="flex items-center space-x-2 gap-2">
+                                                <button
+                                                    onClick={() =>
+                                                        handleTaskStatusChange(
+                                                            task.id,
+                                                            "completed"
+                                                        )
+                                                    }
+                                                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                                                >
+                                                    {t("تم الإكمال")}
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        handleTaskTextChange(
+                                                            task
+                                                        )
+                                                    }
+                                                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                                                >
+                                                    {t("رفع رد")}
+                                                </button>
+                                            </div>
+                                        )}
                                 </div>
                             ))}
                     </div>
                 </div>
             </div>
+
         </AdminLayout>
     );
 }

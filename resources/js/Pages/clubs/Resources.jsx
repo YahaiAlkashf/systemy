@@ -325,6 +325,9 @@ export default function Library() {
                                         {t("اسم الملف")}
                                     </th>
                                     <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                        {t("تم الرفع من قبل ")}
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         {t("الحجم")}
                                     </th>
                                     <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
@@ -352,6 +355,11 @@ export default function Library() {
                                             <div className="flex items-center">
                                                 <DocumentIcon className="h-5 w-5 text-blue-500 ml-2" />
                                                 {file.name}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-200 font-medium">
+                                            <div className="flex items-center">
+                                                {file.uploaded_by.name}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">

@@ -271,6 +271,7 @@ Route::get('/', function () {
             Route::post('/tasks/{id}', [TaskController::class, 'update']);
             Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
             Route::post('/tasks/{task}/status', [TaskController::class, 'updateStatus']);
+            Route::post('/tasktext/{id}', [TaskController::class, 'taskText']);
 
             //Route for Events in Clubs system
             Route::get('/events', [EventController::class, 'index']);

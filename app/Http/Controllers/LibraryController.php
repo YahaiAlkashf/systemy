@@ -167,7 +167,7 @@ class LibraryController extends Controller
                 'extension' => $extension,
                 'folder_id' => $request->folder_id,
                 'company_id' => Auth::user()->company_id,
-                'uploaded_by' => Auth::id()
+                'uploaded_by' => Auth::id(),
             ]);
 
             $uploadedFiles[] = $uploadedFile;
