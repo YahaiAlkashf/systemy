@@ -265,7 +265,7 @@ export default function ProductsRetailFlow() {
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
                 <div className="flex gap-2 mb-4 flex-wrap">
                     {auth.user.system_type === "retail" &&
-                        auth.user.company.company.subscription === "vip" && (
+                        auth.user.company.subscription === "vip" && (
                             <button
                                 onClick={enableBarcodeMode}
                                 className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
