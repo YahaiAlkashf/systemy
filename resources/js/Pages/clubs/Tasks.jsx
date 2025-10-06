@@ -569,82 +569,75 @@ const filteredTasks = tasks
     if (auth.user?.member?.role !== "manager") {
         return (
             <AdminLayout>
-                <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
-                        {t("لوحة المهام")}
-                    </h2>
-                    {/* section tasks*/}
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                            {t("المهام المطلوبة منك")}
-                        </h3>
-
-                        <div className="space-y-4">
-                            {tasks.flat()
-                                .filter(
-                                    (task) => task.assigned_to === auth.user.id
-                                )
-                                .map((task) => (
-                                    <div
-                                        key={task.id}
-                                        className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg flex justify-between items-center"
-                                    >
-                                        <div>
-                                            <h4 className="font-medium text-gray-800 dark:text-gray-200">
-                                                {task.title}
-                                            </h4>
-                                            <h4 className="font-medium text-gray-800 dark:text-gray-200">
-                                                <button onClick={() => openDescriptionModal(task.description)} className="px-3 py-1 flex gap-2  bg-primary text-white rounded hover:bg-primary-dark text-sm">
-                                                    وصف المهمه
-                                                </button>
-                                            </h4>
-                                            {task.files &&
-                                            task.files.length > 0 ? (
-                                                task.files.map(
-                                                    (file, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded"
+            <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
+                    {t("لوحة المهام")}
+                </h2>
+                {/* section tasks*/}
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                        {t("المهام المطلوبة منك")}
+                    </h3>
+                    <div className="space-y-4">
+                        {tasks.flat()
+                            .filter((task) => task.assigned_to === auth.user.id)
+                            .map((task) => (
+                                <div
+                                    key={task.id}
+                                    className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg flex justify-between items-center"
+                                >
+                                    <div>
+                                        <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                                            {task.title}
+                                        </h4>
+                                        <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                                           <button onClick={() => openDescriptionModal(task.description)} className="px-3 py-1 flex gap-2  bg-primary text-white rounded hover:bg-primary-dark text-sm">
+                                                وصف المهمه
+                                         </button>
+                                        </h4>
+                                        {task.files && task.files.length > 0 ? (
+                                            task.files.map((file, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded"
+                                                >
+                                                    <div className="flex items-center">
+                                                        <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                        <span className="text-sm">
+                                                            {file.file_name}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <a
+                                                            href={`${app_url}/storage/${file.file_path}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 hover:text-blue-800"
                                                         >
-                                                            <div className="flex items-center">
-                                                                <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
-                                                                <span className="text-sm">
-                                                                    {
-                                                                        file.file_name
-                                                                    }
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <a
-                                                                    href={`${app_url}/storage/${file.file_path}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="text-blue-600 hover:text-blue-800"
-                                                                >
-                                                                    <EyeIcon className="h-4 w-4" />
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                )
-                                            ) : (
-                                                <p className="text-gray-500 text-sm">
-                                                    {t("لا توجد ملفات مرفقة")}
-                                                </p>
-                                            )}
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                {t("يجب التسليم قبل:")}{" "}
-                                                {task.due_date}
+                                                            <EyeIcon className="h-4 w-4" />
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-500 text-sm">
+                                                {t("لا توجد ملفات مرفقة")}
                                             </p>
-                                            <div className="p-2">
-                                                {getStatusBadge(task.status)}
-                                            </div>
+                                        )}
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {t("يجب التسليم قبل:")}{" "}
+                                            {task.due_date}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {task?.assignee?.name}
                                         </div>
-                                        {t(
-                                            task.status !== "completed" &&
-                                                task.status !== "overdue"
-                                        ) && (
-                                            <>
+                                        <div className="p-2">
+                                            {getStatusBadge(task.status)}
+                                        </div>
+                                    </div>
+                                    {task.status !== "completed" &&
+                                        task.status !== "overdue" && (
+                                            <div className="flex items-center space-x-2 gap-2">
                                                 <button
                                                     onClick={() =>
                                                         handleTaskStatusChange(
@@ -666,13 +659,128 @@ const filteredTasks = tasks
                                                 >
                                                     {t("رفع رد")}
                                                 </button>
-                                            </>
+                                            </div>
                                         )}
-                                    </div>
-                                ))}
-                        </div>
+                                </div>
+                            ))}
                     </div>
                 </div>
+               {modelDescription && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                    {t(" وصف المهمة")}
+                                </h3>
+                                <button
+                                   onClick={() => {setModelDescription(false);setDescription('');}}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                            <div className="p-6 max-w-md align-top">
+                                <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-normal break-words">
+                                  {description}
+                                </p>
+                            </div>
+                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                <button
+                                    onClick={() => {setModelDescription(false);setDescription('');}}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                                >
+                                    {t("إغلاق")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                                {modelTaskText && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <button
+                                    onClick={() => {
+                                        setModelTaskText(false);
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("ارسال رد")}
+                                    </label>
+                                    <textarea
+                                        type="text"
+                                        value={tastText.task_text}
+                                        onChange={(e) =>
+                                            setTaskText({
+                                                ...tastText,
+                                                task_text: e.target.value,
+                                            })
+                                        }
+                                        rows={5}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("إرفاق ملف")}
+                                    </label>
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                        <input
+                                            type="file"
+                                            onChange={(e) =>
+                                                setTaskText({
+                                                    ...tastText,
+                                                    task_file:
+                                                        e.target.files[0],
+                                                })
+                                            }
+                                            id="file-upload"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            {errors &&
+                                Object.entries(errors).map(
+                                    ([field, msgs], i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-red-100 text-red-700 p-2 rounded mb-1 text-sm mx-6"
+                                        >
+                                            {msgs.map((msg, j) => (
+                                                <p key={j}>{msg}</p>
+                                            ))}
+                                        </div>
+                                    )
+                                )}
+                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setModelTaskText(false);
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                                >
+                                    {t("إلغاء")}
+                                </button>
+                                <button
+                                    onClick={handleSendTaskText}
+                                    disabled={loading}
+                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading
+                                        ? t("جاري الارسال...")
+                                        : t("ارسال  ")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
             </AdminLayout>
         );
     }
