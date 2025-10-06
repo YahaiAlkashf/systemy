@@ -47,7 +47,7 @@ export default function Settings({ mustVerifyEmail, status }) {
                 </div>
 
                 {/* User Management */}
-                 {(auth.user.subscription==='vip'  || auth.user.subscription==='premium') &&
+                 {(auth.user.company.subscription==='vip'  || auth.user.company.subscription==='premium') &&
                  <>
                         {auth?.user?.role === "superadmin" && (
                             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-10">

@@ -22,6 +22,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import TasksModel from "./components/TasksModel";
 
 export default function Tasks() {
     const { app_url, auth } = usePage().props;
@@ -37,7 +38,10 @@ export default function Tasks() {
     const [members, setMembers] = useState([]);
     const [searchTask, setSearchTask] = useState("");
     const [errors, setErrors] = useState({});
+    const [showTasksModel,setShowTasksModel] = useState(false);
     const [cycles, setCycles] = useState([]);
+    const [description,setDescription] =useState('');
+    const [modelDescription,setModelDescription]=useState(false);
     const [newTask, setNewTask] = useState({
         title: "",
         description: "",
@@ -63,14 +67,28 @@ export default function Tasks() {
     const showAllTasks = async () => {
         try {
             const response = await axios.get(`${app_url}/tasks`);
-            setTasks(response.data.tasks);
-            console.log(response.data.tasks);
+            const tasksData = response.data.tasks;
+
+            const groupedTasks =  Object.values(
+                tasksData.reduce((acc ,task)=>{
+                    const key =task.task_id || null;
+                    if(!acc[key]) acc[key]=[];
+                    acc[key].push(task);
+                    return acc;
+                },{})
+            )
+        const sortedGroupedTasks = groupedTasks.sort((a, b) => {
+            const latestA = Math.max(...a.map(task => new Date(task.updated_at)));
+            const latestB = Math.max(...b.map(task => new Date(task.updated_at)));
+            return latestB - latestA;
+        });
+
+        setTasks(sortedGroupedTasks);
         } catch (error) {
             console.log(error);
             setTasks([]);
         }
     };
-
     const handelSelectedAllEdit = () => {
         const currentAssignees = Array.isArray(selectedTask.assigned_to)
             ? selectedTask.assigned_to
@@ -87,6 +105,9 @@ export default function Tasks() {
                 ...selectedTask,
                 assigned_to: [],
             });
+            document.querySelectorAll("select").forEach((select)=>{
+                select.selectedIndex=0;
+            })
         } else {
             setSelectedTask({
                 ...selectedTask,
@@ -94,7 +115,6 @@ export default function Tasks() {
             });
         }
     };
-
     const handelSelectedcycleEdit = (cycleId) => {
         if (!cycleId) return;
 
@@ -116,7 +136,6 @@ export default function Tasks() {
             ),
         });
     };
-
     const handelSelectedroleEdit = (role) => {
         if (!role) return;
 
@@ -138,7 +157,6 @@ export default function Tasks() {
             ),
         });
     };
-
     const handleRemoveExistingFile = async (fileId) => {
         if (window.confirm("هل أنت متأكد من حذف هذا الملف؟")) {
             try {
@@ -163,7 +181,6 @@ export default function Tasks() {
             console.log(t("Error fetching cycles:"), error);
         }
     };
-
     const showAllMembers = async () => {
         try {
             const response = await axios.get(`${app_url}/members`);
@@ -179,13 +196,18 @@ export default function Tasks() {
         fetchCycles();
     }, []);
 
-    const filteredTasks = tasks.filter(
-        (task) =>
-            task.title.toLowerCase().includes(searchTask.toLowerCase()) ||
-            (task.assignee?.name || "")
-                .toLowerCase()
-                .includes(searchTask.toLowerCase())
-    );
+const filteredTasks = tasks
+  .map((group) =>
+    group.filter(
+      (task) =>
+        task.title.toLowerCase().includes(searchTask.toLowerCase()) ||
+        (task.assignee?.name || "")
+          .toLowerCase()
+          .includes(searchTask.toLowerCase())
+    )
+  )
+  .filter((group) => group.length > 0);
+
 
     const filteredMembers = useMemo(() => {
         return members.filter(
@@ -371,7 +393,7 @@ export default function Tasks() {
     const handleDeleteTask = () => {
         try {
             const response = axios.delete(
-                `${app_url}/tasks/${selectedTask.id}`
+                `${app_url}/tasks/${selectedTask[0].id}`
             );
             showAllTasks();
             setDeleteTaskModal(false);
@@ -382,27 +404,17 @@ export default function Tasks() {
     };
 
     const openEditModal = (task) => {
-        setSelectedTask(task);
+        setSelectedTask(task[0]);
 
-        if (task.task_id) {
-            const groupTasks = tasks.filter((t) => t.task_id === task.task_id);
-            const assignedUserIds = groupTasks
+
+            const assignedUserIds = task
                 .map((t) => t.assigned_to)
                 .filter(Boolean);
 
             setSelectedTask({
-                ...task,
+                ...task[0],
                 assigned_to: assignedUserIds,
             });
-        } else {
-            const assignedUserIds = task.assigned_to ? [task.assigned_to] : [];
-
-            setSelectedTask({
-                ...task,
-                assigned_to: assignedUserIds,
-            });
-        }
-
         setEditTaskModal(true);
     };
 
@@ -440,6 +452,7 @@ export default function Tasks() {
                 { status: status }
             );
             showAllTasks();
+            setShowTasksModel(false);
         } catch (error) {
             console.log(error);
         }
@@ -478,6 +491,9 @@ export default function Tasks() {
             setNewTask({
                 ...newTask,
                 assigned_to: [],
+            });
+            document.querySelectorAll("select").forEach((select)=>{
+                select.selectedIndex=0;
             });
         } else {
             const allmem = members.map((member) => member.user_id);
@@ -537,6 +553,18 @@ export default function Tasks() {
         }
     }
 
+    const handelTasksModel = (task) => {
+        setShowTasksModel(true);
+        setSelectedTask(task);
+    }
+    const closeModal =()=>{
+        setShowTasksModel(false);
+        setSelectedTask(null);
+    }
+    const openDescriptionModal=(des)=>{
+        setDescription(des);
+        setModelDescription(true);
+     }
     // if user is member
     if (auth.user?.member?.role !== "manager") {
         return (
@@ -552,7 +580,7 @@ export default function Tasks() {
                         </h3>
 
                         <div className="space-y-4">
-                            {tasks
+                            {tasks.flat()
                                 .filter(
                                     (task) => task.assigned_to === auth.user.id
                                 )
@@ -566,7 +594,9 @@ export default function Tasks() {
                                                 {task.title}
                                             </h4>
                                             <h4 className="font-medium text-gray-800 dark:text-gray-200">
-                                                {task.description}
+                                                <button onClick={() => openDescriptionModal(task.description)} className="px-3 py-1 flex gap-2  bg-primary text-white rounded hover:bg-primary-dark text-sm">
+                                                    وصف المهمه
+                                                </button>
                                             </h4>
                                             {task.files &&
                                             task.files.length > 0 ? (
@@ -703,19 +733,13 @@ export default function Tasks() {
                                             {t("المسؤول")}
                                         </th>
                                         <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t("العضو")}
+                                            {t("الوصف")}
                                         </th>
                                         <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t("مهمة لاكثر من عضو")}
+                                            {t("عرض التفاصيل ")}
                                         </th>
                                         <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                             {t("تاريخ التسليم")}
-                                        </th>
-                                        <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t("الحالة")}
-                                        </th>
-                                        <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t("رد العضو")}
                                         </th>
                                         <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                             {t("الإجراءات")}
@@ -729,80 +753,37 @@ export default function Tasks() {
                                             className="hover:bg-gray-50 dark:hover:bg-gray-600"
                                         >
                                             <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-200">
-                                                {task.title}
+                                                {task[0].title}
                                             </td>
                                             <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                                {task.assigner?.name ||
+                                                {task[0].assigner?.name ||
                                                     t("غير معروف")}
                                             </td>
-                                            <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                                {task?.assignee?.name}
+                                            <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-200">
+                                                <button onClick={() => openDescriptionModal(task[0].description)} className="px-3 py-1 flex gap-2  bg-primary text-white rounded hover:bg-primary-dark text-sm">
+                                                    عرض وصف المهمة
+                                                </button>
+
                                             </td>
-                                            <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                                {task?.task_id && (
-                                                    <div className="flex flex-col space-y-2">
-                                                        <div className="mb-2">
-                                                            <span className="font-medium">
-                                                                الأعضاء:
-                                                            </span>
-                                                            {tasks
-                                                                .filter(
-                                                                    (t) =>
-                                                                        t.task_id ===
-                                                                        task.task_id
-                                                                )
-                                                                .map(
-                                                                    (ta) =>
-                                                                        ta
-                                                                            ?.assignee
-                                                                            ?.name
-                                                                )
-                                                                .join("، ")}
-                                                        </div>
-                                                        <div className="flex gap-2">
+                                            <td className="px-4 py-3 text-right text-gray-600  dark:text-gray-300">
                                                             <button
                                                                 onClick={() =>
-                                                                    openEditModal(
+                                                                    handelTasksModel(
                                                                         task
                                                                     )
                                                                 }
-                                                                className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                                                                className="px-3 py-1 flex gap-2  bg-primary text-white rounded hover:bg-primary-dark text-sm"
                                                             >
-                                                                تعديل
+                                                                عرض التفاصيل
+                                                                <EyeIcon className="h-4 w-4" />
                                                             </button>
-                                                            <button
-                                                                onClick={() =>
-                                                                    openDeleteModal(
-                                                                        task
-                                                                    )
-                                                                }
-                                                                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-                                                            >
-                                                                حذف
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
+
                                             </td>
                                             <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                                {task.due_date}
+                                                {task[0].due_date}
                                             </td>
-                                            <td className="px-4 py-3 text-right">
-                                                {getStatusBadge(task.status)}
-                                            </td>
-                                            <td className="px-4 py-3 text-right dark:text-white">
-                                                <div className="flex items-center space-x-2 gap-2">
-                                                    {task.task_text}
-                                                    {task.task_file &&(
-                                                        <a href={`${app_url}/storage/${task.task_file}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 w-5 h-5">
-                                                            <EyeIcon className="w-4 h-5" />
-                                                        </a>
-                                                    )}
 
-                                                </div>
 
-                                            </td>
-                                            {!task?.task_id && (
                                                 <td className="px-4 py-3 text-center">
                                                     <div className="flex justify-center space-x-2">
                                                         <button
@@ -827,7 +808,6 @@ export default function Tasks() {
                                                         </button>
                                                     </div>
                                                 </td>
-                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -1563,8 +1543,8 @@ export default function Tasks() {
                                         )}
                                     </div>
 
-                                    {selectedTask.assigned_to &&
-                                        selectedTask.assigned_to.length > 0 && (
+            {selectedTask.assigned_to &&
+                selectedTask.assigned_to.length > 0 && (
                                             <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -1613,7 +1593,7 @@ export default function Tasks() {
                                                     </button>
                                                 </div>
                                             </div>
-                                        )}
+            )}
                                 </div>
 
                                 <div>
@@ -1790,9 +1770,9 @@ export default function Tasks() {
                             <div className="p-6">
                                 <p className="text-gray-700 dark:text-gray-300 mb-4">
                                     {t(
-                                        `هل أنت متأكد من أنك تريد حذف المهمة ${selectedTask.title}؟ هذا الإجراء لا يمكن التراجع عنه.`,
+                                        `هل أنت متأكد من أنك تريد حذف المهمة ${selectedTask[0].title}؟ هذا الإجراء لا يمكن التراجع عنه.`,
                                         {
-                                            taskTitle: selectedTask?.title,
+                                            taskTitle: selectedTask[0]?.title,
                                         }
                                     )}
                                 </p>
@@ -1833,7 +1813,7 @@ export default function Tasks() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         {t("ارسال رد")}
                                     </label>
-                                    <input
+                                    <textarea
                                         type="text"
                                         value={tastText.task_text}
                                         onChange={(e) =>
@@ -1842,6 +1822,7 @@ export default function Tasks() {
                                                 task_text: e.target.value,
                                             })
                                         }
+                                        rows={5}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     />
                                 </div>
@@ -1899,6 +1880,36 @@ export default function Tasks() {
                         </div>
                     </div>
                 )}
+             {modelDescription && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                    {t(" وصف المهمة")}
+                                </h3>
+                                <button
+                                   onClick={() => {setModelDescription(false);setDescription('');}}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                            <div className="p-6 max-w-md align-top">
+                                <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-normal break-words">
+                                  {description}
+                                </p>
+                            </div>
+                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                <button
+                                    onClick={() => {setModelDescription(false);setDescription('');}}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                                >
+                                    {t("إغلاق")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
@@ -1911,7 +1922,7 @@ export default function Tasks() {
                         {t("المهام المطلوبة منك")}
                     </h3>
                     <div className="space-y-4">
-                        {tasks
+                        {tasks.flat()
                             .filter((task) => task.assigned_to === auth.user.id)
                             .map((task) => (
                                 <div
@@ -1923,7 +1934,9 @@ export default function Tasks() {
                                             {task.title}
                                         </h4>
                                         <h4 className="font-medium text-gray-800 dark:text-gray-200">
-                                            {task.description}
+                                           <button onClick={() => openDescriptionModal(task.description)} className="px-3 py-1 flex gap-2  bg-primary text-white rounded hover:bg-primary-dark text-sm">
+                                                وصف المهمه
+                                         </button>
                                         </h4>
                                         {task.files && task.files.length > 0 ? (
                                             task.files.map((file, index) => (
@@ -1996,7 +2009,7 @@ export default function Tasks() {
                     </div>
                 </div>
             </div>
-
+           {showTasksModel && <TasksModel task={selectedTask} closeModal={closeModal} handleTaskStatusChange={handleTaskStatusChange} />}
         </AdminLayout>
     );
 }

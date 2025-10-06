@@ -386,7 +386,7 @@ export default function InvoicesRetailFlow() {
         <AdminLayout>
 
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
-                {(auth.user.subscription==='vip')&& (
+                {(auth.user.company.subscription==='vip')&& (
                     <div className="flex gap-2 mb-4">
                         <button
                             onClick={() =>
@@ -1156,7 +1156,7 @@ export default function InvoicesRetailFlow() {
                                     {t("شكراً لتعاملكم معنا")}
                                 </p>
                                 <p className="text-gray-500 text-sm mt-2">
-                                {(auth.user.subscription === "basic" || auth.user.subscription === "premium") && (
+                                {(auth.user.company.subscription === "basic" || auth.user.company.subscription === "premium") && (
                                     t("سيستمى نظام متكامل لادارة الانشطة التجارية")
                                 )}
                                 </p>

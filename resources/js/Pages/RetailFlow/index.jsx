@@ -258,7 +258,7 @@ export default function Index() {
                         <div className="absolute bottom-0 left-0 right-0 h-1 bg-pink-300 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                     </div>
                 </div>
-                {(auth.user.subscription === "vip" || auth.user.subscription === "premium") && (
+                {(auth.user.company.subscription === "vip" || auth.user.company.subscription === "premium") && (
                     <>
                     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
                     <div className="flex items-center justify-between mb-6">

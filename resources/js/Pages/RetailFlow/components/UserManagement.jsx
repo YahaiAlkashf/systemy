@@ -52,7 +52,7 @@ export default function UserManagement() {
         await axios.delete(`${app_url}/retailflow/users/${id}`);
         fetchUsers();
     };
-    if( auth.user.subscription==='premium'){
+    if( auth.user.company.subscription==='premium'){
             if(users.length >= 5) {
                 return (
                     <>

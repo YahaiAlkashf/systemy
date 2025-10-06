@@ -15,16 +15,18 @@ use function Termwind\ask;
 
 class TaskController extends Controller
 {
+
+    private function sendEmail($user, $task)
+    {
+        Mail::to($user->email)->queue(new TaskAssignedMail($task, $user));
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
 
         $tasks = Task::with(['files', 'assigner', 'assignee'])
-            ->where('company_id', $user->company_id)
-            ->where(function ($query) use ($user) {
-                $query->where('assigned_to', $user->id)
-                    ->orWhere('assigned_by', $user->id);
-            })->latest()
+            ->where('company_id', $user->company_id)->orderBy('updated_at', 'desc')
             ->get();
 
         return response()->json(['tasks' => $tasks]);
@@ -80,7 +82,7 @@ class TaskController extends Controller
                     'message' => 'لا يمكن تعيين المهمة لمستخدم من شركة أخرى'
                 ], 403);
             }
-            if ($arr > 1) {
+
                 $task = Task::create([
                     'title' => $request->title,
                     'description' => $request->description,
@@ -91,26 +93,14 @@ class TaskController extends Controller
                     'company_id' => Auth::user()->company_id,
                     'task_id' => $newTaskId,
                 ]);
-            } else {
-                $task = Task::create([
-                    'title' => $request->title,
-                    'description' => $request->description,
-                    'assigned_to' => $user_id,
-                    'assigned_by' => Auth::id(),
-                    'due_date' => $request->due_date,
-                    'status' => 'pending',
-                    'company_id' => Auth::user()->company_id,
-                ]);
-            }
-
-
 
             $user = User::find($user_id);
 
             if ($user && $user->email) {
-                Mail::to($user->email)->send(new TaskAssignedMail($task, $user));
+                // Mail::to($user->email)->send(new TaskAssignedMail($task, $user));
+               $this->sendEmail($user , $task);
             }
-                    if ($request->hasFile('files')) {
+         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
                 $path = $file->store("tasks/{$task->id}", 'public');
 
@@ -225,16 +215,17 @@ class TaskController extends Controller
                 'company_id' => Auth::user()->company_id,
             ];
 
-            if ($arr > 1) {
+
                 $taskData['task_id'] = $taskIdToUse;
-            }
+
 
             $task = Task::create($taskData);
             $createdTasks[] = $task;
 
             $user = User::find($user_id);
             if ($user && $user->email) {
-                Mail::to($user->email)->send(new TaskAssignedMail($task, $user));
+                // Mail::to($user->email)->send(new TaskAssignedMail($task, $user));
+                $this->sendEmail($user , $task);
             }
 
             if ($request->hasFile('files')) {
@@ -264,7 +255,8 @@ class TaskController extends Controller
             ->where('company_id', Auth::user()->company_id)
             ->firstOrFail();
 
-        if($task->task_id ){
+
+
             $tasks=Task::where('company_id', Auth::user()->company_id)->where('task_id', $task->task_id)->get();
             foreach ($tasks as $task) {
                 foreach ($task->files as $file) {
@@ -273,17 +265,6 @@ class TaskController extends Controller
             }
             $task->delete();
         }
-        }else{
-            foreach ($task->files as $file) {
-                Storage::disk('public')->delete($file->file_path);
-                $file->delete();
-            }
-             $task->delete();
-        }
-
-
-
-
         return response()->json([
             'success' => true,
             'message' => 'تم حذف المهمة بنجاح'
@@ -296,15 +277,9 @@ class TaskController extends Controller
             ->where('company_id', Auth::user()->company_id)
             ->firstOrFail();
 
-        if ($task->assigned_to !== Auth::id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح بتغيير حالة هذه المهمة'
-            ], 403);
-        }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:pending,in_progress,completed,overdue'
+            'status' => 'required|in:pending,pending,in_progress,completed,overdue'
         ]);
 
         if ($validator->fails()) {
@@ -326,7 +301,7 @@ class TaskController extends Controller
     public function taskText(Request $request ,$id)
     {
             $validator = Validator::make($request->all(), [
-                'task_text' => 'nullable|string',
+                'task_text' => 'nullable',
                 'task_file' => 'nullable|file'
             ]);
 

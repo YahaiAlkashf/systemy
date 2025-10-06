@@ -75,7 +75,7 @@ export default function Header({ isOpen, setIsOpen }) {
         >
             <div>
                 <h1 className="text-2xl font-semibold text-[#4F2BED] dark:text-primary-dark">
-                    {auth?.user?.company?.company_name || "سيستمى"}
+                    {(auth?.user?.company?.company_name && auth?.user?.company?.subscription === 'vip' )  || "سيستمى"}
                 </h1>
             </div>
             <div className="flex items-center gap-4">
@@ -242,7 +242,7 @@ export default function Header({ isOpen, setIsOpen }) {
                     className="h-10 w-10 rounded-full bg-[#4F2BED] flex items-center justify-center
                                 text-white font-bold text-lg shadow"
                 >
-                                        {auth.user?.company?.logo !== null ? (
+                                        {(auth.user?.company?.logo !== null && auth?.user?.company?.subscription === 'vip' )? (
                         <img
                             src={`${app_url}/storage/${auth.user?.company?.logo}`}
                             className="h-full w-full object-cover rounded-full"

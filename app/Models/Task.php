@@ -22,8 +22,8 @@ class Task extends Model
         'task_file',
         'task_text'
     ];
+        public $timestamps = true;
 
-   public $timestamps = false;
 
     public function assignee()
     {

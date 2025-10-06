@@ -68,7 +68,7 @@ class EventController extends Controller
         $users = User::where('company_id', Auth::user()->company_id)->get();
         foreach ($users as $user) {
             if ($user->email) {
-                Mail::to($user->email)->send(new EventCreatedMail($event, $user));
+                $this->sendMails($user ,$event);
             }
         }
 
@@ -123,7 +123,12 @@ class EventController extends Controller
             'date' => $request->date,
             'option' => $request->option
         ]);
-
+        $users = User::where('company_id', Auth::user()->company_id)->get();
+        foreach ($users as $user) {
+            if ($user->email) {
+                $this->sendMails($user ,$event);
+            }
+        }
         return response()->json([
             'message' => 'تم تعديل الحدث بنجاح',
             'event' => $event
@@ -193,7 +198,9 @@ class EventController extends Controller
         ], 201);
     }
 
-
+    private function sendMails($user ,$event ){
+        Mail::to($user->email)->queue(new EventCreatedMail($event, $user));
+    }
     protected function sendWhatsAppNotifications($event)
     {
         try {

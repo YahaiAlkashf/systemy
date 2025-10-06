@@ -130,22 +130,22 @@ export default function Members() {
     }, [search, sortBy, members]);
 
     const handleSortByTasks = () => {
-        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        isUserActionRef.current = true;
         setSortBy("completed_tasks");
     };
 
     const handleSortByAttendance = () => {
-        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        isUserActionRef.current = true;
         setSortBy("attended_events");
     };
 
     const handleSortByRank = () => {
-        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        isUserActionRef.current = true;
         setSortBy("total_score");
     };
 
     const handleSearch = () => {
-        isUserActionRef.current = true; // علامة أن هذا إجراء مستخدم
+        isUserActionRef.current = true;
         setCurrentPage(1);
     };
 
@@ -382,10 +382,10 @@ export default function Members() {
                             </button>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            <button onClick={handleExportPDF} className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                            {/* <button onClick={handleExportPDF} className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
                                 <ArrowDownTrayIcon className="h-4 w-4 ml-1.5" />
                                 {t("PDF")}
-                            </button>
+                            </button> */}
                             <button onClick={handleExportExcel} className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
                                 <ArrowDownTrayIcon className="h-4 w-4 ml-1.5" />
                                 {t("Excel")}

@@ -13,7 +13,7 @@ import { CurrencyContext } from "../../Context/CurrencyContext ";
 import { useTranslation } from "react-i18next";
 
 export default function ProductsRetailFlow() {
-        const { t } = useTranslation();
+    const { t } = useTranslation();
     const { app_url } = usePage().props;
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [addModal, setAddModal] = useState(false);
@@ -265,7 +265,7 @@ export default function ProductsRetailFlow() {
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
                 <div className="flex gap-2 mb-4 flex-wrap">
                     {auth.user.system_type === "retail" &&
-                        auth.user.subscription === "vip" && (
+                        auth.user.company.company.subscription === "vip" && (
                             <button
                                 onClick={enableBarcodeMode}
                                 className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
@@ -289,7 +289,7 @@ export default function ProductsRetailFlow() {
                             {t("إلغاء المسح")}
                         </button>
                     )}
-                    {auth.user.subscription === "vip" && (
+                    {auth.user.company.subscription === "vip" && (
                         <>
                             <button
                                 onClick={() =>
@@ -474,7 +474,7 @@ export default function ProductsRetailFlow() {
                                         : t("الفئة")}
                                 </th>
                                 {auth.user.system_type === "retail" &&
-                                    auth.user.subscription === "vip" && (
+                                    auth.user.company.subscription === "vip" && (
                                         <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                             {t("الباركود")}
                                         </th>
@@ -537,7 +537,7 @@ export default function ProductsRetailFlow() {
                                         {product.category}
                                     </td>
                                     {auth.user.system_type === "retail" &&
-                                        auth.user.subscription === "vip" && (
+                                        auth.user.company.subscription === "vip" && (
                                             <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
                                                 {product.barcode && (
                                                     <span className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-xs rounded-full">

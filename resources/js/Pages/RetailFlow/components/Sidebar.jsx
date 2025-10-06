@@ -27,7 +27,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const { t } = useTranslation();
 
     let navItems = []
-    if(auth.user.subscription==='vip'){
+    if(auth.user.company.subscription==='vip'){
     if(auth.user.system_type === "realEstate" ) {
 
          navItems = [

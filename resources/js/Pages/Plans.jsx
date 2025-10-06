@@ -68,15 +68,15 @@ const applyCoupon = async () => {
         });
 
         if (response.data && response.data.success) {
-            // تحقق إذا كان السعر 0 (خصم 100%)
+           
             const priceInEgz = parseFloat(response.data.coupon?.price_in_egp || selectedPlan?.priceInsideEgypt);
             const priceOutsideEgz = parseFloat(response.data.coupon?.price_outside_egp || selectedPlan?.priceOutsideEgypt);
 
             if (priceInEgz === 0 || priceOutsideEgz === 0) {
-                // إذا كان السعر 0، نفذ الاشتراك مباشرة
+
                 setCouponData(response.data.coupon);
 
-                // هنا نضيف الاشتراك مباشرة بدون دفع
+
                 try {
                     const subscriptionResponse = await axios.post(`${app_url}/subscription/free`, {
                         plan: selectedPlan?.name,
@@ -84,7 +84,7 @@ const applyCoupon = async () => {
                     });
 
                     if (subscriptionResponse.data.success) {
-                        // انتظر قليلاً ثم وجه المستخدم
+
                         setTimeout(() => {
                             switch (auth.user.system_type) {
                                 case 'clubs':

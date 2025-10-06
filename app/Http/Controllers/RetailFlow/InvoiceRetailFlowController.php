@@ -14,7 +14,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 class InvoiceRetailFlowController extends Controller
 {
     public function index()
@@ -501,174 +506,243 @@ public function exportInvoicesPDF()
         return $statuses[$status] ?? $status;
     }
 
-    public function exportInvoicesExcel()
-    {
-        $user = Auth::user();
-        $invoices = InvoiceRetailFlow::with('customer', 'items.product')
-            ->where('company_id', $user->company_id)
-            ->get();
+public function exportInvoicesExcel()
+{
+    $user = Auth::user();
+    $invoices = InvoiceRetailFlow::with('customer', 'items.product')
+        ->where('company_id', $user->company_id)
+        ->get();
 
-        $systemTitles = [
-            "retail" => "فواتير_المبيعات",
-            "services" => "فواتير_الخدمات",
-            "education" => "فواتير_الدورات",
-            "realEstate" => "فواتير_العقارات",
-            "delivery" => "فواتير_التوصيل",
-            "travels" => "فواتير_الرحلات"
-        ];
+    $systemTitles = [
+        "retail" => "فواتير_المبيعات",
+        "services" => "فواتير_الخدمات",
+        "education" => "فواتير_الدورات",
+        "realEstate" => "فواتير_العقارات",
+        "delivery" => "فواتير_التوصيل",
+        "travels" => "فواتير_الرحلات"
+    ];
 
-        $fileTitle = $systemTitles[$user->system_type] ?? "فواتير";
-        $fileName = $fileTitle . '_' . date('Y-m-d') . '.xlsx';
+    $fileTitle = $systemTitles[$user->system_type] ?? "فواتير";
+    $fileName = $fileTitle . '_' . date('Y-m-d') . '.xlsx';
+    $customerColumnTitle = ($user->system_type === "delivery") ? "السائق" : "العميل";
 
-        $customerColumnTitle = ($user->system_type === "delivery") ? "السائق" : "العميل";
+    // إنشاء مستند جديد
+    $spreadsheet = new Spreadsheet();
 
-        $spreadsheet = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-        <Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                xmlns:x=\"urn:schemas-microsoft-com:office:excel\"
-                xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                xmlns:html=\"http://www.w3.org/TR/REC-html40\">
-        <Worksheet ss:Name=\"الفواتير\">
-        <Table>
-        <Row>
-            <Cell><Data ss:Type=\"String\">#</Data></Cell>
-            <Cell><Data ss:Type=\"String\">رقم الفاتورة</Data></Cell>
-            <Cell><Data ss:Type=\"String\">{$customerColumnTitle}</Data></Cell>
-            <Cell><Data ss:Type=\"String\">الإجمالي</Data></Cell>
-            <Cell><Data ss:Type=\"String\">المدفوع</Data></Cell>
-            <Cell><Data ss:Type=\"String\">المتبقي</Data></Cell>";
+    // الورقة الأولى: الفواتير
+    $sheet1 = $spreadsheet->getActiveSheet();
+    $sheet1->setTitle('الفواتير');
+    $sheet1->setRightToLeft(true);
 
-            if ($user->system_type !== "delivery") {
-                $spreadsheet .= "<Cell><Data ss:Type=\"String\">صافي الربح</Data></Cell>";
-            }
+    // تعريف الرؤوس
+    $headers = ['#', 'رقم الفاتورة', $customerColumnTitle, 'الإجمالي', 'المدفوع', 'المتبقي'];
 
-            $spreadsheet .= "
-            <Cell><Data ss:Type=\"String\">الحالة</Data></Cell>
-            <Cell><Data ss:Type=\"String\">عدد العناصر</Data></Cell>
-            <Cell><Data ss:Type=\"String\">تاريخ الإنشاء</Data></Cell>
-        </Row>";
-
-        $totalSum = 0;
-        $totalPaid = 0;
-        $totalProfit = 0;
-        $totalInvoices = $invoices->count();
-
-        foreach ($invoices as $index => $invoice) {
-            $remaining = $invoice->total - $invoice->paid_amount;
-            $itemsCount = $invoice->items->count();
-
-            $totalSum += $invoice->total;
-            $totalPaid += $invoice->paid_amount;
-            $totalProfit += $invoice->total_profit;
-
-            $spreadsheet .= "
-        <Row>
-            <Cell><Data ss:Type=\"Number\">" . ($index + 1) . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">{$invoice->id}</Data></Cell>
-            <Cell><Data ss:Type=\"String\">" . ($invoice->customer->name ?? 'نقدي') . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($invoice->total, 2, '.', '') . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($invoice->paid_amount, 2, '.', '') . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($remaining, 2, '.', '') . "</Data></Cell>";
-
-            if ($user->system_type !== "delivery") {
-                $spreadsheet .= "<Cell><Data ss:Type=\"Number\">" . number_format($invoice->total_profit, 2, '.', '') . "</Data></Cell>";
-            }
-
-            $spreadsheet .= "
-            <Cell><Data ss:Type=\"String\">" . $this->getStatusArabic($invoice->status) . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">{$itemsCount}</Data></Cell>
-            <Cell><Data ss:Type=\"String\">" . $invoice->created_at->format('Y-m-d') . "</Data></Cell>
-        </Row>";
-        }
-
-        $spreadsheet .= "
-        <Row>
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-            <Cell><Data ss:Type=\"String\"><B>الإجماليات</B></Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($totalSum, 2, '.', '') . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($totalPaid, 2, '.', '') . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($totalSum - $totalPaid, 2, '.', '') . "</Data></Cell>";
-
-        if ($user->system_type !== "delivery") {
-            $spreadsheet .= "<Cell><Data ss:Type=\"Number\">" . number_format($totalProfit, 2, '.', '') . "</Data></Cell>";
-        } else {
-            $spreadsheet .= "<Cell><Data ss:Type=\"String\"></Data></Cell>";
-        }
-
-        $spreadsheet .= "
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-            <Cell><Data ss:Type=\"Number\">{$totalInvoices}</Data></Cell>
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-        </Row>";
-
-        $averageTotal = $totalInvoices > 0 ? $totalSum / $totalInvoices : 0;
-        $spreadsheet .= "
-        <Row>
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-            <Cell><Data ss:Type=\"String\"><B>المتوسطات</B></Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($averageTotal, 2, '.', '') . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($totalPaid / max($totalInvoices, 1), 2, '.', '') . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format(($totalSum - $totalPaid) / max($totalInvoices, 1), 2, '.', '') . "</Data></Cell>";
-
-        if ($user->system_type !== "delivery") {
-            $averageProfit = $totalInvoices > 0 ? $totalProfit / $totalInvoices : 0;
-            $spreadsheet .= "<Cell><Data ss:Type=\"Number\">" . number_format($averageProfit, 2, '.', '') . "</Data></Cell>";
-        } else {
-            $spreadsheet .= "<Cell><Data ss:Type=\"String\"></Data></Cell>";
-        }
-
-        $spreadsheet .= "
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-            <Cell><Data ss:Type=\"String\"></Data></Cell>
-        </Row>";
-
-        $spreadsheet .= "
-    </Table>
-    </Worksheet>";
-
-        $spreadsheet .= "
-    <Worksheet ss:Name=\"الإحصائيات\">
-    <Table>
-    <Row>
-        <Cell><Data ss:Type=\"String\"><B>إحصائيات الفواتير</B></Data></Cell>
-        <Cell><Data ss:Type=\"String\"><B>العدد</B></Data></Cell>
-        <Cell><Data ss:Type=\"String\"><B>النسبة</B></Data></Cell>
-    </Row>";
-
-        $statusCounts = [
-            'pending' => 0,
-            'partial' => 0,
-            'paid' => 0
-        ];
-
-        foreach ($invoices as $invoice) {
-            $statusCounts[$invoice->status]++;
-        }
-
-        foreach ($statusCounts as $status => $count) {
-            $percentage = $totalInvoices > 0 ? ($count / $totalInvoices) * 100 : 0;
-            $spreadsheet .= "
-        <Row>
-            <Cell><Data ss:Type=\"String\">" . $this->getStatusArabic($status) . "</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">{$count}</Data></Cell>
-            <Cell><Data ss:Type=\"Number\">" . number_format($percentage, 1, '.', '') . "%</Data></Cell>
-        </Row>";
-        }
-
-        $spreadsheet .= "
-    </Table>
-    </Worksheet>
-    </Workbook>";
-
-        $headers = [
-            'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response($spreadsheet, 200, $headers);
+    if ($user->system_type !== "delivery") {
+        $headers[] = 'صافي الربح';
     }
+
+    $headers = array_merge($headers, ['الحالة', 'عدد العناصر', 'تاريخ الإنشاء']);
+
+    // إضافة الرؤوس
+    $sheet1->fromArray($headers, null, 'A1');
+
+    // تنسيق الرؤوس
+    $headerStyle = [
+        'font' => [
+            'bold' => true,
+            'size' => 12,
+            'color' => ['rgb' => '000000']
+        ],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'color' => ['rgb' => 'FFFF00']
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => '000000']
+            ]
+        ]
+    ];
+
+    $lastHeaderColumn = $user->system_type !== "delivery" ? 'J' : 'I';
+    $sheet1->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
+
+    // إضافة البيانات والحسابات
+    $totalSum = 0;
+    $totalPaid = 0;
+    $totalProfit = 0;
+    $totalInvoices = $invoices->count();
+
+    $row = 2;
+    foreach ($invoices as $index => $invoice) {
+        $remaining = $invoice->total - $invoice->paid_amount;
+        $itemsCount = $invoice->items->count();
+
+        $totalSum += $invoice->total;
+        $totalPaid += $invoice->paid_amount;
+        $totalProfit += $invoice->total_profit;
+
+        $data = [
+            $index + 1,
+            $invoice->id,
+            $invoice->customer->name ?? 'نقدي',
+            $invoice->total,
+            $invoice->paid_amount,
+            $remaining,
+        ];
+
+        if ($user->system_type !== "delivery") {
+            $data[] = $invoice->total_profit;
+        }
+
+        $data = array_merge($data, [
+            $this->getStatusArabic($invoice->status),
+            $itemsCount,
+            $invoice->created_at->format('Y-m-d')
+        ]);
+
+        $sheet1->fromArray($data, null, 'A' . $row);
+        $row++;
+    }
+
+    // تنسيق الأرقام
+    $numberColumns = ['D', 'E', 'F'];
+    if ($user->system_type !== "delivery") {
+        $numberColumns[] = 'G';
+    }
+
+    foreach ($numberColumns as $col) {
+        $sheet1->getStyle($col . '2:' . $col . ($row - 1))
+               ->getNumberFormat()
+               ->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
+    }
+
+    // إضافة الإجماليات
+    $summaryRow = $row + 1;
+    $sheet1->setCellValue('C' . $summaryRow, 'الإجماليات');
+    $sheet1->setCellValue('D' . $summaryRow, $totalSum);
+    $sheet1->setCellValue('E' . $summaryRow, $totalPaid);
+    $sheet1->setCellValue('F' . $summaryRow, $totalSum - $totalPaid);
+
+    if ($user->system_type !== "delivery") {
+        $sheet1->setCellValue('G' . $summaryRow, $totalProfit);
+        $sheet1->setCellValue('I' . $summaryRow, $totalInvoices);
+    } else {
+        $sheet1->setCellValue('H' . $summaryRow, $totalInvoices);
+    }
+
+    // إضافة المتوسطات
+    $averageRow = $summaryRow + 1;
+    $sheet1->setCellValue('C' . $averageRow, 'المتوسطات');
+    $sheet1->setCellValue('D' . $averageRow, $totalInvoices > 0 ? $totalSum / $totalInvoices : 0);
+    $sheet1->setCellValue('E' . $averageRow, $totalInvoices > 0 ? $totalPaid / $totalInvoices : 0);
+    $sheet1->setCellValue('F' . $averageRow, $totalInvoices > 0 ? ($totalSum - $totalPaid) / $totalInvoices : 0);
+
+    if ($user->system_type !== "delivery") {
+        $sheet1->setCellValue('G' . $averageRow, $totalInvoices > 0 ? $totalProfit / $totalInvoices : 0);
+    }
+
+    // تنسيق الإجماليات والمتوسطات
+    $boldStyle = [
+        'font' => [
+            'bold' => true
+        ]
+    ];
+
+    $sheet1->getStyle('C' . $summaryRow . ':C' . $averageRow)->applyFromArray($boldStyle);
+
+    foreach ($numberColumns as $col) {
+        $sheet1->getStyle($col . $summaryRow . ':' . $col . $averageRow)
+               ->getNumberFormat()
+               ->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
+    }
+
+    // تنسيق بيانات الجدول
+    $dataStyle = [
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => 'DDDDDD']
+            ]
+        ]
+    ];
+
+    if ($totalInvoices > 0) {
+        $lastDataRow = $row - 1;
+        $sheet1->getStyle('A2:' . $lastHeaderColumn . $lastDataRow)->applyFromArray($dataStyle);
+    }
+
+    // ضبط عرض الأعمدة
+    foreach (range('A', $lastHeaderColumn) as $column) {
+        $sheet1->getColumnDimension($column)->setAutoSize(true);
+    }
+
+    // الورقة الثانية: الإحصائيات
+    $sheet2 = $spreadsheet->createSheet();
+    $sheet2->setTitle('الإحصائيات');
+    $sheet2->setRightToLeft(true);
+
+    // رؤوس الإحصائيات
+    $statsHeaders = ['إحصائيات الفواتير', 'العدد', 'النسبة'];
+    $sheet2->fromArray($statsHeaders, null, 'A1');
+    $sheet2->getStyle('A1:C1')->applyFromArray($headerStyle);
+
+   
+    $statusCounts = [
+        'pending' => 0,
+        'partial' => 0,
+        'paid' => 0
+    ];
+
+    foreach ($invoices as $invoice) {
+        $statusCounts[$invoice->status]++;
+    }
+
+    $statsRow = 2;
+    foreach ($statusCounts as $status => $count) {
+        $percentage = $totalInvoices > 0 ? ($count / $totalInvoices) * 100 : 0;
+
+        $sheet2->setCellValue('A' . $statsRow, $this->getStatusArabic($status));
+        $sheet2->setCellValue('B' . $statsRow, $count);
+        $sheet2->setCellValue('C' . $statsRow, $percentage / 100); // كنسبة عشرية لـ Excel
+
+        $statsRow++;
+    }
+
+    $sheet2->getStyle('C2:C' . ($statsRow - 1))
+           ->getNumberFormat()
+           ->setFormatCode('0.0%');
+
+    $sheet2->getStyle('A2:C' . ($statsRow - 1))->applyFromArray($dataStyle);
+
+    foreach (range('A', 'C') as $column) {
+        $sheet2->getColumnDimension($column)->setAutoSize(true);
+    }
+
+    $spreadsheet->setActiveSheetIndex(0);
+
+    $writer = new Xlsx($spreadsheet);
+
+    ob_start();
+    $writer->save('php://output');
+    $content = ob_get_clean();
+
+    return response($content, 200, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        'Cache-Control' => 'max-age=0',
+    ]);
+}
+
 
 
 

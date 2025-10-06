@@ -8,6 +8,11 @@ use Elibyy\TCPDF\TCPDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use Inertia\Inertia;
 
 class CustomerRetailFlowController extends Controller
@@ -172,63 +177,120 @@ $html = '<table style="width:100%;"><tr><td style="text-align:center; font-famil
             exit;
         }
 
-    public function exportExcel()
-    {
-        $user = Auth::user();
-        $customers = CustomerRetailFlow::where('company_id', $user->company_id)->get();
 
-        $nameTitle = "";
-        $addressTitle = "";
-        $fileName = "";
+public function exportExcel()
+{
+    $user = Auth::user();
+    $customers = CustomerRetailFlow::where('company_id', $user->company_id)->get();
 
-        if ($user->system_type === "delivery") {
-            $nameTitle = "اسم السائق";
-            $addressTitle = "رقم السيارة";
-            $fileName = "تقرير_السائقين_" . date('Y-m-d') . '.xlsx';
-        } else {
-            $nameTitle = "اسم العميل";
-            $addressTitle = "العنوان";
-            $fileName = "تقرير_العملاء_" . date('Y-m-d') . '.xlsx';
-        }
+    $nameTitle = "";
+    $addressTitle = "";
+    $fileName = "";
+    $sheetTitle = "";
 
-        $spreadsheet = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-            <Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:x=\"urn:schemas-microsoft-com:office:excel\"
-                    xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:html=\"http://www.w3.org/TR/REC-html40\">
-            <Worksheet ss:Name=\"" . ($user->system_type === "delivery" ? "السائقين" : "العملاء") . "\">
-            <Table>
-            <Row>
-                <Cell><Data ss:Type=\"String\">#</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$nameTitle}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">رقم الهاتف</Data></Cell>
-                <Cell><Data ss:Type=\"String\">البريد الإلكتروني</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$addressTitle}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">تاريخ الإنشاء</Data></Cell>
-            </Row>";
-
-        foreach ($customers as $index => $customer) {
-            $spreadsheet .= "
-            <Row>
-                <Cell><Data ss:Type=\"Number\">" . ($index + 1) . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$customer->name}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$customer->phone}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$customer->email}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$customer->address}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$customer->created_at->format('Y-m-d')}</Data></Cell>
-            </Row>";
-        }
-
-        $spreadsheet .= "
-            </Table>
-            </Worksheet>
-            </Workbook>";
-
-        $headers = [
-            'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response($spreadsheet, 200, $headers);
+    if ($user->system_type === "delivery") {
+        $nameTitle = "اسم السائق";
+        $addressTitle = "رقم السيارة";
+        $fileName = "تقرير_السائقين_" . date('Y-m-d') . '.xlsx';
+        $sheetTitle = "السائقين";
+    } else {
+        $nameTitle = "اسم العميل";
+        $addressTitle = "العنوان";
+        $fileName = "تقرير_العملاء_" . date('Y-m-d') . '.xlsx';
+        $sheetTitle = "العملاء";
     }
+
+    // إنشاء مستند جديد
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // تعيين عنوان الورقة
+    $sheet->setTitle($sheetTitle);
+
+    // تعيين اتجاه النص من اليمين لليسار للغة العربية
+    $sheet->setRightToLeft(true);
+
+    // تعريف الرؤوس
+    $headers = [
+        '#', $nameTitle, 'رقم الهاتف', 'البريد الإلكتروني',
+        $addressTitle, 'تاريخ الإنشاء'
+    ];
+
+    // إضافة الرؤوس
+    $sheet->fromArray($headers, null, 'A1');
+
+    // تنسيق الرؤوس
+    $headerStyle = [
+        'font' => [
+            'bold' => true,
+            'size' => 12,
+            'color' => ['rgb' => '000000']
+        ],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'color' => ['rgb' => 'FFFF00'] // لون أصفر
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => '000000']
+            ]
+        ]
+    ];
+
+    $sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
+
+    // إضافة البيانات
+    $row = 2;
+    foreach ($customers as $index => $customer) {
+        $sheet->setCellValue('A' . $row, $index + 1);
+        $sheet->setCellValue('B' . $row, $customer->name);
+        $sheet->setCellValue('C' . $row, $customer->phone);
+        $sheet->setCellValue('D' . $row, $customer->email);
+        $sheet->setCellValue('E' . $row, $customer->address);
+        $sheet->setCellValue('F' . $row, $customer->created_at->format('Y-m-d'));
+
+        $row++;
+    }
+
+    // تنسيق بيانات الجدول
+    $dataStyle = [
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => 'DDDDDD']
+            ]
+        ]
+    ];
+
+    if ($customers->count() > 0) {
+        $sheet->getStyle('A2:F' . ($row - 1))->applyFromArray($dataStyle);
+    }
+
+    // ضبط عرض الأعمدة تلقائياً
+    foreach (range('A', 'F') as $column) {
+        $sheet->getColumnDimension($column)->setAutoSize(true);
+    }
+
+    $writer = new Xlsx($spreadsheet);
+
+    ob_start();
+    $writer->save('php://output');
+    $content = ob_get_clean();
+
+    return response($content, 200, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        'Cache-Control' => 'max-age=0',
+    ]);
+}
+
 }

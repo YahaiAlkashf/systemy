@@ -9,10 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Elibyy\TCPDF\TCPDF;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class ProductRetailFlowController extends Controller
 {
@@ -422,137 +426,239 @@ public function update(Request $request, $id)
         exit;
     }
 
-    public function exportExcel()
-    {
-        $user = Auth::user();
-        $products = ProductRetailFlow::where('company_id', $user->company_id)->get();
+public function exportExcel()
+{
+    $user = Auth::user();
+    $products = ProductRetailFlow::where('company_id', $user->company_id)->get();
 
-        $fileNames = [
-            "retail" => "المنتجات",
-            "services" => "الخدمات",
-            "education" => "الدورات",
-            "realEstate" => "العقارات",
-            "delivery" => "الطلبات",
-            "travels" => "الرحلات"
-        ];
+    $fileNames = [
+        "retail" => "المنتجات",
+        "services" => "الخدمات",
+        "education" => "الدورات",
+        "realEstate" => "العقارات",
+        "delivery" => "الطلبات",
+        "travels" => "الرحلات"
+    ];
 
-        $fileName = ($fileNames[$user->system_type] ?? "المنتجات") . '_' . date('Y-m-d') . '.xlsx';
+    $fileName = ($fileNames[$user->system_type] ?? "المنتجات") . '_' . date('Y-m-d') . '.xlsx';
+    $sheetTitle = $fileNames[$user->system_type] ?? "المنتجات";
 
-        $nameColumnTitle = "";
-        $quantityColumnTitle = "";
-        $priceColumnTitle = "";
-        $wholesaleColumnTitle = "";
+    $nameColumnTitle = "";
+    $quantityColumnTitle = "";
+    $priceColumnTitle = "";
+    $wholesaleColumnTitle = "";
 
-        switch ($user->system_type) {
-            case "services":
-                $nameColumnTitle = "اسم الخدمة";
-                $quantityColumnTitle = "";
-                $priceColumnTitle = "سعر الخدمة";
-                $wholesaleColumnTitle = "تكلفة الخدمة";
-                break;
-            case "education":
-                $nameColumnTitle = "اسم الدورة";
-                $quantityColumnTitle = "";
-                $priceColumnTitle = "سعر الدورة";
-                $wholesaleColumnTitle = "تكلفة الدورة";
-                break;
-            case "realEstate":
-                $nameColumnTitle = "اسم العقار";
-                $quantityColumnTitle = "الكمية";
-                $priceColumnTitle = "سعر البيع";
-                $wholesaleColumnTitle = "سعر الشراء";
-                break;
-            case "delivery":
-                $nameColumnTitle = "اسم الطلب";
-                $quantityColumnTitle = "حالة الطلب";
-                $priceColumnTitle = "سعر الطلب";
-                $wholesaleColumnTitle = "عنوان الطلب";
-                break;
-            case "travels":
-                $nameColumnTitle = "اسم الرحلة";
-                $quantityColumnTitle = "";
-                $priceColumnTitle = "سعر الرحلة";
-                $wholesaleColumnTitle = "تكلفة الرحلة";
-                break;
-            default: // retail
-                $nameColumnTitle = "اسم المنتج";
-                $quantityColumnTitle = "الكمية";
-                $priceColumnTitle = "سعر البيع";
-                $wholesaleColumnTitle = "سعر الجملة";
-        }
-
-        $spreadsheet = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-            <Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:x=\"urn:schemas-microsoft-com:office:excel\"
-                    xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:html=\"http://www.w3.org/TR/REC-html40\">
-            <Worksheet ss:Name=\"" . ($fileNames[$user->system_type] ?? "المنتجات") . "\">
-            <Table>
-            <Row>
-                <Cell><Data ss:Type=\"String\">#</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$nameColumnTitle}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">التصنيف</Data></Cell>";
-
-        // إضافة عمود الباركود لأنظمة البيع بالتجزئة فقط
-        if ($user->system_type === "retail") {
-            $spreadsheet .= "<Cell><Data ss:Type=\"String\">الباركود</Data></Cell>";
-        }
-
-        if (!empty($quantityColumnTitle)) {
-            $spreadsheet .= "<Cell><Data ss:Type=\"String\">{$quantityColumnTitle}</Data></Cell>";
-        }
-
-        $spreadsheet .= "
-                <Cell><Data ss:Type=\"String\">{$priceColumnTitle}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$wholesaleColumnTitle}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">مصاريف اضافية</Data></Cell>
-                <Cell><Data ss:Type=\"String\">صافي الأرباح</Data></Cell>
-                <Cell><Data ss:Type=\"String\">تاريخ الإنشاء</Data></Cell>
-            </Row>";
-
-        foreach ($products as $index => $product) {
-            $spreadsheet .= "
-            <Row>
-                <Cell><Data ss:Type=\"Number\">" . ($index + 1) . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$product->name}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">" . ($product->category ?? 'غير محدد') . "</Data></Cell>";
-
-            // إضافة عمود الباركود لأنظمة البيع بالتجزئة فقط
-            if ($user->system_type === "retail") {
-                $spreadsheet .= "<Cell><Data ss:Type=\"String\">" . ($product->barcode ?? 'لا يوجد') . "</Data></Cell>";
-            }
-
-            if (!empty($quantityColumnTitle)) {
-                $quantityValue = $user->system_type === "delivery" ?
-                    "<Data ss:Type=\"String\">{$product->quantity}</Data>" :
-                    "<Data ss:Type=\"Number\">{$product->quantity}</Data>";
-
-                $spreadsheet .= "<Cell>{$quantityValue}</Cell>";
-            }
-
-            $wholesaleValue = $user->system_type === "delivery" ?
-                "<Data ss:Type=\"String\">{$product->wholesale_price}</Data>" :
-                "<Data ss:Type=\"Number\">{$product->wholesale_price}</Data>";
-
-            $spreadsheet .= "
-                <Cell><Data ss:Type=\"Number\">{$product->price}</Data></Cell>
-                <Cell>{$wholesaleValue}</Cell>
-                <Cell><Data ss:Type=\"Number\">{$product->additional_costs}</Data></Cell>
-                <Cell><Data ss:Type=\"Number\">{$product->net_profit}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$product->created_at->format('Y-m-d')}</Data></Cell>
-            </Row>";
-        }
-
-        $spreadsheet .= "
-            </Table>
-            </Worksheet>
-            </Workbook>";
-
-        $headers = [
-            'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response($spreadsheet, 200, $headers);
+    switch ($user->system_type) {
+        case "services":
+            $nameColumnTitle = "اسم الخدمة";
+            $quantityColumnTitle = "";
+            $priceColumnTitle = "سعر الخدمة";
+            $wholesaleColumnTitle = "تكلفة الخدمة";
+            break;
+        case "education":
+            $nameColumnTitle = "اسم الدورة";
+            $quantityColumnTitle = "";
+            $priceColumnTitle = "سعر الدورة";
+            $wholesaleColumnTitle = "تكلفة الدورة";
+            break;
+        case "realEstate":
+            $nameColumnTitle = "اسم العقار";
+            $quantityColumnTitle = "الكمية";
+            $priceColumnTitle = "سعر البيع";
+            $wholesaleColumnTitle = "سعر الشراء";
+            break;
+        case "delivery":
+            $nameColumnTitle = "اسم الطلب";
+            $quantityColumnTitle = "حالة الطلب";
+            $priceColumnTitle = "سعر الطلب";
+            $wholesaleColumnTitle = "عنوان الطلب";
+            break;
+        case "travels":
+            $nameColumnTitle = "اسم الرحلة";
+            $quantityColumnTitle = "";
+            $priceColumnTitle = "سعر الرحلة";
+            $wholesaleColumnTitle = "تكلفة الرحلة";
+            break;
+        default: // retail
+            $nameColumnTitle = "اسم المنتج";
+            $quantityColumnTitle = "الكمية";
+            $priceColumnTitle = "سعر البيع";
+            $wholesaleColumnTitle = "سعر الجملة";
     }
+
+    // إنشاء مستند جديد
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle($sheetTitle);
+    $sheet->setRightToLeft(true);
+
+    // بناء الرؤوس الديناميكية
+    $headers = ['#', $nameColumnTitle, 'التصنيف'];
+
+    // إضافة عمود الباركود لأنظمة البيع بالتجزئة فقط
+    if ($user->system_type === "retail") {
+        $headers[] = 'الباركود';
+    }
+
+    if (!empty($quantityColumnTitle)) {
+        $headers[] = $quantityColumnTitle;
+    }
+
+    $headers = array_merge($headers, [
+        $priceColumnTitle,
+        $wholesaleColumnTitle,
+        'مصاريف اضافية',
+        'صافي الأرباح',
+        'تاريخ الإنشاء'
+    ]);
+
+    // إضافة الرؤوس
+    $sheet->fromArray($headers, null, 'A1');
+
+    // تنسيق الرؤوس
+    $headerStyle = [
+        'font' => [
+            'bold' => true,
+            'size' => 12,
+            'color' => ['rgb' => '000000']
+        ],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'color' => ['rgb' => 'FFFF00']
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => '000000']
+            ]
+        ]
+    ];
+
+    // تحديد العمود الأخير بناءً على عدد الرؤوس
+    $lastHeaderColumn = chr(64 + count($headers)); // A=65, B=66, etc.
+    $sheet->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
+
+    // إضافة البيانات
+    $row = 2;
+    foreach ($products as $index => $product) {
+        $col = 'A';
+
+        // #
+        $sheet->setCellValue($col++ . $row, $index + 1);
+
+        // الاسم
+        $sheet->setCellValue($col++ . $row, $product->name);
+
+        // التصنيف
+        $sheet->setCellValue($col++ . $row, $product->category ?? 'غير محدد');
+
+        // الباركود (للتجزئة فقط)
+        if ($user->system_type === "retail") {
+            $sheet->setCellValue($col++ . $row, $product->barcode ?? 'لا يوجد');
+        }
+
+        // الكمية/الحالة
+        if (!empty($quantityColumnTitle)) {
+            if ($user->system_type === "delivery") {
+                $sheet->setCellValue($col++ . $row, $product->quantity); // نصي للحالة
+            } else {
+                $sheet->setCellValue($col++ . $row, $product->quantity); // رقمي للكمية
+            }
+        }
+
+        // السعر
+        $sheet->setCellValue($col++ . $row, $product->price);
+
+        // سعر الجملة/التكلفة/العنوان
+        if ($user->system_type === "delivery") {
+            $sheet->setCellValue($col++ . $row, $product->wholesale_price); // نصي للعنوان
+        } else {
+            $sheet->setCellValue($col++ . $row, $product->wholesale_price); // رقمي للتكلفة
+        }
+
+        // المصاريف الإضافية
+        $sheet->setCellValue($col++ . $row, $product->additional_costs);
+
+        // صافي الأرباح
+        $sheet->setCellValue($col++ . $row, $product->net_profit);
+
+        // تاريخ الإنشاء
+        $sheet->setCellValue($col . $row, $product->created_at->format('Y-m-d'));
+
+        $row++;
+    }
+
+    // تنسيق الأرقام
+    $numberColumns = [];
+    $currentCol = 'D'; // نبدأ من العمود D حيث تبدأ الأرقام عادة
+
+    // تحديد الأعمدة الرقمية بناءً على نوع النظام
+    switch ($user->system_type) {
+        case "delivery":
+            // في نظام التوصيل، الأعمدة الرقمية هي: السعر، المصاريف، الأرباح
+            $numberColumns = ['E', 'H', 'I']; // السعر، المصاريف، الأرباح
+            break;
+        case "services":
+        case "education":
+        case "travels":
+            // هذه الأنظمة ليس لها عمود كمية
+            $numberColumns = ['D', 'E', 'F', 'G']; // السعر، التكلفة، المصاريف، الأرباح
+            break;
+        case "realEstate":
+            // العقارات لها كمية وسعر وشراء ومصاريف وأرباح
+            $numberColumns = ['D', 'E', 'F', 'G', 'H'];
+            break;
+        default: // retail
+            // التجزئة لها كل الأعمدة الرقمية
+            $numberColumns = ['E', 'F', 'G', 'H', 'I'];
+    }
+
+    foreach ($numberColumns as $col) {
+        if ($products->count() > 0) {
+            $sheet->getStyle($col . '2:' . $col . ($row - 1))
+                  ->getNumberFormat()
+                  ->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
+        }
+    }
+
+    // تنسيق بيانات الجدول
+    $dataStyle = [
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => 'DDDDDD']
+            ]
+        ]
+    ];
+
+    if ($products->count() > 0) {
+        $sheet->getStyle('A2:' . $lastHeaderColumn . ($row - 1))->applyFromArray($dataStyle);
+    }
+
+    // ضبط عرض الأعمدة تلقائياً
+    foreach (range('A', $lastHeaderColumn) as $column) {
+        $sheet->getColumnDimension($column)->setAutoSize(true);
+    }
+
+    // إنشاء الكاتب وإرجاع الملف
+    $writer = new Xlsx($spreadsheet);
+
+    ob_start();
+    $writer->save('php://output');
+    $content = ob_get_clean();
+
+    return response($content, 200, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        'Cache-Control' => 'max-age=0',
+    ]);
+}
 }

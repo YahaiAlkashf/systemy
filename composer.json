@@ -17,6 +17,7 @@
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "*",
         "netflie/whatsapp-cloud-api": "^2.2",
+        "phpoffice/phpspreadsheet": "^5.1",
         "stripe/stripe-php": "16.6.0",
         "tecnickcom/tcpdf": "^6.10",
         "tightenco/ziggy": "^2.0"

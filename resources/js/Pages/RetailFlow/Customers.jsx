@@ -157,8 +157,8 @@
         return (
             <AdminLayout>
                 <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
-                    {auth.user.subscription === 'vip' && (
-                                            <div className="flex gap-2 mb-4">
+                    {auth.user.company.subscription === 'vip' && (
+                     <div className="flex gap-2 mb-4">
                         <button
                             onClick={() =>
                                 (window.location.href = `${app_url}/retailflow/export/customers/excel`)
@@ -277,7 +277,7 @@
                                     <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                         {t("الإجراءات")}
                                     </th>
-                                    {auth.user.subscription==='vip' &&
+                                    {auth.user.company.subscription==='vip' &&
                                             <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                                 {t("رسائل")}
                                             </th>
@@ -333,7 +333,7 @@
                                                 </button>
                                             </div>
                                         </td>
-                                         {auth.user.subscription==='vip' &&
+                                         {auth.user.company.subscription==='vip' &&
                                         <td className="px-4 py-3 text-center">
                                             <button
                                                 onClick={() =>

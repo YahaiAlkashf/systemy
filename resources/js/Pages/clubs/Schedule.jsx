@@ -13,7 +13,7 @@ import {
     CalendarDaysIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    FunnelIcon
+    FunnelIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 
@@ -32,6 +32,8 @@ export default function Schedules() {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [status, setStatus] = useState("");
     const [selectedMembersType, setSelectedMembersType] = useState("");
+    const [description, setDescription] = useState("");
+    const [modelDescription, setModelDescription] = useState(false);
     const [errors, setErrors] = useState({});
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -39,10 +41,10 @@ export default function Schedules() {
         title: "",
         date: "",
         description: "",
-        option: "select"
+        option: "select",
     });
 
-    // حالات جديدة للتقويم والفلترة
+
     const [calendarModal, setCalendarModal] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -55,9 +57,9 @@ export default function Schedules() {
             prevEvents.map((event) =>
                 event.id === eventId
                     ? {
-                        ...event,
-                        user_attendance: { status: newStatus },
-                    }
+                          ...event,
+                          user_attendance: { status: newStatus },
+                      }
                     : event
             )
         );
@@ -66,9 +68,9 @@ export default function Schedules() {
             prevFilteredEvents.map((event) =>
                 event.id === eventId
                     ? {
-                        ...event,
-                        user_attendance: { status: newStatus },
-                    }
+                          ...event,
+                          user_attendance: { status: newStatus },
+                      }
                     : event
             )
         );
@@ -228,7 +230,7 @@ export default function Schedules() {
             title: "",
             date: "",
             description: "",
-            option: "select"
+            option: "select",
         });
         setLoading(false);
     };
@@ -240,7 +242,7 @@ export default function Schedules() {
                 title: newEvent.title,
                 description: newEvent.description,
                 date: newEvent.date,
-                option: newEvent.option
+                option: newEvent.option,
             });
             showAllEvents();
             closeModal();
@@ -248,7 +250,7 @@ export default function Schedules() {
                 title: "",
                 date: "",
                 description: "",
-                option: "select"
+                option: "select",
             });
         } catch (error) {
             setLoading(false);
@@ -262,7 +264,7 @@ export default function Schedules() {
                 title: selectedEvent.title,
                 description: selectedEvent.description,
                 date: selectedEvent.date,
-                option: selectedEvent.option
+                option: selectedEvent.option,
             });
 
             showAllEvents();
@@ -345,14 +347,14 @@ export default function Schedules() {
         for (let i = firstDay - 1; i >= 0; i--) {
             days.push({
                 date: new Date(year, month - 1, prevMonthDays - i),
-                isCurrentMonth: false
+                isCurrentMonth: false,
             });
         }
 
         for (let i = 1; i <= daysInMonth; i++) {
             days.push({
                 date: new Date(year, month, i),
-                isCurrentMonth: true
+                isCurrentMonth: true,
             });
         }
 
@@ -361,7 +363,7 @@ export default function Schedules() {
         for (let i = 1; i <= nextMonthDays; i++) {
             days.push({
                 date: new Date(year, month + 1, i),
-                isCurrentMonth: false
+                isCurrentMonth: false,
             });
         }
 
@@ -376,8 +378,18 @@ export default function Schedules() {
 
     useEffect(() => {
         applyCurrentFilter();
-    }, [events, viewType, customFilterActive, selectedDate, selectedMonth, selectedYear]);
-
+    }, [
+        events,
+        viewType,
+        customFilterActive,
+        selectedDate,
+        selectedMonth,
+        selectedYear,
+    ]);
+    const openDescriptionModal=(des)=>{
+        setDescription(des);
+        setModelDescription(true);
+     }
     return (
         <AdminLayout>
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
@@ -410,7 +422,8 @@ export default function Schedules() {
                             <button
                                 onClick={() => handleViewTypeChange("monthly")}
                                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    viewType === "monthly" && !customFilterActive
+                                    viewType === "monthly" &&
+                                    !customFilterActive
                                         ? "bg-primary text-white"
                                         : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                                 }`}
@@ -421,7 +434,8 @@ export default function Schedules() {
                                 <button
                                     onClick={() => openCalendarModal("custom")}
                                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
-                                        customFilterActive && viewType === "custom"
+                                        customFilterActive &&
+                                        viewType === "custom"
                                             ? "bg-primary text-white"
                                             : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                                     }`}
@@ -432,9 +446,12 @@ export default function Schedules() {
                             </div>
                             <div className="relative">
                                 <button
-                                    onClick={() => openCalendarModal("month-custom")}
+                                    onClick={() =>
+                                        openCalendarModal("month-custom")
+                                    }
                                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
-                                        customFilterActive && viewType === "month-custom"
+                                        customFilterActive &&
+                                        viewType === "month-custom"
                                             ? "bg-primary text-white"
                                             : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                                     }`}
@@ -460,15 +477,31 @@ export default function Schedules() {
                     <span>
                         {t("عرض الأحداث:")}
                         <span className="font-medium ml-2">
-                            {viewType === "daily" && !customFilterActive && t("اليوم")}
-                            {viewType === "weekly" && !customFilterActive && t("هذا الأسبوع")}
-                            {viewType === "monthly" && !customFilterActive && t("هذا الشهر")}
-                            {viewType === "custom" && customFilterActive && t(`يوم ${selectedDate.toLocaleDateString('ar-EG')}`)}
-                            {viewType === "month-custom" && customFilterActive && t(`شهر ${selectedMonth + 1}/${selectedYear}`)}
+                            {viewType === "daily" &&
+                                !customFilterActive &&
+                                t("اليوم")}
+                            {viewType === "weekly" &&
+                                !customFilterActive &&
+                                t("هذا الأسبوع")}
+                            {viewType === "monthly" &&
+                                !customFilterActive &&
+                                t("هذا الشهر")}
+                            {viewType === "custom" &&
+                                customFilterActive &&
+                                t(
+                                    `يوم ${selectedDate.toLocaleDateString(
+                                        "ar-EG"
+                                    )}`
+                                )}
+                            {viewType === "month-custom" &&
+                                customFilterActive &&
+                                t(`شهر ${selectedMonth + 1}/${selectedYear}`)}
                         </span>
                     </span>
                     <span className="mx-2">•</span>
-                    <span>{t("عدد النتائج:")} {filteredEvents.length}</span>
+                    <span>
+                        {t("عدد النتائج:")} {filteredEvents.length}
+                    </span>
 
                     {customFilterActive && (
                         <button
@@ -527,24 +560,37 @@ export default function Schedules() {
                                     <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
                                         {formatDate(event.date)}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {event.description}
+                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300 max-w-sm whitespace-normal break-words">
+                                         <button onClick={() => openDescriptionModal(event.description)} className="px-3 py-1 flex gap-2  bg-primary text-white rounded hover:bg-primary-dark text-sm">
+                                                    عرض وصف المهمة
+                                        </button>
+
                                     </td>
                                     <td className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">
                                         <div className="flex justify-center space-x-2 gap-2">
-                                            {auth.user.member.role === "manager" &&
+                                            {auth.user.member.role ===
+                                                "manager" && (
                                                 <>
-                                                    {event.option === 'select' && (
+                                                    {event.option ===
+                                                        "select" && (
                                                         <>
                                                             <button
-                                                                onClick={() => handleViewAttending(event)}
+                                                                onClick={() =>
+                                                                    handleViewAttending(
+                                                                        event
+                                                                    )
+                                                                }
                                                                 className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center gap-1"
                                                             >
                                                                 <EyeIcon className="h-4 w-4" />
                                                                 {t("الحاضرون")}
                                                             </button>
                                                             <button
-                                                                onClick={() => handleViewApologizing(event)}
+                                                                onClick={() =>
+                                                                    handleViewApologizing(
+                                                                        event
+                                                                    )
+                                                                }
                                                                 className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1"
                                                             >
                                                                 <EyeIcon className="h-4 w-4" />
@@ -554,51 +600,79 @@ export default function Schedules() {
                                                     )}
 
                                                     <button
-                                                        onClick={() => handleEditEvent(event)}
+                                                        onClick={() =>
+                                                            handleEditEvent(
+                                                                event
+                                                            )
+                                                        }
                                                         className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
                                                     >
                                                         <PencilIcon className="h-4 w-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteEvent(event)}
+                                                        onClick={() =>
+                                                            handleDeleteEvent(
+                                                                event
+                                                            )
+                                                        }
                                                         className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
                                                     >
                                                         <TrashIcon className="h-4 w-4" />
                                                     </button>
                                                 </>
-                                            }
+                                            )}
                                             <>
                                                 {event.attendances.some(
-                                                    (attendance) => attendance.user_id === auth.user.id
+                                                    (attendance) =>
+                                                        attendance.user_id ===
+                                                        auth.user.id
                                                 ) ? (
                                                     <>
                                                         {event.attendances.find(
-                                                            (attendance) => attendance.user_id === auth.user.id
-                                                        )?.status === "attending" ? (
+                                                            (attendance) =>
+                                                                attendance.user_id ===
+                                                                auth.user.id
+                                                        )?.status ===
+                                                        "attending" ? (
                                                             <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg flex items-center gap-1">
                                                                 <CheckBadgeIcon className="h-4 w-4" />
-                                                                {t("تم تسجيل حضور")}
+                                                                {t(
+                                                                    "تم تسجيل حضور"
+                                                                )}
                                                             </span>
                                                         ) : (
                                                             <span className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg flex items-center gap-1">
                                                                 <XMarkIcon className="h-4 w-4" />
-                                                                {t("تم تسجيل اعتذار")}
+                                                                {t(
+                                                                    "تم تسجيل اعتذار"
+                                                                )}
                                                             </span>
                                                         )}
                                                     </>
                                                 ) : (
                                                     <>
-                                                        {event.option === "select" && (
+                                                        {event.option ===
+                                                            "select" && (
                                                             <div className="flex gap-2">
                                                                 <button
-                                                                    onClick={() => handleAttend(event.id, "attending")}
+                                                                    onClick={() =>
+                                                                        handleAttend(
+                                                                            event.id,
+                                                                            "attending"
+                                                                        )
+                                                                    }
                                                                     className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors flex items-center gap-1"
                                                                 >
                                                                     <CheckBadgeIcon className="h-4 w-4" />
                                                                     {t("سأحضر")}
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => handleAttend(event.id, "apologizing")}
+                                                                    onClick={() =>
+                                                                        handleAttend(
+                                                                            event.id,
+                                                                            "apologizing"
+                                                                        )
+                                                                    }
                                                                     className="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1"
                                                                 >
                                                                     <XMarkIcon className="h-4 w-4" />
@@ -609,7 +683,6 @@ export default function Schedules() {
                                                     </>
                                                 )}
                                             </>
-
                                         </div>
                                     </td>
                                 </tr>
@@ -649,7 +722,10 @@ export default function Schedules() {
                                         <ChevronLeftIcon className="h-5 w-5" />
                                     </button>
                                     <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                                        {currentMonth.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}
+                                        {currentMonth.toLocaleDateString(
+                                            "ar-EG",
+                                            { month: "long", year: "numeric" }
+                                        )}
                                     </h4>
                                     <button
                                         onClick={() => navigateMonth("next")}
@@ -659,29 +735,46 @@ export default function Schedules() {
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-7 gap-1 mb-2">
-                                    {['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'].map(day => (
-                                        <div key={day} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
+                                    {[
+                                        "أحد",
+                                        "إثنين",
+                                        "ثلاثاء",
+                                        "أربعاء",
+                                        "خميس",
+                                        "جمعة",
+                                        "سبت",
+                                    ].map((day) => (
+                                        <div
+                                            key={day}
+                                            className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1"
+                                        >
                                             {day}
                                         </div>
                                     ))}
                                 </div>
                                 <div className="grid grid-cols-7 gap-1">
-                                    {generateCalendarDays().map((day, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => day.isCurrentMonth && handleDateSelect(day.date)}
-                                            className={`p-2 rounded-lg text-sm transition-colors ${
-                                                day.isCurrentMonth
-                                                    ? day.date.toDateString() === selectedDate.toDateString()
-                                                        ? "bg-primary text-white"
-                                                        : "text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                    : "text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                                            }`}
-                                            disabled={!day.isCurrentMonth}
-                                        >
-                                            {day.date.getDate()}
-                                        </button>
-                                    ))}
+                                    {generateCalendarDays().map(
+                                        (day, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() =>
+                                                    day.isCurrentMonth &&
+                                                    handleDateSelect(day.date)
+                                                }
+                                                className={`p-2 rounded-lg text-sm transition-colors ${
+                                                    day.isCurrentMonth
+                                                        ? day.date.toDateString() ===
+                                                          selectedDate.toDateString()
+                                                            ? "bg-primary text-white"
+                                                            : "text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        : "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                                                }`}
+                                                disabled={!day.isCurrentMonth}
+                                            >
+                                                {day.date.getDate()}
+                                            </button>
+                                        )
+                                    )}
                                 </div>
                             </div>
                             <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
@@ -692,7 +785,9 @@ export default function Schedules() {
                                     {t("إلغاء")}
                                 </button>
                                 <button
-                                    onClick={() => handleDateSelect(selectedDate)}
+                                    onClick={() =>
+                                        handleDateSelect(selectedDate)
+                                    }
                                     className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
                                 >
                                     {t("تطبيق")}
@@ -724,22 +819,47 @@ export default function Schedules() {
                                     </label>
                                     <select
                                         value={selectedYear}
-                                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                                        onChange={(e) =>
+                                            setSelectedYear(
+                                                parseInt(e.target.value)
+                                            )
+                                        }
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
-                                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(year => (
-                                            <option key={year} value={year}>{year}</option>
+                                        {Array.from(
+                                            { length: 10 },
+                                            (_, i) =>
+                                                new Date().getFullYear() - 5 + i
+                                        ).map((year) => (
+                                            <option key={year} value={year}>
+                                                {year}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-3 gap-3">
                                     {[
-                                        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-                                        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+                                        "يناير",
+                                        "فبراير",
+                                        "مارس",
+                                        "أبريل",
+                                        "مايو",
+                                        "يونيو",
+                                        "يوليو",
+                                        "أغسطس",
+                                        "سبتمبر",
+                                        "أكتوبر",
+                                        "نوفمبر",
+                                        "ديسمبر",
                                     ].map((month, index) => (
                                         <button
                                             key={index}
-                                            onClick={() => handleMonthSelect(index, selectedYear)}
+                                            onClick={() =>
+                                                handleMonthSelect(
+                                                    index,
+                                                    selectedYear
+                                                )
+                                            }
                                             className={`p-3 rounded-lg text-center transition-colors ${
                                                 selectedMonth === index
                                                     ? "bg-primary text-white"
@@ -759,7 +879,12 @@ export default function Schedules() {
                                     {t("إلغاء")}
                                 </button>
                                 <button
-                                    onClick={() => handleMonthSelect(selectedMonth, selectedYear)}
+                                    onClick={() =>
+                                        handleMonthSelect(
+                                            selectedMonth,
+                                            selectedYear
+                                        )
+                                    }
                                     className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
                                 >
                                     {t("تطبيق")}
@@ -769,7 +894,7 @@ export default function Schedules() {
                     </div>
                 )}
 
-            {addModal && (
+                {addModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full animate-fade-in-up">
                             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
@@ -850,19 +975,30 @@ export default function Schedules() {
                             </div>
                             <div className="mb-4 mx-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    {t("هل تريد ان يقدم الاعضاء حضورهم او اعتذارهم ؟")}
+                                    {t(
+                                        "هل تريد ان يقدم الاعضاء حضورهم او اعتذارهم ؟"
+                                    )}
                                 </label>
                                 <select
                                     value={newEvent.option || ""}
                                     onChange={(e) => {
-                                        setNewEvent({ ...newEvent, option: e.target.value });
+                                        setNewEvent({
+                                            ...newEvent,
+                                            option: e.target.value,
+                                        });
                                     }}
                                     className="w-full px-8 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
                                 >
                                     <option value="select">{t("نعم")}</option>
-                                    <option  value="not_select">{t("لا")}</option>
+                                    <option value="not_select">
+                                        {t("لا")}
+                                    </option>
                                 </select>
-                                {errors.option && <p className="text-red-500 text-xs mt-1">{errors.option[0]}</p>}
+                                {errors.option && (
+                                    <p className="text-red-500 text-xs mt-1">
+                                        {errors.option[0]}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
@@ -872,7 +1008,7 @@ export default function Schedules() {
                                 >
                                     {t("إلغاء")}
                                 </button>
-                                 <button
+                                <button
                                     onClick={handleSaveAddEvent}
                                     disabled={loading}
                                     className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center ${
@@ -883,13 +1019,31 @@ export default function Schedules() {
                                 >
                                     {loading ? (
                                         <>
-                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            <svg
+                                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
                                             </svg>
                                             {t("جارى الحفظ...")}
                                         </>
-                                    ) : t("حفظ")}
+                                    ) : (
+                                        t("حفظ")
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -976,21 +1130,34 @@ export default function Schedules() {
                                     )}
                                 </div>
                                 <div className="mb-4 ">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    {t("هل تريد ان يقدم الاعضاء حضورهم او اعتذارهم ؟")}
-                                </label>
-                                <select
-                                    value={selectedEvent.option || ""}
-                                    onChange={(e) => {
-                                        setSelectedEvent({ ...selectedEvent, option: e.target.value });
-                                    }}
-                                    className="w-full px-8 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
-                                >
-                                    <option value="select">{t("نعم")}</option>
-                                    <option  value="not_select">{t("لا")}</option>
-                                </select>
-                                {errors.option && <p className="text-red-500 text-xs mt-1">{errors.option[0]}</p>}
-                            </div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t(
+                                            "هل تريد ان يقدم الاعضاء حضورهم او اعتذارهم ؟"
+                                        )}
+                                    </label>
+                                    <select
+                                        value={selectedEvent.option || ""}
+                                        onChange={(e) => {
+                                            setSelectedEvent({
+                                                ...selectedEvent,
+                                                option: e.target.value,
+                                            });
+                                        }}
+                                        className="w-full px-8 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
+                                    >
+                                        <option value="select">
+                                            {t("نعم")}
+                                        </option>
+                                        <option value="not_select">
+                                            {t("لا")}
+                                        </option>
+                                    </select>
+                                    {errors.option && (
+                                        <p className="text-red-500 text-xs mt-1">
+                                            {errors.option[0]}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                             <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                                 <button
@@ -1058,7 +1225,8 @@ export default function Schedules() {
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full animate-fade-in-up">
                             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                    {t("الأعضاء الحاضرون")} - {selectedEvent.title}
+                                    {t("الأعضاء الحاضرون")} -{" "}
+                                    {selectedEvent.title}
                                 </h3>
                                 <button
                                     onClick={closeModal}
@@ -1069,26 +1237,54 @@ export default function Schedules() {
                             </div>
                             <div className="p-6 max-h-96 overflow-y-auto">
                                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {selectedEvent.attendances && selectedEvent.attendances.length > 0 ? (
+                                    {selectedEvent.attendances &&
+                                    selectedEvent.attendances.length > 0 ? (
                                         selectedEvent.attendances
-                                            .filter(attendance => attendance.status === "attending")
-                                            .map(attendance => (
-                                                <li key={attendance.id} className="py-3 flex items-center justify-between">
+                                            .filter(
+                                                (attendance) =>
+                                                    attendance.status ===
+                                                    "attending"
+                                            )
+                                            .map((attendance) => (
+                                                <li
+                                                    key={attendance.id}
+                                                    className="py-3 flex items-center justify-between"
+                                                >
                                                     <div className="flex items-center">
                                                         <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
                                                         <div>
                                                             <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                                                                {attendance.user?.name || t("مستخدم غير معروف")}
+                                                                {attendance.user
+                                                                    ?.name ||
+                                                                    t(
+                                                                        "مستخدم غير معروف"
+                                                                    )}
                                                             </p>
                                                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                                {attendance.user?.member?.cycle?.name || t("دورة غير محددة")}
+                                                                {attendance.user
+                                                                    ?.member
+                                                                    ?.cycle
+                                                                    ?.name ||
+                                                                    t(
+                                                                        "دورة غير محددة"
+                                                                    )}
+                                                            </p>
+                                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                                                                {attendance.user
+                                                                    .member
+                                                                    .member_id ||
+                                                                    t(
+                                                                        "لم يتم ادخال رقم تعريفى للعضو"
+                                                                    )}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </li>
                                             ))
                                     ) : (
-                                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t("لا يوجد حاضرون")}</p>
+                                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                                            {t("لا يوجد حاضرون")}
+                                        </p>
                                     )}
                                 </ul>
                             </div>
@@ -1108,7 +1304,8 @@ export default function Schedules() {
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full animate-fade-in-up">
                             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                    {t("الأعضاء المعتذرون")} - {selectedEvent.title}
+                                    {t("الأعضاء المعتذرون")} -{" "}
+                                    {selectedEvent.title}
                                 </h3>
                                 <button
                                     onClick={closeModal}
@@ -1119,26 +1316,54 @@ export default function Schedules() {
                             </div>
                             <div className="p-6 max-h-96 overflow-y-auto">
                                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {selectedEvent.attendances && selectedEvent.attendances.length > 0 ? (
+                                    {selectedEvent.attendances &&
+                                    selectedEvent.attendances.length > 0 ? (
                                         selectedEvent.attendances
-                                            .filter(attendance => attendance.status === "apologizing")
-                                            .map(attendance => (
-                                                <li key={attendance.id} className="py-3 flex items-center justify-between">
+                                            .filter(
+                                                (attendance) =>
+                                                    attendance.status ===
+                                                    "apologizing"
+                                            )
+                                            .map((attendance) => (
+                                                <li
+                                                    key={attendance.id}
+                                                    className="py-3 flex items-center justify-between"
+                                                >
                                                     <div className="flex items-center">
                                                         <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
                                                         <div>
                                                             <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                                                                {attendance.user?.name || t("مستخدم غير معروف")}
+                                                                {attendance.user
+                                                                    ?.name ||
+                                                                    t(
+                                                                        "مستخدم غير معروف"
+                                                                    )}
                                                             </p>
                                                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                                {attendance.user?.member?.cycle?.name || t("دورة غير محددة")}
+                                                                {attendance.user
+                                                                    ?.member
+                                                                    ?.cycle
+                                                                    ?.name ||
+                                                                    t(
+                                                                        "دورة غير محددة"
+                                                                    )}
+                                                            </p>
+                                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                                                                {attendance.user
+                                                                    ?.member
+                                                                    ?.member_id ||
+                                                                    t(
+                                                                        "لم يتم ادخال رقم تعريفى للعضو"
+                                                                    )}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </li>
                                             ))
                                     ) : (
-                                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t("لا يوجد معتذرون")}</p>
+                                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                                            {t("لا يوجد معتذرون")}
+                                        </p>
                                     )}
                                 </ul>
                             </div>
@@ -1146,6 +1371,42 @@ export default function Schedules() {
                                 <button
                                     onClick={closeModal}
                                     className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                                >
+                                    {t("إغلاق")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {modelDescription && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                    {t(" وصف الحدث")}
+                                </h3>
+                                <button
+                                    onClick={() => {
+                                        setModelDescription(false);
+                                        setDescription("");
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
+                            <div className="p-6 max-w-md align-top">
+                                <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-normal break-words">
+                                    {description}
+                                </p>
+                            </div>
+                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setModelDescription(false);
+                                        setDescription("");
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                                 >
                                     {t("إغلاق")}
                                 </button>
