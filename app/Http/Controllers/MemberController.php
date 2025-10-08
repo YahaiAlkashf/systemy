@@ -530,7 +530,7 @@ class MemberController extends Controller
 
         $sheet->fromArray($headers, null, 'A1');
 
-        // تنسيق العناوين
+
         $headerStyle = [
             'font' => [
                 'bold' => true,
@@ -574,7 +574,7 @@ class MemberController extends Controller
             $sheet->setCellValue('J' . $row, $member->add_advertisement ? 'نعم' : 'لا');
             $sheet->setCellValue('K' . $row, $member->delete_messege ? 'نعم' : 'لا');
             $sheet->setCellValue('L' . $row, $member->jop_title ?? 'لا يوجد');
-            $sheet->setCellValue('M' . $row, $member->role ?? 'لا يوجد');
+            $sheet->setCellValue('M' . $row, $member->member_id ?? 'لا يوجد');
             $sheet->setCellValue('N' . $row, $stars);
             $sheet->setCellValue('O' . $row, $member->attended_events_count ?? 0);
             $sheet->setCellValue('P' . $row, $member->completed_tasks_count ?? 0);
@@ -599,8 +599,6 @@ class MemberController extends Controller
             'Cache-Control' => 'max-age=0',
         ]);
     }
-
-
 
     private function getFilteredMembers($sortBy, $search)
     {
