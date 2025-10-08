@@ -127,12 +127,7 @@ class TaskController extends Controller
             ->where('company_id', Auth::user()->company_id)
             ->firstOrFail();
 
-        if ($originalTask->assigned_by !== Auth::id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح بتعديل هذه المهمة'
-            ], 403);
-        }
+
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',

@@ -39,7 +39,7 @@ export default function ActivitiesModal({ member, closeModal }) {
                         <XMarkIcon className="h-6 w-6" />
                     </button>
                 </div>
-                
+
                 <div className="p-6 overflow-y-auto max-h-[60vh]">
                     {loading ? (
                         <div className="text-center py-8">
@@ -56,19 +56,19 @@ export default function ActivitiesModal({ member, closeModal }) {
                                     <div className="flex justify-between items-start mb-2">
                                         <h4 className="font-semibold text-gray-800 dark:text-gray-200">{event.title}</h4>
                                         <span className={`px-2 py-1 text-xs rounded-full ${
-                                            event.attendance_status === "attending" 
+                                            event.attendance_status === "attending"
                                                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                                                 : event.attendance_status === "apologizing"
                                                 ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                                                 : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
                                         }`}>
-                                            {event.attendance_status === "attending" ? t("حاضر") : 
+                                            {event.attendance_status === "attending" ? t("حاضر") :
                                              event.attendance_status === "apologizing" ? t("معتذر") : t("لم يحدد")}
                                         </span>
                                     </div>
-                                    
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{event.description}</p>
-                                    
+
+                                    {/* <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{event.description}</p> */}
+
                                     <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                                         <span>{formatDate(event.date)}</span>
                                         <div className="flex items-center">
@@ -80,7 +80,7 @@ export default function ActivitiesModal({ member, closeModal }) {
                                                 <ClockIcon className="h-4 w-4 text-gray-500 ml-1" />
                                             )}
                                             <span>
-                                                {event.attendance_status === "attending" ? t("حضر الحدث") : 
+                                                {event.attendance_status === "attending" ? t("حضر الحدث") :
                                                  event.attendance_status === "apologizing" ? t("اعتذر عن الحدث") : t("لم يحدد بعد")}
                                             </span>
                                         </div>

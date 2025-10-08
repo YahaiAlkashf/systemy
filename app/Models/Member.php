@@ -21,6 +21,12 @@ class Member extends Model
         'member_id',
         'company_id',
         'add_members',
+        'add_library',
+        'add_events',
+        'add_tasks',
+        'delete_messege',
+        'add_advertisement',
+        'jop_title',
     ];
 
     protected $casts = [

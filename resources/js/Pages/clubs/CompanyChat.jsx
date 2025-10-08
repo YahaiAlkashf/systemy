@@ -26,19 +26,19 @@ export default function CompanyChat() {
     const messagesEndRef = useRef(null);
     const scrollPositionRef = useRef(0);
     const preventScrollRef = useRef(false); // مرجع جديد لمنع التمرير
+    const initialScrollDone = useRef(false);
 
     useEffect(() => {
         fetchAnnouncement();
         fetchMessages();
-
         const interval = setInterval(fetchMessages, 5000);
         return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
-        // عدم التمرير إذا كنا في وضع تحرير الإعلان
-        if (!preventScrollRef.current) {
+        if (messages.length > 0 && !initialScrollDone.current) {
             scrollToBottom();
+            initialScrollDone.current = true;
         }
     }, [messages]);
 
@@ -81,7 +81,7 @@ export default function CompanyChat() {
             setCurrentAnnouncement(announcement);
             setAnnouncement("");
             setEditAnnouncementMode(false);
-            // السماح بالتمرير مرة أخرى بعد حفظ الإعلان
+
             preventScrollRef.current = false;
             restoreScrollPosition();
         } catch (error) {
@@ -95,7 +95,7 @@ export default function CompanyChat() {
         saveScrollPosition();
         setAnnouncement(currentAnnouncement);
         setEditAnnouncementMode(true);
-        // منع التمرير التلقائي عند فتح نموذج التعديل
+
         preventScrollRef.current = true;
     };
 
@@ -174,7 +174,7 @@ export default function CompanyChat() {
                         <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                             {t("لوحة الإعلانات")}
                         </h3>
-                        {auth?.user?.member?.role === "manager" && (
+                        {(auth.user.member.add_advertisement === 1 || auth.user.role === 'superadmin') && (
                             <div className="flex gap-2">
                                 {!editAnnouncementMode && currentAnnouncement && (
                                     <>
@@ -201,7 +201,7 @@ export default function CompanyChat() {
                         )}
                     </div>
 
-                    {auth?.user?.member?.role === "manager" && editAnnouncementMode ? (
+                    {(auth?.user?.member?.add_advertisement === 1 || auth.user.role === 'superadmin')&& editAnnouncementMode ? (
                         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 animate-pulse">
                             <div className="flex items-start mb-3">
                                 <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 mr-2" />
@@ -221,7 +221,6 @@ export default function CompanyChat() {
                                     onClick={() => {
                                         setEditAnnouncementMode(false);
                                         setAnnouncement("");
-                                        // السماح بالتمرير مرة أخرى عند الإلغاء
                                         preventScrollRef.current = false;
                                         restoreScrollPosition();
                                     }}
@@ -256,13 +255,13 @@ export default function CompanyChat() {
                                 {currentAnnouncement}
                             </p>
                         </div>
-                    ) : auth?.user?.member?.role === "manager" ? (
+                    ) : (auth?.user?.member?.add_advertisement === 1 || auth.user.role === 'superadmin')? (
                         <div
                             className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-primary transition-colors"
                             onClick={() => {
                                 saveScrollPosition();
                                 setEditAnnouncementMode(true);
-                                // منع التمرير التلقائي عند فتح نموذج الإضافة
+
                                 preventScrollRef.current = true;
                             }}
                         >
@@ -313,8 +312,7 @@ export default function CompanyChat() {
                                                 : 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-bl-none'
                                             }`}
                                         >
-                                            {/* زر الحذف - يظهر للمدير أو لصاحب الرسالة فقط */}
-                                            {(auth.user.member.role === 'manager' || message.user_id === auth.user.id) && (
+                                            {(auth.user.member.delete_messege === 1 || auth.user.role === 'superadmin' || message.user_id === auth.user.id) && (
                                                 <button
                                                     onClick={() => handleDeleteMessage(message.id)}
                                                     className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"

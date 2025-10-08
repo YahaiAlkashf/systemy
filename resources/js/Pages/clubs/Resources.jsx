@@ -223,21 +223,25 @@ export default function Library() {
                                 {t("الكل")}
                             </button>
                         </div>
+                        {(auth.user.member.add_library === 1 || auth.user.role === 'superadmin') && (
+                            <>
+                                 <button
+                                    onClick={handleAddFolder}
+                                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
+                                >
+                                    <PlusIcon className="h-4 w-4 mr-1.5" />
+                                    {t("إنشاء مجلد")}
+                                </button>
+                                <button
+                                    onClick={handleUploadFile}
+                                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                    <CloudArrowUpIcon className="h-4 w-4 mr-1.5" />
+                                    {t("رفع ملف")}
+                                </button>
+                            </>
+                        )}
 
-                        <button
-                            onClick={handleAddFolder}
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
-                        >
-                            <PlusIcon className="h-4 w-4 mr-1.5" />
-                            {t("إنشاء مجلد")}
-                        </button>
-                        <button
-                            onClick={handleUploadFile}
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                            <CloudArrowUpIcon className="h-4 w-4 mr-1.5" />
-                            {t("رفع ملف")}
-                        </button>
                     </div>
                 </div>
 
@@ -272,7 +276,7 @@ export default function Library() {
                                             </p>
                                         </div>
                                     </div>
-
+                            {(auth.user.member.add_library === 1 || auth.user.role === 'superadmin') && (
                                     <div className="flex space-x-1">
                                         <button
                                             onClick={(e) => {
@@ -293,6 +297,7 @@ export default function Library() {
                                             <TrashIcon className="h-4 w-4" />
                                         </button>
                                     </div>
+                            )}
                                 </div>
                             </div>
                         ))}
@@ -377,13 +382,14 @@ export default function Library() {
                                                     <ArrowDownTrayIcon className="h-4 w-4" />
                                                     {t("تحميل")}
                                                 </button>
-
+                                        {(auth.user.member.add_library === 1 || auth.user.role === 'superadmin') && (
                                                 <button
-                                                    onClick={() => handleDeleteFile(file)}
+                                                   onClick={() => handleDeleteFile(file)}
                                                     className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
                                                 </button>
+                                        )}
                                             </div>
                                         </td>
                                     </tr>

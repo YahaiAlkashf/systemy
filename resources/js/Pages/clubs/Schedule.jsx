@@ -461,7 +461,7 @@ export default function Schedules() {
                                 </button>
                             </div>
                         </div>
-                        {auth?.user?.member?.role === "manager" && (
+                        {(auth.user.member.add_events === 1 || auth.user.role === 'superadmin') && (
                             <button
                                 onClick={handleAddEvent}
                                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
@@ -568,8 +568,8 @@ export default function Schedules() {
                                     </td>
                                     <td className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">
                                         <div className="flex justify-center space-x-2 gap-2">
-                                            {auth.user.member.role ===
-                                                "manager" && (
+                                            {(auth.user.member.add_events === 1 || auth.user.role === 'superadmin')
+                                                 && (
                                                 <>
                                                     {event.option ===
                                                         "select" && (
@@ -695,8 +695,6 @@ export default function Schedules() {
                         </div>
                     )}
                 </div>
-
-                {/* باقي المودالات (Add, Edit, Delete, Attending, Apologizing) تبقى كما هي */}
 
                 {/* Calendar Modal for Day Selection */}
                 {calendarModal === "custom" && (

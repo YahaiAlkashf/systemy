@@ -136,27 +136,6 @@ export default function Tasks() {
             ),
         });
     };
-    const handelSelectedroleEdit = (role) => {
-        if (!role) return;
-
-        const selectMem = members
-            .filter((member) => member.role === role)
-            .map((member) => Number(member.user_id));
-
-        const currentAssignees = Array.isArray(selectedTask.assigned_to)
-            ? selectedTask.assigned_to
-            : selectedTask.assigned_to
-            ? [selectedTask.assigned_to]
-            : [];
-
-        console.log(role, selectMem);
-        setSelectedTask({
-            ...selectedTask,
-            assigned_to: Array.from(
-                new Set([...currentAssignees, ...selectMem])
-            ),
-        });
-    };
     const handleRemoveExistingFile = async (fileId) => {
         if (window.confirm("هل أنت متأكد من حذف هذا الملف؟")) {
             try {
@@ -518,17 +497,7 @@ const filteredTasks = tasks
             ),
         });
     };
-    const handelSelectedrole = (role) => {
-        if (!role) return;
-        const selectMem = members
-            .filter((member) => member.role === role)
-            .map((member) => Number(member.user_id));
-        console.log(role, selectMem);
-        setNewTask({
-            ...newTask,
-            assigned_to: [...newTask.assigned_to, ...selectMem],
-        });
-    };
+
     const handleSendTaskText = async()=>{
         try{
             const formData = new FormData();
@@ -566,7 +535,7 @@ const filteredTasks = tasks
         setModelDescription(true);
      }
     // if user is member
-    if (auth.user?.member?.role !== "manager") {
+    if (auth.user?.member?.add_tasks === 0 && auth.user.role !== 'superadmin' ) {
         return (
             <AdminLayout>
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
@@ -629,7 +598,7 @@ const filteredTasks = tasks
                                             {task.due_date}
                                         </p>
                                         <div className="flex flex-wrap gap-2 mt-2">
-                                            {task?.assignee?.name}
+                                           المسؤول : {task?.assignee?.name}
                                         </div>
                                         <div className="p-2">
                                             {getStatusBadge(task.status)}
@@ -1117,7 +1086,7 @@ const filteredTasks = tasks
                                             defaultValue=""
                                         >
                                             <option value="">
-                                                {t("تحديد حسب المسمى الوظيفى")}
+                                                {t("تحديد حسب القسم")}
                                             </option>
 
                                             {cycles?.map((cycle) => (
@@ -1129,26 +1098,7 @@ const filteredTasks = tasks
                                                 </option>
                                             ))}
                                         </select>
-                                        <select
-                                            className="bg-primary dark:bg-primary-dark px-8 text-white rounded-md py-2 m-2"
-                                            onChange={(e) =>
-                                                handelSelectedrole(
-                                                    e.target.value
-                                                )
-                                            }
-                                            name="member"
-                                            id="member"
-                                        >
-                                            <option value="">
-                                                {t("تحديد حسب الرتبة")}
-                                            </option>
-                                            <option value="member">
-                                                members
-                                            </option>
-                                            <option value="manager">
-                                                managers
-                                            </option>
-                                        </select>
+
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                         <div className="relative">
@@ -1245,7 +1195,7 @@ const filteredTasks = tasks
                                                                             )}{" "}
                                                                         |{" "}
                                                                         {member
-                                                                            .role
+                                                                            .cycle
                                                                             ?.name ||
                                                                             t(
                                                                                 "بدور"
@@ -1282,7 +1232,7 @@ const filteredTasks = tasks
                                                         {selectedMember.member_id ||
                                                             t("غير محدد")}{" "}
                                                         |{" "}
-                                                        {selectedMember.role
+                                                        {selectedMember.cycle
                                                             ?.name || t("بدور")}
                                                     </p>
                                                 </div>
@@ -1486,7 +1436,7 @@ const filteredTasks = tasks
                                             defaultValue=""
                                         >
                                             <option value="">
-                                                {t("تحديد حسب المسمى الوظيفى")}
+                                                {t("تحديد حسب القسم")}
                                             </option>
                                             {cycles?.map((cycle) => (
                                                 <option
@@ -1496,25 +1446,6 @@ const filteredTasks = tasks
                                                     {cycle.name}
                                                 </option>
                                             ))}
-                                        </select>
-                                        <select
-                                            className="bg-primary dark:bg-primary-dark px-8 text-white rounded-md py-2 m-2"
-                                            onChange={(e) =>
-                                                handelSelectedroleEdit(
-                                                    e.target.value
-                                                )
-                                            }
-                                            defaultValue=""
-                                        >
-                                            <option value="">
-                                                {t("تحديد حسب الرتبة")}
-                                            </option>
-                                            <option value="member">
-                                                members
-                                            </option>
-                                            <option value="manager">
-                                                managers
-                                            </option>
                                         </select>
                                     </div>
 
@@ -1628,7 +1559,7 @@ const filteredTasks = tasks
                                                                                 )}{" "}
                                                                             |{" "}
                                                                             {member
-                                                                                .role
+                                                                                .cycle
                                                                                 ?.name ||
                                                                                 t(
                                                                                     "بدور"
@@ -1749,16 +1680,7 @@ const filteredTasks = tasks
                                                             >
                                                                 <EyeIcon className="h-4 w-4" />
                                                             </a>
-                                                            <button
-                                                                onClick={() =>
-                                                                    handleRemoveExistingFile(
-                                                                        file.id
-                                                                    )
-                                                                }
-                                                                className="text-red-600 hover:text-red-800"
-                                                            >
-                                                                <XMarkIcon className="h-4 w-4" />
-                                                            </button>
+
                                                         </div>
                                                     </div>
                                                 )
@@ -2080,7 +2002,7 @@ const filteredTasks = tasks
                                             {task.due_date}
                                         </p>
                                         <div className="flex flex-wrap gap-2 mt-2">
-                                            {task?.assignee?.name}
+                                          المسؤول :   {task?.assignee?.name}
                                         </div>
                                         <div className="p-2">
                                             {getStatusBadge(task.status)}

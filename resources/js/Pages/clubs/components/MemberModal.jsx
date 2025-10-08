@@ -143,14 +143,14 @@ export default function MemberModal({
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("المسمى الوظيفى ")}
+                        {t(" القسم ")}
                     </label>
                     <select
                         value={member.cycle_id || ""}
                         onChange={(e) => setMember({ ...member, cycle_id: e.target.value })}
                         className="w-full px-8 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
                     >
-                        <option value=""> {t("اختر المسمى الوظيفى")} </option>
+                        <option value=""> {t("اختر القسم ")} </option>
                         {cycles.map((cycle) => (
                             <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
                         ))}
@@ -158,7 +158,7 @@ export default function MemberModal({
                     {errors.cycle_id && <p className="text-red-500 text-xs mt-1">{errors.cycle_id[0]}</p>}
                 </div>
 
-                <div>
+                {/* <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         {t("الرتبة")}
                     </label>
@@ -178,6 +178,18 @@ export default function MemberModal({
                         ))}
                     </select>
                     {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role[0]}</p>}
+                </div> */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                       {t("المسمى الوظيفي")}
+                    </label>
+                    <input
+                        type="text"
+                        value={member.jop_title}
+                        onChange={(e) => setMember({ ...member, jop_title: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
+                    />
+                    {errors.jop_title && <p className="text-red-500 text-xs mt-1">{errors.jop_title[0]}</p>}
                 </div>
                 <div className="flex gap-2 mt-2" dir='rtl'>
                     <input
@@ -191,6 +203,70 @@ export default function MemberModal({
                         {t("العضو يستطيع اضافة اعضاء اخرين")}
                     </label>
 
+                </div>
+                <div className="flex gap-2 mt-2" dir='rtl'>
+                    <input
+                            type="checkbox"
+                            checked={member.add_tasks}
+                            onChange={(e) => setMember({ ...member, add_tasks: e.target.checked ? 1 : 0})}
+                            value={member.add_tasks}
+                            className=" transition-all duration-300 hover:scale-[1.02]"
+                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t("العضو يستطيع  اعطاء مهام للأخرين")}
+                    </label>
+
+                </div>
+                <div className="flex gap-2 mt-2" dir='rtl'>
+                    <input
+                            type="checkbox"
+                            checked={member.add_events}
+                            onChange={(e) => setMember({ ...member, add_events: e.target.checked ? 1 : 0})}
+                            value={member.add_events}
+                            className=" transition-all duration-300 hover:scale-[1.02]"
+                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t("العضو يستطيع اضافة انشطة ")}
+                    </label>
+
+                </div>
+                <div className="flex gap-2 mt-2" dir='rtl'>
+                    <input
+                            type="checkbox"
+                            checked={member.add_library}
+                            onChange={(e) => setMember({ ...member, add_library: e.target.checked ? 1 : 0})}
+                            value={member.add_library}
+                            className=" transition-all duration-300 hover:scale-[1.02]"
+                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t("العضو يستطيع اضافة ملفات فى المكتبة ")}
+                    </label>
+
+                </div>
+                <div className="flex gap-2 mt-2" dir='rtl'>
+                    <input
+                            type="checkbox"
+                            checked={member.add_advertisement}
+                            onChange={(e) => setMember({ ...member, add_advertisement: e.target.checked ? 1 : 0})}
+                            value={member.add_advertisement}
+                            className=" transition-all duration-300 hover:scale-[1.02]"
+                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t("العضو يستطيع التعديل فى لوحة الاعلانات")}
+                    </label>
+
+                </div>
+                <div className="flex gap-2 mt-2" dir='rtl'>
+                    <input
+                            type="checkbox"
+                            checked={member.delete_messege}
+                            onChange={(e) => setMember({ ...member, delete_messege: e.target.checked ? 1 : 0})}
+                            value={member.delete_messege}
+                            className=" transition-all duration-300 hover:scale-[1.02]"
+                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t("العضو يستطيع  حذف رسائل ")}
+                    </label>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

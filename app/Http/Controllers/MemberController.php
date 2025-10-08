@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -50,10 +51,16 @@ class MemberController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|confirmed',
             'cycle_id' => 'nullable|exists:cycles,id',
-            'role' => 'required|string|in:manager,member',
+            'role' => 'nullable',
             'rating' => 'required|integer|min:0|max:5',
-            'member_id' => 'nullable|unique:members,member_id',
-            'add_members'=>'nullable'
+            'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)] ,
+            'add_members'=>'nullable',
+            'add_library'=>'nullable',
+            'add_events'=>'nullable',
+            'add_tasks'=>'nullable',
+            'delete_messege'=>'nullable',
+            'add_advertisement'=>'nullable',
+            'jop_title'=>'nullable',
         ], [
             'name.required' => 'الاسم مطلوب',
             'name.string' => 'الاسم يجب أن يكون نصًا',
@@ -114,7 +121,13 @@ class MemberController extends Controller
             'user_id' => $user->id,
             'member_id' => $request->member_id,
             'company_id' => Auth::user()->company_id,
-            'add_members' => $request->add_members ?? false
+            'add_members' => $request->add_members ?? false,
+            'add_library' => $request->add_library ?? false,
+            'add_events' => $request->add_events ?? false,
+            'add_tasks' => $request->add_tasks ?? false,
+            'delete_messege' => $request->delete_messege ?? false,
+            'add_advertisement' => $request->add_advertisement ?? false,
+            'jop_title'=>$request->jop_title,
         ]);
 
         return response()->json([
@@ -134,10 +147,16 @@ class MemberController extends Controller
             'email' => 'required|email|unique:users,email,' . $member->user_id,
             'password' => 'nullable|confirmed',
             'cycle_id' => 'nullable|exists:cycles,id',
-            'role' => 'required|string|in:manager,member',
+            'role' => 'nullable',
             'rating' => 'required|integer|min:0|max:5',
             'add_members'=>'nullable',
-            'member_id' => 'nullable|unique:members,member_id,' . $member->id
+            'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)->ignore($member->id)],
+            'add_library'=>'nullable',
+            'add_events'=>'nullable',
+            'add_tasks'=>'nullable',
+            'delete_messege'=>'nullable',
+            'add_advertisement'=>'nullable',
+             'jop_title'=>'nullable',
         ], [
             'name.required' => 'الاسم مطلوب',
             'name.string' => 'الاسم يجب أن يكون نصًا',
@@ -180,11 +199,7 @@ class MemberController extends Controller
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
-            'role' => 'admin',
-            'company_id' => Auth::user()->company_id,
             'system_type' => 'clubs',
-            'country' => Auth::user()->country,
-            'subscription' => Auth::user()->subscription,
         ];
 
         if ($request->filled('password')) {
@@ -200,7 +215,13 @@ class MemberController extends Controller
             'role' => $request->role,
             'rating' => $request->rating,
             'member_id' => $request->member_id,
-           'add_members' => $request->add_members ?? false
+           'add_members' => $request->add_members ?? false,
+            'add_library' => $request->add_library ?? false,
+            'add_events' => $request->add_events ?? false,
+            'add_tasks' => $request->add_tasks ?? false,
+            'delete_messege' => $request->delete_messege ?? false,
+            'add_advertisement' => $request->add_advertisement ?? false,
+             'jop_title'=>$request->jop_title,
         ]);
 
         return response()->json([
@@ -487,86 +508,98 @@ class MemberController extends Controller
         exit;
     }
 
-public function exportExcel(Request $request)
-{
-    $sortBy = $request->get('sort_by', 'default');
-    $search = $request->get('search', '');
+    public function exportExcel(Request $request)
+    {
+        $sortBy = $request->get('sort_by', 'default');
+        $search = $request->get('search', '');
 
-    $members = $this->getFilteredMembers($sortBy, $search);
+        $members = $this->getFilteredMembers($sortBy, $search);
 
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('الأعضاء');
-    $sheet->setRightToLeft(true);
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('الأعضاء');
+        $sheet->setRightToLeft(true);
 
-    $headers = [
-        '#' , 'الاسم', 'البريد الإلكتروني', 'الدور',
-        'رقم التليفون', 'الرقم التعريفى (ID)', 'الرتبة',
-        'التقييم', 'الأحداث الحاضرة', 'المهام المكتملة', 'المجموع الكلي'
-    ];
-    $sheet->fromArray($headers, null, 'A1');
+        $headers = [
+            '#', 'الاسم', 'البريد الإلكتروني', 'القسم',
+            'رقم التليفون', 'إضافة أعضاء', 'إعطاء مهام', 'إضافة نشاط',
+            'إضافة للمكتبة', 'تعديل الإعلانات', 'حذف رسائل',
+            'المسمى الوظيفي', 'الرقم التعريفي (ID)', 'التقييم',
+            'الأحداث الحاضرة', 'المهام المكتملة', 'المجموع الكلي'
+        ];
 
-    $headerStyle = [
-        'font' => [
-            'bold' => true,
-            'size' => 12,
-            'color' => ['rgb' => '000000']
-        ],
-        'fill' => [
-            'fillType' => Fill::FILL_SOLID,
-            'color' => ['rgb' => 'FFFF00']
-        ],
-        'alignment' => [
-            'horizontal' => Alignment::HORIZONTAL_CENTER,
-            'vertical' => Alignment::VERTICAL_CENTER,
-        ],
-        'borders' => [
-            'allBorders' => [
-                'borderStyle' => Border::BORDER_THIN,
+        $sheet->fromArray($headers, null, 'A1');
+
+        // تنسيق العناوين
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 12,
                 'color' => ['rgb' => '000000']
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'color' => ['rgb' => 'FFFF00']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
             ]
-        ]
-    ];
+        ];
 
-    $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:Q1')->applyFromArray($headerStyle);
 
-    $row = 2;
-    foreach ($members as $index => $member) {
-        $stars = '';
-        for ($i = 1; $i <= 5; $i++) {
-            $stars .= $i <= $member->rating ? '★' : '☆';
+        $row = 2;
+        foreach ($members as $index => $member) {
+            $stars = '';
+            for ($i = 1; $i <= 5; $i++) {
+                $stars .= $i <= $member->rating ? '★' : '☆';
+            }
+
+            $sheet->setCellValue('A' . $row, $index + 1);
+            $sheet->setCellValue('B' . $row, $member->name);
+            $sheet->setCellValue('C' . $row, $member->user->email ?? 'لا يوجد');
+            $sheet->setCellValue('D' . $row, $member->cycle->name ?? 'لا يوجد');
+            $sheet->setCellValue('E' . $row, $member->phone);
+            $sheet->setCellValue('F' . $row, $member->add_members ? 'نعم' : 'لا');
+            $sheet->setCellValue('G' . $row, $member->add_tasks ? 'نعم' : 'لا');
+            $sheet->setCellValue('H' . $row, $member->add_events ? 'نعم' : 'لا');
+            $sheet->setCellValue('I' . $row, $member->add_library ? 'نعم' : 'لا');
+            $sheet->setCellValue('J' . $row, $member->add_advertisement ? 'نعم' : 'لا');
+            $sheet->setCellValue('K' . $row, $member->delete_messege ? 'نعم' : 'لا');
+            $sheet->setCellValue('L' . $row, $member->jop_title ?? 'لا يوجد');
+            $sheet->setCellValue('M' . $row, $member->role ?? 'لا يوجد');
+            $sheet->setCellValue('N' . $row, $stars);
+            $sheet->setCellValue('O' . $row, $member->attended_events_count ?? 0);
+            $sheet->setCellValue('P' . $row, $member->completed_tasks_count ?? 0);
+            $sheet->setCellValue('Q' . $row, $member->total_score ?? 0);
+            $row++;
         }
 
-        $sheet->setCellValue('A' . $row, $index + 1);
-        $sheet->setCellValue('B' . $row, $member->name);
-        $sheet->setCellValue('C' . $row, $member->user->email ?? 'لا يوجد');
-        $sheet->setCellValue('D' . $row, $member->cycle->name ?? 'لا يوجد');
-        $sheet->setCellValue('E' . $row, $member->phone);
-        $sheet->setCellValue('F' . $row, $member->member_id);
-        $sheet->setCellValue('G' . $row, $member->role);
-        $sheet->setCellValue('H' . $row, $stars);
-        $sheet->setCellValue('I' . $row, $member->attended_events_count ?? 0);
-        $sheet->setCellValue('J' . $row, $member->completed_tasks_count ?? 0);
-        $sheet->setCellValue('K' . $row, $member->total_score ?? 0);
-        $row++;
+        // ضبط حجم الأعمدة تلقائيًا
+        foreach (range('A', 'Q') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $fileName = 'أعضاء_' . date('Y-m-d') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_clean();
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 
-    foreach (range('A', 'K') as $column) {
-        $sheet->getColumnDimension($column)->setAutoSize(true);
-    }
-
-    $fileName = 'أعضاء_' . date('Y-m-d') . '.xlsx';
-    $writer = new Xlsx($spreadsheet);
-    ob_start();
-    $writer->save('php://output');
-    $content = ob_get_clean();
-
-    return response($content, 200, [
-        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        'Cache-Control' => 'max-age=0',
-    ]);
-}
 
 
     private function getFilteredMembers($sortBy, $search)

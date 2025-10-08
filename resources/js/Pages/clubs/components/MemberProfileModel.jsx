@@ -132,11 +132,11 @@ export default function MemberProfileModel() {
                     <div className="flex items-center gap-4 mb-6">
                         <div className="relative">
                             <UserCircleIcon className="h-20 w-20 text-gray-400" />
-                            {member.role === "manager" && (
+
                                 <div className="absolute bottom-0 right-0 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                                    {t("مدير")}
+                                    {member.jop_title }
                                 </div>
-                            )}
+
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
@@ -186,7 +186,7 @@ export default function MemberProfileModel() {
                                     {t("المسمى الوظيفى")}
                                 </p>
                                 <p className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {member.cycle?.name || t("غير محدد")}
+                                    {member.jop_title || 'غير محدد'}
                                 </p>
                             </div>
                         </div>
@@ -195,10 +195,10 @@ export default function MemberProfileModel() {
                             <CheckBadgeIcon className="h-6 w-6 text-primary ml-2" />
                             <div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    {t("الرتبة")}
+                                    {t("القسم")}
                                 </p>
                                 <p className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {member?.role === "manager" ? t("مدير") : t("عضو")}
+                                    {member.cycle?.name || t("غير محدد")}
                                 </p>
                             </div>
                         </div>

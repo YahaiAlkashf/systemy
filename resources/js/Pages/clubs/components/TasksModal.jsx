@@ -34,15 +34,15 @@ export default function TasksModal({ member, closeModal }) {
     const getStatusInfo = (status, dueDate) => {
         const now = new Date();
         const due = new Date(dueDate);
-        
+
         if (status === "completed") {
             return { text: t("مكتمل"), color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", icon: CheckBadgeIcon };
         }
-        
+
         if (dueDate && due < now && status !== "completed") {
             return { text: t("متأخر"), color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200", icon: ExclamationTriangleIcon };
         }
-        
+
         switch (status) {
             case "in_progress":
                 return { text: t("قيد التنفيذ"), color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", icon: ClockIcon };
@@ -62,7 +62,7 @@ export default function TasksModal({ member, closeModal }) {
                         <XMarkIcon className="h-6 w-6" />
                     </button>
                 </div>
-                
+
                 <div className="p-6 overflow-y-auto max-h-[60vh]">
                     {loading ? (
                         <div className="text-center py-8">
@@ -77,7 +77,7 @@ export default function TasksModal({ member, closeModal }) {
                             {tasks.map((task) => {
                                 const statusInfo = getStatusInfo(task.status, task.due_date);
                                 const StatusIcon = statusInfo.icon;
-                                
+
                                 return (
                                     <div key={task.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                         <div className="flex justify-between items-start mb-2">
@@ -86,11 +86,11 @@ export default function TasksModal({ member, closeModal }) {
                                                 {statusInfo.text}
                                             </span>
                                         </div>
-                                        
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+
+                                        {/* <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                             {task.description || t("لا يوجد وصف")}
-                                        </p>
-                                        
+                                        </p> */}
+
                                         <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                                             <span>{t("تاريخ الاستحقاق:")} {formatDate(task.due_date)}</span>
                                             <div className="flex items-center">
