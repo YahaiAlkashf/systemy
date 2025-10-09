@@ -21,7 +21,7 @@ class LibraryController extends Controller
     public function createFolder(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string',
             'parent_id' => 'nullable|exists:folders,id'
         ], [
             'name.required' => 'الاسم مطلوب',
@@ -53,7 +53,7 @@ class LibraryController extends Controller
     public function updateFolder(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255'
+            'name' => 'required|string'
         ], [
             'name.required' => 'الاسم مطلوب',
             'name.string' => 'الاسم يجب أن يكون نصًا',
@@ -123,7 +123,7 @@ class LibraryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'files' => 'required|array',
-            'files.*' => 'file|max:40960',
+            'files.*' => 'file',
             'folder_id' => 'nullable|exists:folders,id'
         ], [
             'files.required' => 'الملفات مطلوبة',

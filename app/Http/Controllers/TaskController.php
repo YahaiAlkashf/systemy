@@ -35,12 +35,12 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
+            'title' => 'required|string',
             'description' => 'nullable|string',
             'assigned_to' => 'required|array',
             'assigned_to.*' => 'required|exists:users,id',
             'due_date' => 'required|date|after_or_equal:today',
-            'files.*' => 'nullable|file|max:40960',
+            'files.*' => 'nullable|file',
         ], [
             'title.required' => 'العنوان مطلوب',
             'title.string' => 'العنوان يجب أن يكون نصًا',
@@ -130,12 +130,12 @@ class TaskController extends Controller
 
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
+            'title' => 'required|string',
             'description' => 'nullable|string',
             'assigned_to' => 'required|array',
             'assigned_to.*' => 'required|exists:users,id',
             'due_date' => 'required|date|after_or_equal:today',
-            'files.*' => 'nullable|file|max:40960',
+            'files.*' => 'nullable|file',
         ], [
             'title.required' => 'العنوان مطلوب',
             'title.string' => 'العنوان يجب أن يكون نصًا',
