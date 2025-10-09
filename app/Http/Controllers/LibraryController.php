@@ -123,13 +123,12 @@ class LibraryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'files' => 'required|array',
-            'files.*' => 'file',
+            'files.*' => 'file|max:512000',
             'folder_id' => 'nullable|exists:folders,id'
         ], [
             'files.required' => 'الملفات مطلوبة',
             'files.array' => 'الملفات يجب أن تكون على شكل مصفوفة',
             'files.*.file' => 'يجب أن يكون العنصر ملفًا صالحًا',
-            'files.*.max' => 'حجم الملف لا يجب أن يتجاوز 40 ميجابايت',
             'folder_id.exists' => 'المجلد المحدد غير موجود',
         ]);
 
