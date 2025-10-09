@@ -32,7 +32,7 @@ export default function Plans() {
     };
 
     const handleSubscribe = async (plan) => {
-        if (plan.name === 'basic' && !auth.user.trial_used) {
+        if (plan.name === 'basic' && !auth.user.company.trial_used) {
             try {
                 const response = await axios.post(`${app_url}/subscription/basic`);
                 if (response.data.success) {
@@ -68,7 +68,7 @@ const applyCoupon = async () => {
         });
 
         if (response.data && response.data.success) {
-           
+
             const priceInEgz = parseFloat(response.data.coupon?.price_in_egp || selectedPlan?.priceInsideEgypt);
             const priceOutsideEgz = parseFloat(response.data.coupon?.price_outside_egp || selectedPlan?.priceOutsideEgypt);
 
