@@ -190,6 +190,7 @@ export default function RentsRetailFlow() {
     return (
         <AdminLayout>
             <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
+                {auth.user.company.subscription === 'vip' && (
                 <div className="flex gap-2 mb-4">
                     <button
                         onClick={() => (window.location.href = `${app_url}/retailflow/export/rents/excel`)}
@@ -210,6 +211,7 @@ export default function RentsRetailFlow() {
                         {t("تصدير PDF")}
                     </button>
                 </div>
+                )}
 
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">{pageTitle}</h3>

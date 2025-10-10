@@ -250,7 +250,11 @@ export default function Header({ isOpen, setIsOpen }) {
                             />
                     ):(
                         <>
-                        {initials}
+                        <img
+                            src="favicon-v2"
+                            className="h-full w-full object-cover rounded-full"
+                            alt={`logo`}
+                        />
                         </>
                     )}
                 </div>
