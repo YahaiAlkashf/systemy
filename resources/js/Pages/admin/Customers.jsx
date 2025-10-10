@@ -538,7 +538,7 @@ export default function CustomersRetailFlow() {
                                         onChange={(e) =>
                                             setEditSubscriptionValue( e.target.value)
                                         }
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
                                         <option value="basic">
                                             {t("Basic (مبتدئ)")}

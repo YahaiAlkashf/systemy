@@ -251,7 +251,7 @@ export default function Header({ isOpen, setIsOpen }) {
                     ):(
                         <>
                         <img
-                            src="favicon-v2"
+                            src="favicon-v2.ico"
                             className="h-full w-full object-cover rounded-full"
                             alt={`logo`}
                         />

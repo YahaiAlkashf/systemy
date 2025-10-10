@@ -147,6 +147,7 @@ export default function CustomersRetailFlow() {
         setDeleteModal(false);
         setSendModal(false);
         setErrors({});
+        setEditSubscription(false);
     };
 
     // Add Customer
