@@ -66,8 +66,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             path: "/clubs/memberprofile",
         },
     ];
-    }else if( auth.user.member.role === 'manager' &&  auth.user.member.add_members === 1){
+    }else if( auth.user.member.add_members === 1){
         navItems = [
+            { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {
             name: t("الأعضاء"),
             icon: UserGroupIcon,
@@ -99,37 +100,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             path: "/clubs/memberprofile",
         },
     ];
-    }else if(auth.user.member.role === 'manager'){
-        navItems = [
-        {
-            name: t("المهام"),
-            icon: ClipboardDocumentListIcon,
-            path: "/clubs/tasks",
-        },
-        {
-            name: t("جدول المواعيد"),
-            icon: DocumentTextIcon,
-            path: "/clubs/schedule",
-        },
-        {
-            name: t("المكتبة"),
-            icon: BookOpenIcon,
-            path: "/clubs/resources",
-        },
-        {
-            name: t("مجموعة تواصل الاعضاء"),
-            icon: MegaphoneIcon,
-            path: "/clubs/companychat",
-        },
-
-        {
-            name: t("الملف الشخصي"),
-            icon: UserIcon,
-            path: "/clubs/memberprofile",
-        },
-    ];
     }else if(auth.user.member.add_members === 1){
         navItems = [
+        { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {
             name: t("الأعضاء"),
             icon: UserGroupIcon,
@@ -163,7 +136,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     ];
     }else {
         navItems = [
+{ name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {
+
             name: t("المهام"),
             icon: ClipboardDocumentListIcon,
             path: "/clubs/tasks",
