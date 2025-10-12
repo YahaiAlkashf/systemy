@@ -18,7 +18,7 @@ export default function EditCompanyDetails() {
     const timer = setTimeout(() =>{
         setMessage('');
     },1000)
-    return ()=> clearTimeout(timer)
+    return ()=> clearTimeout(timer);
   },[message]);
   const [preview, setPreview] = useState(`${app_url}/storage/${auth.user.company.logo}`);
 
