@@ -1156,8 +1156,11 @@ export default function InvoicesRetailFlow() {
                                     {t("شكراً لتعاملكم معنا")}
                                 </p>
                                 <div className="flex justify-center items-center gap-3">
-                                    <img src={`${app_url}/favicon-v2.ico`} alt="logo" className="w-7 h-7 rounded-lg" />
-                                <p className="text-gray-500 text-sm mt-2">
+                                    {(auth.user.company.subscription === "basic" || auth.user.company.subscription === "premium")
+                                    && (
+                                       <img src={`${app_url}/favicon-v2.ico`} alt="logo" className="w-7 h-7 rounded-lg" />
+                                    )}
+                                <p className="text-gray-500 text-sm mt-2 ">
                                 {(auth.user.company.subscription === "basic" || auth.user.company.subscription === "premium") && (
                                     t("سيستمى نظام متكامل لادارة الانشطة التجارية")
                                 )}

@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media print {
+    @page {
+        size: auto;
+        margin: 0mm;
+    }
+    body {
+        margin: 1cm;
+    }
+    .print-footer-text {
+        display: none;
+    }
+}
