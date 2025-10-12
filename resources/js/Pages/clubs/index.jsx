@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import AdminLayout from "./layout";
 import { useTranslation } from "react-i18next";
+import EditCompanyDetails from "../RetailFlow/components/EditCompanyDetails";
 
 
 export default function ClubDashboard() {
@@ -122,7 +123,7 @@ export default function ClubDashboard() {
 
 
                 {/* Quick Actions */}
-
+                    <EditCompanyDetails />
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
                         {t("إجراءات سريعة")}
