@@ -73,7 +73,31 @@ export default function Header({ isOpen, setIsOpen }) {
                 px-6 py-4 bg-white dark:bg-gray-800
                 shadow-md transition-all duration-300`}
         >
-            <div>
+            <div className="flex gap-3">
+            {(() => {
+            const expiresAt = new Date(auth.user.company.subscription_expires_at);
+            const nowDate = new Date();
+
+            const diffTime = expiresAt - nowDate;
+
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 7 && diffDays > 0) {
+                return (
+                <div
+                    className="h-10 w-10 rounded-full bg-[#4F2BED] flex items-center justify-center
+                                text-white font-bold text-lg shadow"
+                    title={t("باقي على انتهاء الاشتراك ")}
+                >
+                    {diffDays}
+                </div>
+                );
+            }
+
+            return null;
+            })()}
+
+
                 <h1 className="text-2xl font-semibold text-[#4F2BED] dark:text-primary-dark">
                     {(auth?.user?.company?.company_name && auth?.user?.company?.subscription === 'vip' ) ? auth?.user?.company?.company_name : "سيستمى"}
                 </h1>
@@ -113,82 +137,82 @@ export default function Header({ isOpen, setIsOpen }) {
                 </div>
 
                 {/* Currency Select */}
-<div className="relative">
-    <select
-        value={currency}
-        onChange={(e) => setCurrency(e.target.value)}
-        className="appearance-none w-36 px-4 py-2 pr-8 rounded-xl
-               border border-gray-300 dark:border-gray-700
-               bg-white dark:bg-gray-800
-               text-gray-700 dark:text-gray-200 text-sm font-medium
-               shadow-md transition duration-200
-               hover:border-[#4F2BED]
-               focus:ring-2 focus:ring-[#4F2BED] focus:outline-none"
-    >
-        <option
-            value="ج.م"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            🇪🇬 جنيه
+                <div className="relative">
+                    <select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                        className="appearance-none w-36 px-4 py-2 pr-8 rounded-xl
+                            border border-gray-300 dark:border-gray-700
+                            bg-white dark:bg-gray-800
+                            text-gray-700 dark:text-gray-200 text-sm font-medium
+                            shadow-md transition duration-200
+                            hover:border-[#4F2BED]
+                            focus:ring-2 focus:ring-[#4F2BED] focus:outline-none"
+                    >
+                        <option
+                            value="ج.م"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            🇪🇬 جنيه
 
-        </option>
-        <option
-            value="ر.س"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            <span className="font-arabic">﷼</span> ريال سعودي
-        </option>
-        <option
-            value="د.إ"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            <span className="font-arabic">د.إ</span> درهم إماراتي
-        </option>
-        <option
-            value="ر.ق"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            <span className="font-arabic">ر.ق</span> ريال قطري
-        </option>
-        <option
-            value="د.ك"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            <span className="font-arabic">د.ك</span> دينار كويتي
-        </option>
-        <option
-            value="د.ب"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            <span className="font-arabic">د.ب</span> دينار بحريني
-        </option>
-        <option
-            value="ر.ع"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            <span className="font-arabic">ر.ع</span> ريال عماني
-        </option>
+                        </option>
+                        <option
+                            value="ر.س"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            <span className="font-arabic">﷼</span> ريال سعودي
+                        </option>
+                        <option
+                            value="د.إ"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            <span className="font-arabic">د.إ</span> درهم إماراتي
+                        </option>
+                        <option
+                            value="ر.ق"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            <span className="font-arabic">ر.ق</span> ريال قطري
+                        </option>
+                        <option
+                            value="د.ك"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            <span className="font-arabic">د.ك</span> دينار كويتي
+                        </option>
+                        <option
+                            value="د.ب"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            <span className="font-arabic">د.ب</span> دينار بحريني
+                        </option>
+                        <option
+                            value="ر.ع"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            <span className="font-arabic">ر.ع</span> ريال عماني
+                        </option>
 
 
-        <option
-            value="USD"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            🇺🇸 دولار
+                        <option
+                            value="USD"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            🇺🇸 دولار
 
-        </option>
-        <option
-            value="EUR"
-            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
-        >
-            🇪🇺 يورو
+                        </option>
+                        <option
+                            value="EUR"
+                            className="py-2 px-3 bg-white dark:bg-gray-800 hover:bg-[#4F2BED] hover:text-white"
+                        >
+                            🇪🇺 يورو
 
-        </option>
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-        ▼
-    </span>
-</div>
+                        </option>
+                    </select>
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                        ▼
+                    </span>
+                </div>
 
                 {/* Dark/Light Mode Toggle */}
                 <button

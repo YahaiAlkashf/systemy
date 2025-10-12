@@ -7,6 +7,7 @@ use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CycleController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\FawryController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PaymentController;
@@ -235,7 +236,7 @@ Route::get('/', function () {
                 Route::get('/retailflow/export/rents/pdf', [RentsController::class, 'exportRentsPDF'])->name('export.rents.pdf');
                 Route::get('/retailflow/export/rents/excel', [RentsController::class, 'exportRentsExcel'])->name('export.rents.excel');
                 Route::get('/retailflow/export/rent/{id}/pdf', [RentsController::class, 'exportRentPDF'])->name('export.rent.pdf');
-
+                Route::post('/company/edit',[CompanyController::class ,'update' ]);
                 Route::post('whatsapp/settings', [WhatsAppController::class, 'saveSettings'])->name('company.whatsapp.settings.save');
                 Route::post('whatsapp/send', [WhatsAppController::class, 'sendMessage'])->name('company.whatsapp.send');
                 Route::post('whatsapp/test', [WhatsAppController::class, 'testConnection'])->name('company.whatsapp.test');

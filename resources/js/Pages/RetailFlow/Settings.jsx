@@ -6,6 +6,7 @@ import UpdateProfileInformationForm from '../Profile/Partials/UpdateProfileInfor
 import AdminLayout from './layout';
 import UserManagement from './components/UserManagement';
 import { useTranslation } from 'react-i18next';
+import EditCompanyDetails from './components/EditCompanyDetails';
 
 export default function Settings({ mustVerifyEmail, status }) {
     const { auth } = usePage().props;
@@ -46,22 +47,23 @@ export default function Settings({ mustVerifyEmail, status }) {
                     </div>
                 </div>
 
+
                 {/* User Management */}
                  {(auth.user.company.subscription==='vip'  || auth.user.company.subscription==='premium') &&
-                 <>
-                        {auth?.user?.role === "superadmin" && (
-                            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-10">
-                                <div className="p-6 sm:p-8 bg-white dark:bg-background-card shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700">
-                                    <h2 className="text-xl font-bold text-primary dark:text-primary-dark mb-6">
-                                        {t("إدارة المستخدمين")}
-                                    </h2>
-                                    <UserManagement />
+                    <>
+                            {auth?.user?.role === "superadmin" && (
+                                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-10">
+                                    <div className="p-6 sm:p-8 bg-white dark:bg-background-card shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700">
+                                        <h2 className="text-xl font-bold text-primary dark:text-primary-dark mb-6">
+                                            {t("إدارة المستخدمين")}
+                                        </h2>
+                                        <UserManagement />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                </>
-
+                            )}
+                    </>
                  }
+                 {(auth.user.role === 'superadmin' && <EditCompanyDetails />)}
 
             </AuthenticatedLayout>
         </AdminLayout>
