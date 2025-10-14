@@ -19,7 +19,7 @@ export default function Plans() {
     const [couponLoading, setCouponLoading] = useState(false);
     const { auth, app_url } = usePage().props;
     const [allPlans, setAllPlans] = useState([]);
-
+    const [type,setType]=useState("monthly");
     const { t } = useTranslation();
 
     const showAllPlans = async () => {
@@ -64,7 +64,8 @@ const applyCoupon = async () => {
     try {
         const response = await axios.post(`${app_url}/subscription/coupons`, {
             code: couponCode,
-            planName: selectedPlan?.name
+            planName: selectedPlan?.name,
+            plan:type
         });
 
         if (response.data && response.data.success) {
@@ -80,7 +81,8 @@ const applyCoupon = async () => {
                 try {
                     const subscriptionResponse = await axios.post(`${app_url}/subscription/free`, {
                         plan: selectedPlan?.name,
-                        coupon_code: couponCode
+                        coupon_code: couponCode,
+                        type:type
                     });
 
                     if (subscriptionResponse.data.success) {
@@ -119,7 +121,7 @@ const applyCoupon = async () => {
             setCouponError(null);
         } else {
             const errorMessage = response.data?.errors?.code?.[0] ||
-                               t("كود الخصم غير صالح");
+            t("كود الخصم غير صالح");
             setCouponError(errorMessage);
         }
     } catch (error) {
@@ -257,7 +259,9 @@ const applyCoupon = async () => {
                 name: "premium",
                 description: t("مناسبة لاداراة التواصل بين اعضاء الشركات والمؤسسات وتوزيع المهام"),
                 priceInsideEgypt: allPlans[1]?.price_in_egp,
+                priceInsideEgyptYearly: allPlans[1]?.price_year_in_egp,
                 priceOutsideEgypt: allPlans[1]?.price_outside_egp,
+                priceOutsideEgyptYearly: allPlans[1]?.price_year_outside_egp,
                 icon: (
                     <svg
                         className="w-12 h-12 mx-auto text-primary"
@@ -291,7 +295,9 @@ const applyCoupon = async () => {
                 name: "basic",
                 description: t("مناسبة للشركات الناشئة والصغيرة"),
                 priceInsideEgypt: allPlans[0]?.price_in_egp,
+                priceInsideEgyptYearly: allPlans[0]?.price_year_in_egp,
                 priceOutsideEgypt: allPlans[0]?.price_outside_egp,
+                priceOutsideEgyptYearly: allPlans[0]?.price_year_outside_egp,
                 icon: (
                     <svg
                         className="w-12 h-12 mx-auto text-primary"
@@ -321,7 +327,9 @@ const applyCoupon = async () => {
                 name: "premium",
                 description: t("مناسبة للشركات المتوسطة والمتنامية"),
                 priceInsideEgypt: allPlans[1]?.price_in_egp,
+                priceInsideEgyptYearly: allPlans[1]?.price_year_in_egp,
                 priceOutsideEgypt: allPlans[1]?.price_outside_egp,
+                priceOutsideEgyptYearly: allPlans[1]?.price_year_outside_egp,
                 icon: (
                     <svg
                         className="w-12 h-12 mx-auto text-primary"
@@ -351,7 +359,9 @@ const applyCoupon = async () => {
                 name: "vip",
                 description: t("مناسبة للشركات الكبيرة والمؤسسات"),
                 priceInsideEgypt: allPlans[2]?.price_in_egp,
+                priceInsideEgyptYearly: allPlans[2]?.price_year_in_egp,
                 priceOutsideEgypt: allPlans[2]?.price_outside_egp,
+                priceOutsideEgyptYearly: allPlans[2]?.price_year_outside_egp,
                 icon: (
                     <svg
                         className="w-12 h-12 mx-auto text-primary"
@@ -391,7 +401,30 @@ const applyCoupon = async () => {
                 <p className="text-gray-300 mb-16">
                     {t("أسعارنا تنافسية ومناسبة لكل أنواع الأعمال")}
                 </p>
-
+                <div className="mb-8">
+                    <div className="flex justify-center gap-4">
+                        <button
+                            onClick={() => setType('yearly')}
+                            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                                type === 'yearly'
+                                    ? "bg-primary text-white"
+                                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                            }`}
+                        >
+                            {t("اشتراك سنوى")}
+                        </button>
+                        <button
+                            onClick={() => setType('monthly')}
+                            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                                type === 'monthly'
+                                    ? "bg-primary text-white"
+                                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                            }`}
+                        >
+                            {t("اشتراك شهرى")}
+                        </button>
+                    </div>
+                </div>
                 {isLoading ? (
                     <div className="text-white text-lg">
                         {t("جاري تحميل الخطط...")}
@@ -445,10 +478,21 @@ const applyCoupon = async () => {
                                 </ul>
 
                                 <p className="text-xl font-bold mb-6 text-white">
-                                    {isEgypt
-                                        ? `${plan.priceInsideEgypt} جنيه / شهر`
-                                        : `$${plan.priceOutsideEgypt} / month`}
+                                    {type === 'yearly' ? (
+                                        <>
+                                        {isEgypt
+                                            ? `${plan.priceInsideEgyptYearly} جنيه / سنة`
+                                            : `$${plan.priceOutsideEgyptYearly} / year`}
+                                        </>
+                                    ) : (
+                                        <>
+                                        {isEgypt
+                                            ? `${plan.priceInsideEgypt} جنيه / شهر`
+                                            : `$${plan.priceOutsideEgypt} / month`}
+                                        </>
+                                    )}
                                 </p>
+
 
                                 <button
                                     onClick={() => handleSubscribe(plan)}
@@ -459,7 +503,7 @@ const applyCoupon = async () => {
                                     } px-6 py-3 rounded-xl font-semibold text-white transition-colors inline-block w-full`}
                                     disabled={plan.name === 'basic' && auth.user.trial_used && auth.user.subscription !== 'basic'}
                                 >
-                                    {plan.name === 'basic' && !auth.user.trial_used
+                                    {plan.name === 'basic' && !auth.user.company.trial_used
                                         ? t("ابدأ التجربة المجانية")
                                         : auth.user.subscription === plan.name
                                         ? t("الباقة مفعلة")
@@ -539,14 +583,34 @@ const applyCoupon = async () => {
                 {couponData ? (
                     <div className="mb-4">
                         <p className="text-gray-400 line-through">
-                            {isEgypt
-                                ? `${selectedPlan?.priceInsideEgypt} جنيه`
-                                : `$${selectedPlan?.priceOutsideEgypt}`}
+                                    {type === 'yearly' ? (
+                                        <>
+                                        {isEgypt
+                                            ? `${selectedPlan.priceInsideEgyptYearly} جنيه / سنة`
+                                            : `$${selectedPlan.priceOutsideEgyptYearly} / year`}
+                                        </>
+                                    ) : (
+                                        <>
+                                        {isEgypt
+                                            ? `${selectedPlan.priceInsideEgypt} جنيه / شهر`
+                                            : `$${selectedPlan.priceOutsideEgypt} / month`}
+                                        </>
+                                    )}
                         </p>
                         <p className="text-2xl font-bold text-green-400">
-                            {isEgypt
-                                ? `${couponData.price_in_egp} جنيه / شهر`
-                                : `$${couponData.price_outside_egp} / month`}
+                                    {type === 'yearly' ? (
+                                        <>
+                                        {isEgypt
+                                            ? `${selectedPlan.priceInsideEgyptYearly} جنيه / سنة`
+                                            : `$${selectedPlan.priceOutsideEgyptYearly} / year`}
+                                        </>
+                                    ) : (
+                                        <>
+                                        {isEgypt
+                                            ? `${selectedPlan.priceInsideEgypt} جنيه / شهر`
+                                            : `$${selectedPlan.priceOutsideEgypt} / month`}
+                                        </>
+                                    )}
                         </p>
                         <p className="text-sm text-green-400 mt-1">
                             {t("خصم مطبق بنجاح!")}
@@ -554,9 +618,19 @@ const applyCoupon = async () => {
                     </div>
                 ) : (
                     <p className="mb-6 text-2xl font-bold text-purple-400">
-                        {isEgypt
-                            ? `${selectedPlan?.priceInsideEgypt} جنيه / شهر`
-                            : `$${selectedPlan?.priceOutsideEgypt} / month`}
+                                    {type === 'yearly' ? (
+                                        <>
+                                        {isEgypt
+                                            ? `${selectedPlan.priceInsideEgyptYearly} جنيه / سنة`
+                                            : `$${selectedPlan.priceOutsideEgyptYearly} / year`}
+                                        </>
+                                    ) : (
+                                        <>
+                                        {isEgypt
+                                            ? `${selectedPlan.priceInsideEgypt} جنيه / شهر`
+                                            : `$${selectedPlan.priceOutsideEgypt} / month`}
+                                        </>
+                                    )}
                     </p>
                 )}
 

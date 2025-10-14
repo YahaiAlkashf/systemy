@@ -23,6 +23,8 @@ class PlanController extends Controller
             'name' => 'required|string',
             'price_outside_egp' => 'required|numeric',
             'price_in_egp' => 'required|numeric',
+            'price_year_in_egp'=>'required|numeric',
+            'price_year_outside_egp'=>'required|numeric',
         ], [
             'name.required' => 'الاسم مطلوب',
             'name.string' => 'الاسم يجب أن يكون نصًا',
@@ -30,6 +32,10 @@ class PlanController extends Controller
             'price_outside_egp.numeric' => 'السعر يجب أن يكون رقمًا',
             'price_in_egp.required' => 'السعر مطلوب',
             'price_in_egp.numeric' => 'السعر يجب أن يكون رقمًا',
+            'price_year_in_egp.required' => 'السعر سنوي مطلوب',
+            'price_year_in_egp.numeric' => 'السعر سنوي يجب أن يكون رقمًا',
+            'price_year_outside_egp.required' => 'السعر سنوي مطلوب',
+            'price_year_outside_egp.numeric' => 'السعر سنوي يجب أن يكون رقمًا',
         ]);
 
         if ($validator->fails()) {
@@ -44,6 +50,8 @@ class PlanController extends Controller
             [
                 'price_outside_egp' => $request->price_outside_egp,
                 'price_in_egp' => $request->price_in_egp,
+                'price_year_in_egp' => $request->price_year_in_egp,
+                'price_year_outside_egp' => $request->price_year_outside_egp,
             ]
         );
 
@@ -62,6 +70,8 @@ class PlanController extends Controller
             'name' => 'required|string',
             'price_outside_egp' => 'required|numeric',
             'price_in_egp' => 'required|numeric',
+            'price_year_in_egp'=>'required|numeric',
+            'price_year_outside_egp'=>'required|numeric',
         ], [
             'name.required' => 'الاسم مطلوب',
             'name.string' => 'الاسم يجب أن يكون نصًا',
@@ -69,6 +79,10 @@ class PlanController extends Controller
             'price_outside_egp.numeric' => 'السعر يجب أن يكون رقمًا',
             'price_in_egp.required' => 'السعر مطلوب',
             'price_in_egp.numeric' => 'السعر يجب أن يكون رقمًا',
+            'price_year_in_egp.required' => 'السعر سنوي مطلوب',
+            'price_year_in_egp.numeric' => 'السعر سنوي يجب أن يكون رقمًا',
+            'price_year_outside_egp.required' => 'السعر سنوي مطلوب',
+
         ]);
 
         if($validator->fails()) {
@@ -82,6 +96,8 @@ class PlanController extends Controller
             'name' => $request->name,
             'price_outside_egp' => $request->price_outside_egp,
             'price_in_egp' => $request->price_in_egp,
+            'price_year_in_egp'=> $request->price_year_in_egp,
+            'price_year_outside_egp'=> $request->price_year_outside_egp,
         ]);
 
         return response()->json([
@@ -109,6 +125,7 @@ class PlanController extends Controller
             'plan_id' => 'required|exists:plans,id',
             'price_in_egp' => 'required|numeric',
             'price_outside_egp' => 'required|numeric',
+            'plan'=>'required'
         ], [
             'code.required' => 'كود الخصم مطلوب',
             'code.unique' => 'كود الخصم مستخدم من قبل',
@@ -118,6 +135,7 @@ class PlanController extends Controller
             'price_in_egp.numeric' => 'السعر داخل مصر يجب أن يكون رقمًا',
             'price_outside_egp.required' => 'السعر خارج مصر مطلوب',
             'price_outside_egp.numeric' => 'السعر خارج مصر يجب أن يكون رقمًا',
+            'plan.required' => 'الباقة مطلوبة'
         ]);
 
         if ($validator->fails()) {
@@ -132,6 +150,7 @@ class PlanController extends Controller
             'plan_id' => $request->plan_id,
             'price_in_egp' => $request->price_in_egp,
             'price_outside_egp' => $request->price_outside_egp,
+            'plan' => $request->plan
         ]);
 
         return response()->json([
@@ -150,6 +169,7 @@ class PlanController extends Controller
             'plan_id' => 'required|exists:plans,id',
             'price_in_egp' => 'required|numeric',
             'price_outside_egp' => 'required|numeric',
+            'plan'=>'required'
         ], [
             'code.required' => 'كود الخصم مطلوب',
             'code.unique' => 'كود الخصم مستخدم من قبل',
@@ -159,6 +179,7 @@ class PlanController extends Controller
             'price_in_egp.numeric' => 'السعر داخل مصر يجب أن يكون رقمًا',
             'price_outside_egp.required' => 'السعر خارج مصر مطلوب',
             'price_outside_egp.numeric' => 'السعر خارج مصر يجب أن يكون رقمًا',
+            'plan.required' => 'الباقة مطلوبة'
         ]);
 
         if ($validator->fails()) {
@@ -173,6 +194,7 @@ class PlanController extends Controller
             'plan_id' => $request->plan_id,
             'price_in_egp' => $request->price_in_egp,
             'price_outside_egp' => $request->price_outside_egp,
+            'plan' => $request->plan
         ]);
 
         return response()->json([

@@ -10,7 +10,8 @@ class Coupon extends Model
         'code',
         'price_in_egp',
         'price_outside_egp',
-        'plan_id'
+        'plan_id',
+        'plan'
     ];
 
     public function plan()

@@ -82,7 +82,7 @@ export default function Header({ isOpen, setIsOpen }) {
 
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            if (diffDays <= 7 && diffDays > 0) {
+            if (diffDays <= 7 && diffDays > 0 && auth.user.company.trial_used === 0) {
                 return (
                 <div
                     className="h-10 w-10 rounded-full bg-[#4F2BED] flex items-center justify-center

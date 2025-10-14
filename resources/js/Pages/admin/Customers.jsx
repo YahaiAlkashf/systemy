@@ -27,7 +27,10 @@ export default function CustomersRetailFlow() {
     const [customers, setCustomers] = useState([]);
     const [errors, setErrors] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
-    const [editSubscriptionValue, setEditSubscriptionValue] = useState("");
+    const [editSubscriptionValue, setEditSubscriptionValue] = useState({
+        subscription:"",
+        plan: "",
+    });
     const [editSubscription, setEditSubscription] = useState("");
     const rowsPerPage = 10;
     const [search, setSearch] = useState("");
@@ -150,7 +153,8 @@ export default function CustomersRetailFlow() {
             const response = await axios.post(
                 `${app_url}/addSubscription/${selectedCustomer.company.id}`,
                 {
-                    subscription: editSubscriptionValue,
+                    subscription: editSubscriptionValue.subscription,
+                    plan: editSubscriptionValue.plan,
                 }
             );
             closeModal();
@@ -164,7 +168,7 @@ export default function CustomersRetailFlow() {
 
     const handleOpenModelEditSubsctiption = (customer) => {
         setSelectedCustomer(customer);
-        setEditSubscriptionValue(customer.company.subscription);
+        setEditSubscriptionValue({...editSubscriptionValue, subscription: customer.company.subscription});
         setEditSubscription(true);
     };
 
@@ -534,9 +538,9 @@ export default function CustomersRetailFlow() {
                                         {t("اختر نوع الباقة")}
                                     </label>
                                     <select
-                                        value={editSubscriptionValue}
+                                        value={editSubscriptionValue.subscription}
                                         onChange={(e) =>
-                                            setEditSubscriptionValue( e.target.value)
+                                            setEditSubscriptionValue( {...editSubscriptionValue, subscription: e.target.value })
                                         }
                                         className="w-full px-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     >
@@ -551,7 +555,19 @@ export default function CustomersRetailFlow() {
                                         </option>
                                     </select>
                                 </div>
+                        <div className="py-3">
+                            <label className="block text-sm font-medium  text-gray-700 dark:text-gray-300 mb-2">{t(" نوع الباقة")}</label>
+                            <select
+                                value={editSubscriptionValue.plan}
+                                onChange={(e) => setCouponFormData({ ...editSubscriptionValue, plan: e.target.value })}
+                                className={`w-full px-8 py-2 border rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent `}
+                            >
+                                <option  value={"monthly"}>{"monthly"}</option>
+                                <option  value={"yearly"}>{"yearly"}</option>
 
+                            </select>
+
+                        </div>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={closeModal}

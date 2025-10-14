@@ -21,7 +21,9 @@ class SystemAccessMiddleware
         if ($user->company->role === 'manager') {
             return $next($request);
         }
-
+        if($user->company->subscription === null){
+             return redirect('/allplans');
+        }
         $allowedPaths = [
             'clubs' => [
                 'clubs', 'clubs/*',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\RetailFlow;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\ProductRetailFlow;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -67,7 +68,7 @@ public function store(Request $request)
             'additional_costs' => 'nullable|numeric',
         ];
 
-        // تعريف رسائل الخطأ بالعربية
+
         $customMessages = [
             'name.required' => 'اسم المنتج مطلوب',
             'name.string' => 'اسم المنتج يجب أن يكون نصاً',
@@ -99,7 +100,7 @@ public function store(Request $request)
                 $rules['wholesale_price'] = 'required|string';
                 $rules['quantity'] = 'nullable|integer';
 
-                // تحديث الرسائل لنظام realEstate
+
                 $customMessages['price.string'] = 'السعر يجب أن يكون نصاً';
                 $customMessages['net_profit.string'] = 'صافي الربح يجب أن يكون نصاً';
                 $customMessages['wholesale_price.string'] = 'سعر الجملة يجب أن يكون نصاً';
@@ -111,7 +112,7 @@ public function store(Request $request)
             $rules['wholesale_price'] = 'required|string';
             $rules['quantity'] = 'required|string';
 
-            // تحديث الرسائل لنظام delivery
+
             $customMessages['wholesale_price.string'] = 'سعر الجملة يجب أن يكون نصاً';
             $customMessages['quantity.string'] = 'الكمية يجب أن تكون نصاً';
         }
@@ -147,8 +148,8 @@ public function store(Request $request)
 
         $product = ProductRetailFlow::create($productData);
 
-        if (($product->quantity < 5) &&
-            (Auth::user()->system_type === "retail" )) {
+        if ($product->quantity < 5 &&
+            Auth::user()->system_type === "retail" ) {
             Notification::create([
                 'title' => "المنتج {$product->name} على وشك النفاذ",
                 "message" => "كمية {$product->name} اقل من خمسة",
@@ -252,8 +253,8 @@ public function update(Request $request, $id)
 
         $product->update($updateData);
 
-        if (($product->quantity < 5) &&
-            (Auth::user()->system_type === "retail" )) {
+        if ($product->quantity < 5 &&
+            Auth::user()->system_type === "retail" ) {
             Notification::create([
                 'title' => "المنتج {$product->name} على وشك النفاذ",
                 "message" => "كمية {$product->name} اقل من خمسة",
@@ -428,89 +429,30 @@ public function update(Request $request, $id)
 
 public function exportExcel()
 {
-    $user = Auth::user();
-    $products = ProductRetailFlow::where('company_id', $user->company_id)->get();
+    $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
 
-    $fileNames = [
-        "retail" => "المنتجات",
-        "services" => "الخدمات",
-        "education" => "الدورات",
-        "realEstate" => "العقارات",
-        "delivery" => "الطلبات",
-        "travels" => "الرحلات"
-    ];
-
-    $fileName = ($fileNames[$user->system_type] ?? "المنتجات") . '_' . date('Y-m-d') . '.xlsx';
-    $sheetTitle = $fileNames[$user->system_type] ?? "المنتجات";
-
-    $nameColumnTitle = "";
-    $quantityColumnTitle = "";
-    $priceColumnTitle = "";
-    $wholesaleColumnTitle = "";
-
-    switch ($user->system_type) {
-        case "services":
-            $nameColumnTitle = "اسم الخدمة";
-            $quantityColumnTitle = "";
-            $priceColumnTitle = "سعر الخدمة";
-            $wholesaleColumnTitle = "تكلفة الخدمة";
-            break;
-        case "education":
-            $nameColumnTitle = "اسم الدورة";
-            $quantityColumnTitle = "";
-            $priceColumnTitle = "سعر الدورة";
-            $wholesaleColumnTitle = "تكلفة الدورة";
-            break;
-        case "realEstate":
-            $nameColumnTitle = "اسم العقار";
-            $quantityColumnTitle = "الكمية";
-            $priceColumnTitle = "سعر البيع";
-            $wholesaleColumnTitle = "سعر الشراء";
-            break;
-        case "delivery":
-            $nameColumnTitle = "اسم الطلب";
-            $quantityColumnTitle = "حالة الطلب";
-            $priceColumnTitle = "سعر الطلب";
-            $wholesaleColumnTitle = "عنوان الطلب";
-            break;
-        case "travels":
-            $nameColumnTitle = "اسم الرحلة";
-            $quantityColumnTitle = "";
-            $priceColumnTitle = "سعر الرحلة";
-            $wholesaleColumnTitle = "تكلفة الرحلة";
-            break;
-        default: // retail
-            $nameColumnTitle = "اسم المنتج";
-            $quantityColumnTitle = "الكمية";
-            $priceColumnTitle = "سعر البيع";
-            $wholesaleColumnTitle = "سعر الجملة";
-    }
+    $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
 
     // إنشاء مستند جديد
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle($sheetTitle);
+    $sheet->setTitle('المستخدمين');
     $sheet->setRightToLeft(true);
 
-    // بناء الرؤوس الديناميكية
-    $headers = ['#', $nameColumnTitle, 'التصنيف'];
-
-    // إضافة عمود الباركود لأنظمة البيع بالتجزئة فقط
-    if ($user->system_type === "retail") {
-        $headers[] = 'الباركود';
-    }
-
-    if (!empty($quantityColumnTitle)) {
-        $headers[] = $quantityColumnTitle;
-    }
-
-    $headers = array_merge($headers, [
-        $priceColumnTitle,
-        $wholesaleColumnTitle,
-        'مصاريف اضافية',
-        'صافي الأرباح',
+    // تعريف الرؤوس
+    $headers = [
+        '#',
+        'الاسم',
+        'الرتبة',
+        'البريد الإلكتروني',
+        'الهاتف',
+        'نوع النظام',
+        'الدولة',
+        'اسم الشركة',
+        'العنوان',
+        'نوع الباقة',
         'تاريخ الإنشاء'
-    ]);
+    ];
 
     // إضافة الرؤوس
     $sheet->fromArray($headers, null, 'A1');
@@ -539,90 +481,48 @@ public function exportExcel()
     ];
 
     // تحديد العمود الأخير بناءً على عدد الرؤوس
-    $lastHeaderColumn = chr(64 + count($headers)); // A=65, B=66, etc.
+    $lastHeaderColumn = chr(64 + count($headers));
     $sheet->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
 
     // إضافة البيانات
     $row = 2;
-    foreach ($products as $index => $product) {
+    foreach ($users as $index => $user) {
         $col = 'A';
 
         // #
         $sheet->setCellValue($col++ . $row, $index + 1);
 
         // الاسم
-        $sheet->setCellValue($col++ . $row, $product->name);
+        $sheet->setCellValue($col++ . $row, $user->name);
 
-        // التصنيف
-        $sheet->setCellValue($col++ . $row, $product->category ?? 'غير محدد');
+        // الرتبة
+        $sheet->setCellValue($col++ . $row, $user->role);
 
-        // الباركود (للتجزئة فقط)
-        if ($user->system_type === "retail") {
-            $sheet->setCellValue($col++ . $row, $product->barcode ?? 'لا يوجد');
-        }
+        // البريد الإلكتروني
+        $sheet->setCellValue($col++ . $row, $user->email);
 
-        // الكمية/الحالة
-        if (!empty($quantityColumnTitle)) {
-            if ($user->system_type === "delivery") {
-                $sheet->setCellValue($col++ . $row, $product->quantity); // نصي للحالة
-            } else {
-                $sheet->setCellValue($col++ . $row, $product->quantity); // رقمي للكمية
-            }
-        }
+        // الهاتف
+        $sheet->setCellValue($col++ . $row, $user->company->phone ?? 'غير محدد');
 
-        // السعر
-        $sheet->setCellValue($col++ . $row, $product->price);
+        // نوع النظام
+        $sheet->setCellValue($col++ . $row, $user->system_type);
 
-        // سعر الجملة/التكلفة/العنوان
-        if ($user->system_type === "delivery") {
-            $sheet->setCellValue($col++ . $row, $product->wholesale_price); // نصي للعنوان
-        } else {
-            $sheet->setCellValue($col++ . $row, $product->wholesale_price); // رقمي للتكلفة
-        }
+        // الدولة
+        $sheet->setCellValue($col++ . $row, $user->country);
 
-        // المصاريف الإضافية
-        $sheet->setCellValue($col++ . $row, $product->additional_costs);
+        // اسم الشركة
+        $sheet->setCellValue($col++ . $row, $user->company->company_name ?? 'غير محدد');
 
-        // صافي الأرباح
-        $sheet->setCellValue($col++ . $row, $product->net_profit);
+        // العنوان
+        $sheet->setCellValue($col++ . $row, $user->company->address ?? 'غير محدد');
+
+        // نوع الباقة
+        $sheet->setCellValue($col++ . $row, $user->company->subscription ?? 'غير محدد');
 
         // تاريخ الإنشاء
-        $sheet->setCellValue($col . $row, $product->created_at->format('Y-m-d'));
+        $sheet->setCellValue($col . $row, $user->created_at->format('Y-m-d'));
 
         $row++;
-    }
-
-    // تنسيق الأرقام
-    $numberColumns = [];
-    $currentCol = 'D'; // نبدأ من العمود D حيث تبدأ الأرقام عادة
-
-    // تحديد الأعمدة الرقمية بناءً على نوع النظام
-    switch ($user->system_type) {
-        case "delivery":
-            // في نظام التوصيل، الأعمدة الرقمية هي: السعر، المصاريف، الأرباح
-            $numberColumns = ['E', 'H', 'I']; // السعر، المصاريف، الأرباح
-            break;
-        case "services":
-        case "education":
-        case "travels":
-            // هذه الأنظمة ليس لها عمود كمية
-            $numberColumns = ['D', 'E', 'F', 'G']; // السعر، التكلفة، المصاريف، الأرباح
-            break;
-        case "realEstate":
-            // العقارات لها كمية وسعر وشراء ومصاريف وأرباح
-            $numberColumns = ['D', 'E', 'F', 'G', 'H'];
-            break;
-        default: // retail
-            // التجزئة لها كل الأعمدة الرقمية
-            $numberColumns = ['E', 'F', 'G', 'H', 'I'];
-    }
-
-    foreach ($numberColumns as $col) {
-        if ($products->count() > 0) {
-            $sheet->getStyle($col . '2:' . $col . ($row - 1))
-                  ->getNumberFormat()
-                  ->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
-        }
     }
 
     // تنسيق بيانات الجدول
@@ -639,7 +539,7 @@ public function exportExcel()
         ]
     ];
 
-    if ($products->count() > 0) {
+    if ($users->count() > 0) {
         $sheet->getStyle('A2:' . $lastHeaderColumn . ($row - 1))->applyFromArray($dataStyle);
     }
 
@@ -661,4 +561,6 @@ public function exportExcel()
         'Cache-Control' => 'max-age=0',
     ]);
 }
+
+
 }

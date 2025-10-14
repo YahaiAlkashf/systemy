@@ -88,9 +88,9 @@ export default function Header({ isOpen, setIsOpen }) {
             </div>
             <div className="flex items-center gap-4">
                 <div className="relative">
-                    <select
+            <select
                     value={i18n.language}
-                onChange={(e) => changeLanguage(e.target.value)}
+                      onChange={(e) => changeLanguage(e.target.value)}
                         className="appearance-none w-36 px-4 py-2 pr-8 rounded-xl
                    border border-gray-300 dark:border-gray-700
                    bg-white dark:bg-gray-800

@@ -25,7 +25,10 @@ export default function CustomersRetailFlow() {
     const [sendModal, setSendModal] = useState(false);
     const [customers, setCustomers] = useState([]);
     const [editSubscription, setEditSubscription] = useState("");
-    const [editSubscriptionValue, setEditSubscriptionValue] = useState("");
+    const [editSubscriptionValue, setEditSubscriptionValue] = useState({
+        subscription:"",
+        plan: "",
+    });
     const [errors, setErrors] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
@@ -184,7 +187,8 @@ export default function CustomersRetailFlow() {
             const response = await axios.post(
                 `${app_url}/addSubscription/${selectedCustomer.company.id}`,
                 {
-                    subscription:editSubscriptionValue,
+                    subscription: editSubscriptionValue.subscription,
+                    plan: editSubscriptionValue.plan,
                 }
             );
             closeModal();
@@ -196,10 +200,11 @@ export default function CustomersRetailFlow() {
         }
     };
 
+
     const handleOpenModelEditSubsctiption = (customer) => {
         setSelectedCustomer(customer);
-        setEditSubscriptionValue(customer.company.subscription);
-        setEditSubscription(true);
+        setEditSubscriptionValue({...editSubscriptionValue, subscription: customer.company.subscription});
+            setEditSubscription(true);
     };
 
     return (
@@ -310,111 +315,107 @@ export default function CustomersRetailFlow() {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                            {currentCustomers .filter(customer => customer.system_type !== 'manager').map((customer, idx) => (
-                                <tr
-                                    key={customer.id}
-                                    className={`transition-colors duration-200 ${
-                                        idx % 2 === 0
-                                            ? "bg-white dark:bg-gray-800"
-                                            : "bg-gray-50 dark:bg-gray-700"
-                                    } hover:bg-gray-100 dark:hover:bg-gray-600`}
-                                >
+<tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+    {currentCustomers
+        .filter(customer => customer.system_type !== 'manager')
+        .map((customer, idx) => {
+            // التحقق من وجود company و phone
+            const companyPhone = customer.company?.phone || 'غير متوفر';
+            const companyName = customer.company?.company_name || 'غير متوفر';
+            const companyAddress = customer.company?.address || 'غير متوفر';
+            const companyLogo = customer.company?.logo || '';
+            const companySubscription = customer.company?.subscription || 'غير متوفر';
 
-
-                                    <td className="px-4 py-3 text-right text-gray-500 dark:text-gray-400">
-                                        {idx + 1}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-200">
-                                        {customer.name}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.role}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.email}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.company.phone}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.system_type}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.country}
-                                    </td>
-
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.company.company_name}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.company.address}
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        <img
-                                            src={`${app_url}/storage/${customer.company.logo}`}
-                                            alt={t("logo")}
-                                            className="h-8 w-10 object-cover object-center rounded"
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
-                                        {customer.company.subscription}
-                                    </td>
-                                    <td className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">
-                                        <div className="flex justify-center space-x-2">
-                                            <button
-                                                onClick={() =>
-                                                    handleEditCustomer(customer)
-                                                }
-                                                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
-                                                title={t("تعديل")}
-                                            >
-                                                <PencilIcon className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleDeleteCustomer(
-                                                        customer
-                                                    )
-                                                }
-                                                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
-                                                title={t("حذف")}
-                                            >
-                                                <TrashIcon className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <button
-                                            onClick={() =>
-                                                handleOpenModelEditSubsctiption(
-                                                    customer
-                                                )
-                                            }
-                                            className="inline-flex items-center px-3 py-1.5 bg-primary dark:bg-primary-dark text-white rounded-lg hover:bg-primary-dark transition-colors text-sm"
-                                            title={t("تعديل الباقة ")}
-                                        >
-                                            <PaperAirplaneIcon className="h-4 w-4 ml-1" />
-                                            {t("تعديل الباقة")}
-                                        </button>
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <button
-                                            onClick={() =>
-                                                handleSendMessageToCustomer(
-                                                    customer
-                                                )
-                                            }
-                                            className="inline-flex items-center px-3 py-1.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors text-sm"
-                                            title={t("إرسال رسالة")}
-                                        >
-                                            <PaperAirplaneIcon className="h-4 w-4 ml-1" />
-                                            {t("إرسال")}
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
+            return (
+                <tr
+                    key={customer.id}
+                    className={`transition-colors duration-200 ${
+                        idx % 2 === 0
+                            ? "bg-white dark:bg-gray-800"
+                            : "bg-gray-50 dark:bg-gray-700"
+                    } hover:bg-gray-100 dark:hover:bg-gray-600`}
+                >
+                    <td className="px-4 py-3 text-right text-gray-500 dark:text-gray-400">
+                        {idx + 1}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-200">
+                        {customer.name}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {customer.role}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {customer.email}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {companyPhone}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {customer.system_type}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {customer.country}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {companyName}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {companyAddress}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {companyLogo && (
+                            <img
+                                src={`${app_url}/storage/${companyLogo}`}
+                                alt={t("logo")}
+                                className="h-8 w-10 object-cover object-center rounded"
+                            />
+                        )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                        {companySubscription}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">
+                        <div className="flex justify-center space-x-2">
+                            <button
+                                onClick={() => handleEditCustomer(customer)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
+                                title={t("تعديل")}
+                            >
+                                <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                                onClick={() => handleDeleteCustomer(customer)}
+                                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
+                                title={t("حذف")}
+                            >
+                                <TrashIcon className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                        <button
+                            onClick={() => handleOpenModelEditSubsctiption(customer)}
+                            className="inline-flex items-center px-3 py-1.5 bg-primary dark:bg-primary-dark text-white rounded-lg hover:bg-primary-dark transition-colors text-sm"
+                            title={t("تعديل الباقة ")}
+                        >
+                            <PaperAirplaneIcon className="h-4 w-4 ml-1" />
+                            {t("تعديل الباقة")}
+                        </button>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                        <button
+                            onClick={() => handleSendMessageToCustomer(customer)}
+                            className="inline-flex items-center px-3 py-1.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors text-sm"
+                            title={t("إرسال رسالة")}
+                        >
+                            <PaperAirplaneIcon className="h-4 w-4 ml-1" />
+                            {t("إرسال")}
+                        </button>
+                    </td>
+                </tr>
+            );
+        })}
+</tbody>
                     </table>
 
                     {currentCustomers.length === 0 && (
@@ -509,55 +510,75 @@ export default function CustomersRetailFlow() {
                         </div>
                     </div>
                 )}
-{editSubscription && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    {t("تعديل باقة العميل")}
-                </h3>
-                <button
-                    onClick={closeModal}
-                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
-                >
-                    <XMarkIcon className="h-6 w-6" />
-                </button>
-            </div>
+                {editSubscription && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                    {t("تعديل باقة الشركة المنتمى لها العميل")}
+                                </h3>
+                                <button
+                                    onClick={closeModal}
+                                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
+                            </div>
 
-            <div className="p-6">
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("اختر نوع الباقة")}
-                    </label>
-                    <select
-                        value={editSubscriptionValue}
-                        onChange={(e) => setEditSubscriptionValue( e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                        <option value="basic">{t("Basic (مبتدئ)")}</option>
-                        <option value="premium">{t("Premium (مميز)")}</option>
-                        <option value="vip">{t("VIP (كبار العملاء)")}</option>
-                    </select>
-                </div>
+                            <div className="p-6">
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {t("اختر نوع الباقة")}
+                                    </label>
+                                    <select
+                                        value={editSubscriptionValue.subscription}
+                                        onChange={(e) =>
+                                            setEditSubscriptionValue( {...editSubscriptionValue, subscription: e.target.value })
+                                        }
+                                        className="w-full px-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    >
+                                        <option value="basic">
+                                            {t("Basic (مبتدئ)")}
+                                        </option>
+                                        <option value="premium">
+                                            {t("Premium (مميز)")}
+                                        </option>
+                                        <option value="vip">
+                                            {t("VIP (كبار العملاء)")}
+                                        </option>
+                                    </select>
+                                </div>
+                        <div className="py-3">
+                            <label className="block text-sm font-medium  text-gray-700 dark:text-gray-300 mb-2">{t(" نوع الباقة")}</label>
+                            <select
+                                value={editSubscriptionValue.plan}
+                                onChange={(e) => setCouponFormData({ ...editSubscriptionValue, plan: e.target.value })}
+                                className={`w-full px-8 py-2 border rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent `}
+                            >
+                                <option  value={"monthly"}>{"monthly"}</option>
+                                <option  value={"yearly"}>{"yearly"}</option>
 
-                <div className="flex gap-3">
-                    <button
-                        onClick={closeModal}
-                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                    >
-                        {t("إلغاء")}
-                    </button>
-                    <button
-                        onClick={handleEditeSubscription}
-                        className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-                    >
-                        {t("تأكيد التعديل")}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-)}
+                            </select>
+
+                        </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={closeModal}
+                                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                                    >
+                                        {t("إلغاء")}
+                                    </button>
+                                    <button
+                                        onClick={handleEditeSubscription}
+                                        className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                                    >
+                                        {t("تأكيد التعديل")}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Send Message Modal */}
                 {sendModal && (
                     <SendMessageModal

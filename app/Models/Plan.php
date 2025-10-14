@@ -9,7 +9,9 @@ class Plan extends Model
     protected $fillable = [
         'name',
         'price_in_egp',
-        'price_outside_egp'
+        'price_outside_egp',
+        'price_year_in_egp',
+        'price_year_outside_egp',
     ];
     public function coupons()
     {

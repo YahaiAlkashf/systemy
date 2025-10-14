@@ -16,7 +16,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules;
-
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 class AdminUserController extends Controller
 {
 
@@ -239,14 +243,20 @@ class AdminUserController extends Controller
         $company = Company::findOrFail($id);
 
         $request->validate([
-            'subscription' => 'required'
-        ], [
-            'subscription.required' => 'حقل نوع الاشتراك مطلوب'
+            'subscription' => 'nullable',
+
         ]);
-        $company->update([
-            'subscription' => $request->subscription,
-            'subscription_expires_at' => now()->addMonth()
-        ]);
+        if ($request->plan === "monthly") {
+            $company->update([
+                'subscription' => $request->subscription,
+                'subscription_expires_at' => now()->addMonth()
+            ]);
+        } else {
+            $company->update([
+                'subscription' => $request->subscription,
+                'subscription_expires_at' => now()->addYear(),
+            ]);
+        }
     }
 
     public function exportUsersPDF()
@@ -309,62 +319,116 @@ class AdminUserController extends Controller
         exit;
     }
 
-    public function exportUsersExcel()
-    {
-        $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
+public function exportUsersExcel()
+{
+    $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
 
-        $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
+    $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
 
-        $spreadsheet = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-            <Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:x=\"urn:schemas-microsoft-com:office:excel\"
-                    xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"
-                    xmlns:html=\"http://www.w3.org/TR/REC-html40\">
-            <Worksheet ss:Name=\"المستخدمين\">
-            <Table>
-            <Row>
-                <Cell><Data ss:Type=\"String\">#</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الاسم</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الرتبة</Data></Cell>
-                <Cell><Data ss:Type=\"String\">البريد الإلكتروني</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الهاتف</Data></Cell>
-                <Cell><Data ss:Type=\"String\">نوع النظام</Data></Cell>
-                <Cell><Data ss:Type=\"String\">الدولة</Data></Cell>
-                <Cell><Data ss:Type=\"String\">اسم الشركة</Data></Cell>
-                <Cell><Data ss:Type=\"String\">العنوان</Data></Cell>
-                <Cell><Data ss:Type=\"String\">نوع الباقة</Data></Cell>
-                <Cell><Data ss:Type=\"String\">تاريخ الإنشاء</Data></Cell>
-            </Row>";
+    // إنشاء مستند جديد
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('المستخدمين');
+    $sheet->setRightToLeft(true);
 
-        foreach ($users as $index => $user) {
-            $spreadsheet .= "
-            <Row>
-                <Cell><Data ss:Type=\"Number\">" . ($index + 1) . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->name}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->role}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->email}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">" . ($user->company->phone ?? 'غير محدد') . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->system_type}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->country}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">" . ($user->company->company_name ?? 'غير محدد') . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">" . ($user->company->address ?? 'غير محدد') . "</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->company->subscription}</Data></Cell>
-                <Cell><Data ss:Type=\"String\">{$user->created_at->format('Y-m-d')}</Data></Cell>
-            </Row>";
-        }
+    // تعريف الرؤوس
+    $headers = [
+        '#',
+        'الاسم',
+        'الرتبة',
+        'البريد الإلكتروني',
+        'الهاتف',
+        'نوع النظام',
+        'الدولة',
+        'اسم الشركة',
+        'العنوان',
+        'نوع الباقة',
+        'تاريخ الإنشاء'
+    ];
 
-        $spreadsheet .= "
-            </Table>
-            </Worksheet>
-            </Workbook>";
-
-        $headers = [
-            'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return response($spreadsheet, 200, $headers);
+    // إضافة الرؤوس يدوياً بدلاً من fromArray
+    $col = 'A';
+    foreach ($headers as $header) {
+        $sheet->setCellValue($col . '1', $header);
+        $col++;
     }
+
+    // تنسيق الرؤوس
+    $headerStyle = [
+        'font' => [
+            'bold' => true,
+            'size' => 12,
+        ],
+        'fill' => [
+            'fillType' => Fill::FILL_SOLID,
+            'color' => ['rgb' => 'FFFF00']
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+            ]
+        ]
+    ];
+
+    // تحديد العمود الأخير بناءً على عدد الرؤوس
+    $lastHeaderColumn = chr(64 + count($headers));
+    $sheet->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
+
+    // إضافة البيانات
+    $row = 2;
+    foreach ($users as $index => $user) {
+        $sheet->setCellValue('A' . $row, $index + 1);
+        $sheet->setCellValue('B' . $row, $user->name ?? '');
+        $sheet->setCellValue('C' . $row, $user->role ?? '');
+        $sheet->setCellValue('D' . $row, $user->email ?? '');
+        $sheet->setCellValue('E' . $row, $user->company->phone ?? 'غير محدد');
+        $sheet->setCellValue('F' . $row, $user->system_type ?? '');
+        $sheet->setCellValue('G' . $row, $user->country ?? '');
+        $sheet->setCellValue('H' . $row, $user->company->company_name ?? 'غير محدد');
+        $sheet->setCellValue('I' . $row, $user->company->address ?? 'غير محدد');
+        $sheet->setCellValue('J' . $row, $user->company->subscription ?? 'غير محدد');
+        $sheet->setCellValue('K' . $row, $user->created_at ? $user->created_at->format('Y-m-d') : '');
+
+        $row++;
+    }
+
+    // تنسيق بيانات الجدول
+    $dataStyle = [
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical' => Alignment::VERTICAL_CENTER,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+            ]
+        ]
+    ];
+
+    if ($users->count() > 0) {
+        $sheet->getStyle('A2:' . $lastHeaderColumn . ($row - 1))->applyFromArray($dataStyle);
+    }
+
+    // ضبط عرض الأعمدة تلقائياً
+    foreach (range('A', $lastHeaderColumn) as $column) {
+        $sheet->getColumnDimension($column)->setAutoSize(true);
+    }
+
+    // إنشاء الكاتب
+    $writer = new Xlsx($spreadsheet);
+
+    // إرجاع الملف مع الـ headers الصحيحة
+    return response()->streamDownload(function () use ($writer) {
+        $writer->save('php://output');
+    }, $fileName, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+    ]);
+}
 
 
 
@@ -376,7 +440,7 @@ class AdminUserController extends Controller
         $user = Auth::user();
         $user->company->update([
             'subscription' => 'basic',
-            'trial_used' => true,
+            // 'trial_used' => true,
             'subscription_expires_at' => now()->addDays(7)
         ]);
         $user->save();
@@ -389,6 +453,7 @@ class AdminUserController extends Controller
         $validator = Validator::make($request->all(), [
             'code'     => 'required|exists:coupons,code',
             'planName' => 'required|exists:plans,name',
+            'plan' => 'required'
         ], [
             'code.required' => 'كود الخصم مطلوب',
             'code.exists' => 'كود الخصم غير موجود',
@@ -404,7 +469,7 @@ class AdminUserController extends Controller
         }
 
         $user = Auth::user();
-        $coupon = Coupon::where('code', $request->code)
+        $coupon = Coupon::where('code', $request->code)->where('plan', $request->planName)
             ->with('plan')
             ->first();
 
@@ -416,22 +481,39 @@ class AdminUserController extends Controller
                 'errors' => ['code' => ['كود الخصم غير صالح لهذه الباقة']]
             ], 422);
         }
-
+        if ($request->plan === 'monthly') {
+            if ($coupon->price_in_egp === 0 || $coupon->price_outside_egp === 0) {
+                $company = Company::findOrFail($user->company_id);
+                $company->update([
+                    'subscription' => $request->planName,
+                    'subscription_expires_at' => now()->addMonth()
+                ]);
+                $user->save();
+                return response()->json([
+                    'success' => true,
+                    'free_subscription' => true,
+                    'redirect_url' => $this->getRedirectUrl($user->system_type),
+                    'message' => 'تم تفعيل الاشتراك المجاني بنجاح'
+                ]);
+            }
+        }else{
         if ($coupon->price_in_egp === 0 || $coupon->price_outside_egp === 0) {
-            $company = Company::findOrFail($user->company_id);
-            $company->update([
-                'subscription' => $request->planName,
-                'subscription_expires_at' => now()->addDays(7)
-            ]);
-            $user->save();
+                $company = Company::findOrFail($user->company_id);
+                $company->update([
+                    'subscription' => $request->planName,
+                    'subscription_expires_at' => now()->addYear()
+                ]);
+                $user->save();
 
-            return response()->json([
-                'success' => true,
-                'free_subscription' => true,
-                'redirect_url' => $this->getRedirectUrl($user->system_type),
-                'message' => 'تم تفعيل الاشتراك المجاني بنجاح'
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'free_subscription' => true,
+                    'redirect_url' => $this->getRedirectUrl($user->system_type),
+                    'message' => 'تم تفعيل الاشتراك المجاني بنجاح'
+                ]);
+            }
         }
+
 
         return response()->json([
             'success' => true,
@@ -472,7 +554,8 @@ class AdminUserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'plan' => 'required|exists:plans,name',
-            'coupon_code' => 'required|exists:coupons,code'
+            'coupon_code' => 'required|exists:coupons,code',
+            'type'=> 'required'
         ]);
 
         if ($validator->fails()) {
@@ -495,11 +578,20 @@ class AdminUserController extends Controller
             }
 
             $company = Company::findOrFail($user->company_id);
+            if($request->type === 'monthly'){
+
             $company->update([
                 'subscription' => $request->plan,
                 'subscription_expires_at' => now()->addMonth(),
                 'trial_used' => true
             ]);
+        }else{
+            $company->update([
+                'subscription' => $request->plan,
+                'subscription_expires_at' => now()->addYear(),
+                'trial_used' => true
+            ]);
+        }
 
             $user->save();
 
@@ -509,7 +601,6 @@ class AdminUserController extends Controller
                 'subscription' => $request->plan,
                 'expires_at' => $company->subscription_expires_at
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
