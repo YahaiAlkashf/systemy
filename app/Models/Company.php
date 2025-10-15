@@ -16,6 +16,7 @@ use HasFactory;
         'subscription',
         'subscription_expires_at',
         'trial_used',
+        'plan'
     ];
 
     public function users()

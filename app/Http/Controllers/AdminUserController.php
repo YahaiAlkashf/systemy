@@ -249,12 +249,14 @@ class AdminUserController extends Controller
         if ($request->plan === "monthly") {
             $company->update([
                 'subscription' => $request->subscription,
-                'subscription_expires_at' => now()->addMonth()
+                'subscription_expires_at' => now()->addMonth(),
+                'plan' => $request->plan
             ]);
         } else {
             $company->update([
                 'subscription' => $request->subscription,
                 'subscription_expires_at' => now()->addYear(),
+                'plan' => $request->plan
             ]);
         }
     }
@@ -288,7 +290,8 @@ class AdminUserController extends Controller
                 <th>اسم الشركة</th>
                 <th>العنوان</th>
                 <th>نوع الباقة</th>
-                <th>تاريخ الإنشاء</th>
+                <th>الخطة</th>
+                <th>تاريخ الانتهاء</th>
                 </tr></thead>";
 
         $html .= '<tbody>';
@@ -305,7 +308,8 @@ class AdminUserController extends Controller
                     <td>' . ($user->company->company_name ?? 'غير محدد') . '</td>
                     <td>' . ($user->company->address ?? 'غير محدد') . '</td>
                     <td>' . $user->company->subscription . '</td>
-                    <td>' . $user->created_at->format('Y-m-d') . '</td>
+                    <td>' . $user->company->plan . '</td>
+                    <td>' . $user->company->subscription_expires_at . '</td>
                     </tr>';
         }
 
@@ -319,116 +323,117 @@ class AdminUserController extends Controller
         exit;
     }
 
-public function exportUsersExcel()
-{
-    $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
+    public function exportUsersExcel()
+    {
+        $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
 
-    $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
+        $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
 
-    // إنشاء مستند جديد
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('المستخدمين');
-    $sheet->setRightToLeft(true);
 
-    // تعريف الرؤوس
-    $headers = [
-        '#',
-        'الاسم',
-        'الرتبة',
-        'البريد الإلكتروني',
-        'الهاتف',
-        'نوع النظام',
-        'الدولة',
-        'اسم الشركة',
-        'العنوان',
-        'نوع الباقة',
-        'تاريخ الإنشاء'
-    ];
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('المستخدمين');
+        $sheet->setRightToLeft(true);
 
-    // إضافة الرؤوس يدوياً بدلاً من fromArray
-    $col = 'A';
-    foreach ($headers as $header) {
-        $sheet->setCellValue($col . '1', $header);
-        $col++;
-    }
 
-    // تنسيق الرؤوس
-    $headerStyle = [
-        'font' => [
-            'bold' => true,
-            'size' => 12,
-        ],
-        'fill' => [
-            'fillType' => Fill::FILL_SOLID,
-            'color' => ['rgb' => 'FFFF00']
-        ],
-        'alignment' => [
-            'horizontal' => Alignment::HORIZONTAL_CENTER,
-            'vertical' => Alignment::VERTICAL_CENTER,
-        ],
-        'borders' => [
-            'allBorders' => [
-                'borderStyle' => Border::BORDER_THIN,
+        $headers = [
+            '#',
+            'الاسم',
+            'الرتبة',
+            'البريد الإلكتروني',
+            'الهاتف',
+            'نوع النظام',
+            'الدولة',
+            'اسم الشركة',
+            'العنوان',
+            'نوع الباقة',
+            'الخطة',
+            'تاريخ الانتهاء',
+        ];
+
+
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . '1', $header);
+            $col++;
+        }
+
+
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 12,
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'color' => ['rgb' => 'FFFF00']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                ]
             ]
-        ]
-    ];
+        ];
 
-    // تحديد العمود الأخير بناءً على عدد الرؤوس
-    $lastHeaderColumn = chr(64 + count($headers));
-    $sheet->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
 
-    // إضافة البيانات
-    $row = 2;
-    foreach ($users as $index => $user) {
-        $sheet->setCellValue('A' . $row, $index + 1);
-        $sheet->setCellValue('B' . $row, $user->name ?? '');
-        $sheet->setCellValue('C' . $row, $user->role ?? '');
-        $sheet->setCellValue('D' . $row, $user->email ?? '');
-        $sheet->setCellValue('E' . $row, $user->company->phone ?? 'غير محدد');
-        $sheet->setCellValue('F' . $row, $user->system_type ?? '');
-        $sheet->setCellValue('G' . $row, $user->country ?? '');
-        $sheet->setCellValue('H' . $row, $user->company->company_name ?? 'غير محدد');
-        $sheet->setCellValue('I' . $row, $user->company->address ?? 'غير محدد');
-        $sheet->setCellValue('J' . $row, $user->company->subscription ?? 'غير محدد');
-        $sheet->setCellValue('K' . $row, $user->created_at ? $user->created_at->format('Y-m-d') : '');
+        $lastHeaderColumn = chr(64 + count($headers));
+        $sheet->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
 
-        $row++;
-    }
+        $row = 2;
+        foreach ($users as $index => $user) {
+            $sheet->setCellValue('A' . $row, $index + 1);
+            $sheet->setCellValue('B' . $row, $user->name ?? '');
+            $sheet->setCellValue('C' . $row, $user->role ?? '');
+            $sheet->setCellValue('D' . $row, $user->email ?? '');
+            $sheet->setCellValue('E' . $row, $user->company->phone ?? 'غير محدد');
+            $sheet->setCellValue('F' . $row, $user->system_type ?? '');
+            $sheet->setCellValue('G' . $row, $user->country ?? '');
+            $sheet->setCellValue('H' . $row, $user->company->company_name ?? 'غير محدد');
+            $sheet->setCellValue('I' . $row, $user->company->address ?? 'غير محدد');
+            $sheet->setCellValue('J' . $row, $user->company->subscription ?? 'غير محدد');
+            $sheet->setCellValue('K' . $row, $user->company->plan ?? 'غير محدد');
+            $sheet->setCellValue('L' . $row, $user->company?->subscription_expires_at ? $user->company->subscription_expires_at : '');
 
-    // تنسيق بيانات الجدول
-    $dataStyle = [
-        'alignment' => [
-            'horizontal' => Alignment::HORIZONTAL_CENTER,
-            'vertical' => Alignment::VERTICAL_CENTER,
-        ],
-        'borders' => [
-            'allBorders' => [
-                'borderStyle' => Border::BORDER_THIN,
+            $row++;
+        }
+
+
+        $dataStyle = [
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                ]
             ]
-        ]
-    ];
+        ];
 
-    if ($users->count() > 0) {
-        $sheet->getStyle('A2:' . $lastHeaderColumn . ($row - 1))->applyFromArray($dataStyle);
+        if ($users->count() > 0) {
+            $sheet->getStyle('A2:' . $lastHeaderColumn . ($row - 1))->applyFromArray($dataStyle);
+        }
+
+
+        foreach (range('A', $lastHeaderColumn) as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+
+        $writer = new Xlsx($spreadsheet);
+
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
     }
-
-    // ضبط عرض الأعمدة تلقائياً
-    foreach (range('A', $lastHeaderColumn) as $column) {
-        $sheet->getColumnDimension($column)->setAutoSize(true);
-    }
-
-    // إنشاء الكاتب
-    $writer = new Xlsx($spreadsheet);
-
-    // إرجاع الملف مع الـ headers الصحيحة
-    return response()->streamDownload(function () use ($writer) {
-        $writer->save('php://output');
-    }, $fileName, [
-        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-    ]);
-}
 
 
 
@@ -486,7 +491,9 @@ public function exportUsersExcel()
                 $company = Company::findOrFail($user->company_id);
                 $company->update([
                     'subscription' => $request->planName,
-                    'subscription_expires_at' => now()->addMonth()
+                    'subscription_expires_at' => now()->addMonth(),
+                    'plan' => $request->plan
+
                 ]);
                 $user->save();
                 return response()->json([
@@ -501,7 +508,8 @@ public function exportUsersExcel()
                 $company = Company::findOrFail($user->company_id);
                 $company->update([
                     'subscription' => $request->planName,
-                    'subscription_expires_at' => now()->addYear()
+                    'subscription_expires_at' => now()->addYear(),
+                    'plan' => $request->plan
                 ]);
                 $user->save();
 
@@ -583,13 +591,15 @@ public function exportUsersExcel()
             $company->update([
                 'subscription' => $request->plan,
                 'subscription_expires_at' => now()->addMonth(),
-                'trial_used' => true
+                'trial_used' => true,
+                'plan' => $request->plan
             ]);
         }else{
             $company->update([
                 'subscription' => $request->plan,
                 'subscription_expires_at' => now()->addYear(),
-                'trial_used' => true
+                'trial_used' => true,
+                'plan' => $request->plan
             ]);
         }
 

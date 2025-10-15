@@ -168,7 +168,12 @@ export default function CustomersRetailFlow() {
 
     const handleOpenModelEditSubsctiption = (customer) => {
         setSelectedCustomer(customer);
-        setEditSubscriptionValue({...editSubscriptionValue, subscription: customer.company.subscription});
+        setEditSubscriptionValue({
+        ...editSubscriptionValue,
+        subscription: customer.company.subscription,
+        plan: customer.company.plan
+        });
+
         setEditSubscription(true);
     };
 
@@ -303,6 +308,12 @@ export default function CustomersRetailFlow() {
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     {t("نوع الباقة المشترك فيها")}
                                 </th>
+                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                    {t("تاريخ الانتهاء")}
+                                </th>
+                                <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                    {t("الخطة")}
+                                </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     {t("الإجراءات")}
                                 </th>
@@ -363,6 +374,12 @@ export default function CustomersRetailFlow() {
                                     </td>
                                     <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
                                         {customer.company.subscription}
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                                        {customer.company.subscription_expires_at}
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-300">
+                                        {customer.company.plan}
                                     </td>
                                     <td className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">
                                         <div className="flex justify-center space-x-2">
@@ -559,7 +576,7 @@ export default function CustomersRetailFlow() {
                             <label className="block text-sm font-medium  text-gray-700 dark:text-gray-300 mb-2">{t(" نوع الباقة")}</label>
                             <select
                                 value={editSubscriptionValue.plan}
-                                onChange={(e) => setCouponFormData({ ...editSubscriptionValue, plan: e.target.value })}
+                                onChange={(e) => setEditSubscriptionValue({ ...editSubscriptionValue, plan: e.target.value })}
                                 className={`w-full px-8 py-2 border rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent `}
                             >
                                 <option  value={"monthly"}>{"monthly"}</option>

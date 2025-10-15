@@ -427,140 +427,140 @@ public function update(Request $request, $id)
         exit;
     }
 
-public function exportExcel()
-{
-    $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
+    public function exportExcel()
+    {
+        $users = User::with('company')->where('role', 'superadmin')->where('system_type', '!=', 'manager')->get();
 
-    $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
+        $fileName = 'المستخدمين_' . date('Y-m-d') . '.xlsx';
 
-    // إنشاء مستند جديد
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('المستخدمين');
-    $sheet->setRightToLeft(true);
+        // إنشاء مستند جديد
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('المستخدمين');
+        $sheet->setRightToLeft(true);
 
-    // تعريف الرؤوس
-    $headers = [
-        '#',
-        'الاسم',
-        'الرتبة',
-        'البريد الإلكتروني',
-        'الهاتف',
-        'نوع النظام',
-        'الدولة',
-        'اسم الشركة',
-        'العنوان',
-        'نوع الباقة',
-        'تاريخ الإنشاء'
-    ];
+        // تعريف الرؤوس
+        $headers = [
+            '#',
+            'الاسم',
+            'الرتبة',
+            'البريد الإلكتروني',
+            'الهاتف',
+            'نوع النظام',
+            'الدولة',
+            'اسم الشركة',
+            'العنوان',
+            'نوع الباقة',
+            'تاريخ الإنشاء'
+        ];
 
-    // إضافة الرؤوس
-    $sheet->fromArray($headers, null, 'A1');
+        // إضافة الرؤوس
+        $sheet->fromArray($headers, null, 'A1');
 
-    // تنسيق الرؤوس
-    $headerStyle = [
-        'font' => [
-            'bold' => true,
-            'size' => 12,
-            'color' => ['rgb' => '000000']
-        ],
-        'fill' => [
-            'fillType' => Fill::FILL_SOLID,
-            'color' => ['rgb' => 'FFFF00']
-        ],
-        'alignment' => [
-            'horizontal' => Alignment::HORIZONTAL_CENTER,
-            'vertical' => Alignment::VERTICAL_CENTER,
-        ],
-        'borders' => [
-            'allBorders' => [
-                'borderStyle' => Border::BORDER_THIN,
+        // تنسيق الرؤوس
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 12,
                 'color' => ['rgb' => '000000']
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'color' => ['rgb' => 'FFFF00']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
             ]
-        ]
-    ];
+        ];
 
-    // تحديد العمود الأخير بناءً على عدد الرؤوس
-    $lastHeaderColumn = chr(64 + count($headers));
-    $sheet->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
+        // تحديد العمود الأخير بناءً على عدد الرؤوس
+        $lastHeaderColumn = chr(64 + count($headers));
+        $sheet->getStyle('A1:' . $lastHeaderColumn . '1')->applyFromArray($headerStyle);
 
-    // إضافة البيانات
-    $row = 2;
-    foreach ($users as $index => $user) {
-        $col = 'A';
+        // إضافة البيانات
+        $row = 2;
+        foreach ($users as $index => $user) {
+            $col = 'A';
 
-        // #
-        $sheet->setCellValue($col++ . $row, $index + 1);
+            // #
+            $sheet->setCellValue($col++ . $row, $index + 1);
 
-        // الاسم
-        $sheet->setCellValue($col++ . $row, $user->name);
+            // الاسم
+            $sheet->setCellValue($col++ . $row, $user->name);
 
-        // الرتبة
-        $sheet->setCellValue($col++ . $row, $user->role);
+            // الرتبة
+            $sheet->setCellValue($col++ . $row, $user->role);
 
-        // البريد الإلكتروني
-        $sheet->setCellValue($col++ . $row, $user->email);
+            // البريد الإلكتروني
+            $sheet->setCellValue($col++ . $row, $user->email);
 
-        // الهاتف
-        $sheet->setCellValue($col++ . $row, $user->company->phone ?? 'غير محدد');
+            // الهاتف
+            $sheet->setCellValue($col++ . $row, $user->company->phone ?? 'غير محدد');
 
-        // نوع النظام
-        $sheet->setCellValue($col++ . $row, $user->system_type);
+            // نوع النظام
+            $sheet->setCellValue($col++ . $row, $user->system_type);
 
-        // الدولة
-        $sheet->setCellValue($col++ . $row, $user->country);
+            // الدولة
+            $sheet->setCellValue($col++ . $row, $user->country);
 
-        // اسم الشركة
-        $sheet->setCellValue($col++ . $row, $user->company->company_name ?? 'غير محدد');
+            // اسم الشركة
+            $sheet->setCellValue($col++ . $row, $user->company->company_name ?? 'غير محدد');
 
-        // العنوان
-        $sheet->setCellValue($col++ . $row, $user->company->address ?? 'غير محدد');
+            // العنوان
+            $sheet->setCellValue($col++ . $row, $user->company->address ?? 'غير محدد');
 
-        // نوع الباقة
-        $sheet->setCellValue($col++ . $row, $user->company->subscription ?? 'غير محدد');
+            // نوع الباقة
+            $sheet->setCellValue($col++ . $row, $user->company->subscription ?? 'غير محدد');
 
-        // تاريخ الإنشاء
-        $sheet->setCellValue($col . $row, $user->created_at->format('Y-m-d'));
+            // تاريخ الإنشاء
+            $sheet->setCellValue($col . $row, $user->created_at->format('Y-m-d'));
 
-        $row++;
-    }
+            $row++;
+        }
 
-    // تنسيق بيانات الجدول
-    $dataStyle = [
-        'alignment' => [
-            'horizontal' => Alignment::HORIZONTAL_CENTER,
-            'vertical' => Alignment::VERTICAL_CENTER,
-        ],
-        'borders' => [
-            'allBorders' => [
-                'borderStyle' => Border::BORDER_THIN,
-                'color' => ['rgb' => 'DDDDDD']
+        // تنسيق بيانات الجدول
+        $dataStyle = [
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'DDDDDD']
+                ]
             ]
-        ]
-    ];
+        ];
 
-    if ($users->count() > 0) {
-        $sheet->getStyle('A2:' . $lastHeaderColumn . ($row - 1))->applyFromArray($dataStyle);
+        if ($users->count() > 0) {
+            $sheet->getStyle('A2:' . $lastHeaderColumn . ($row - 1))->applyFromArray($dataStyle);
+        }
+
+        // ضبط عرض الأعمدة تلقائياً
+        foreach (range('A', $lastHeaderColumn) as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        // إنشاء الكاتب وإرجاع الملف
+        $writer = new Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_clean();
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
-
-    // ضبط عرض الأعمدة تلقائياً
-    foreach (range('A', $lastHeaderColumn) as $column) {
-        $sheet->getColumnDimension($column)->setAutoSize(true);
-    }
-
-    // إنشاء الكاتب وإرجاع الملف
-    $writer = new Xlsx($spreadsheet);
-
-    ob_start();
-    $writer->save('php://output');
-    $content = ob_get_clean();
-
-    return response($content, 200, [
-        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        'Cache-Control' => 'max-age=0',
-    ]);
-}
 
 
 }
