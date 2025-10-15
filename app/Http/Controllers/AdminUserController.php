@@ -458,7 +458,7 @@ class AdminUserController extends Controller
         $validator = Validator::make($request->all(), [
             'code'     => 'required|exists:coupons,code',
             'planName' => 'required|exists:plans,name',
-            'plan' => 'required'
+            'type' => 'required'
         ], [
             'code.required' => 'كود الخصم مطلوب',
             'code.exists' => 'كود الخصم غير موجود',
@@ -474,7 +474,7 @@ class AdminUserController extends Controller
         }
 
         $user = Auth::user();
-        $coupon = Coupon::where('code', $request->code)->where('plan', $request->planName)
+        $coupon = Coupon::where('code', $request->code)->where('plan', $request->type)
             ->with('plan')
             ->first();
 
@@ -486,13 +486,13 @@ class AdminUserController extends Controller
                 'errors' => ['code' => ['كود الخصم غير صالح لهذه الباقة']]
             ], 422);
         }
-        if ($request->plan === 'monthly') {
+        if ($request->type === 'monthly') {
             if ($coupon->price_in_egp === 0 || $coupon->price_outside_egp === 0) {
                 $company = Company::findOrFail($user->company_id);
                 $company->update([
                     'subscription' => $request->planName,
                     'subscription_expires_at' => now()->addMonth(),
-                    'plan' => $request->plan
+                    'plan' => $request->type
 
                 ]);
                 $user->save();
@@ -509,7 +509,7 @@ class AdminUserController extends Controller
                 $company->update([
                     'subscription' => $request->planName,
                     'subscription_expires_at' => now()->addYear(),
-                    'plan' => $request->plan
+                    'plan' => $request->type
                 ]);
                 $user->save();
 
@@ -592,14 +592,14 @@ class AdminUserController extends Controller
                 'subscription' => $request->plan,
                 'subscription_expires_at' => now()->addMonth(),
                 'trial_used' => true,
-                'plan' => $request->plan
+                'plan' => $request->type
             ]);
         }else{
             $company->update([
                 'subscription' => $request->plan,
                 'subscription_expires_at' => now()->addYear(),
                 'trial_used' => true,
-                'plan' => $request->plan
+                'plan' => $request->type
             ]);
         }
 

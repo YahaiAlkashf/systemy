@@ -65,7 +65,7 @@ const applyCoupon = async () => {
         const response = await axios.post(`${app_url}/subscription/coupons`, {
             code: couponCode,
             planName: selectedPlan?.name,
-            plan:type
+            type:type
         });
 
         if (response.data && response.data.success) {

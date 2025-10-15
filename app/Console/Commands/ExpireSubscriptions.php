@@ -28,7 +28,7 @@ class ExpireSubscriptions extends Command
                 $company->update([
                     'subscription' => null,
                     'subscription_expires_at' => null,
-                    'trial_used' => true,
+                    'trial_used' => 1,
                     'subscription_cancelled_at' => now()
                 ]);
                 $expiredCount++;
