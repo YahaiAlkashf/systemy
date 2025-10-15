@@ -37,13 +37,13 @@ export default function Index() {
             const allCustomers2=allCustomers.filter((C) => C.role==='superadmin')
             setCustomers(allCustomers);
             const basic = allCustomers.filter(customer =>
-                customer.subscription && customer.subscription.toLowerCase() === 'basic'
+                customer.company.subscription && customer.company.subscription.toLowerCase() === 'basic'
             );
             const premium = allCustomers.filter(customer =>
-                customer.subscription && customer.subscription.toLowerCase() === 'premium'
+                customer.company.subscription && customer.company.subscription.toLowerCase() === 'premium'
             );
             const vip = allCustomers.filter(customer =>
-                customer.subscription && customer.subscription.toLowerCase() === 'vip'
+                customer.company.subscription && customer.company.subscription.toLowerCase() === 'vip'
             );
 
             setBasicSubscriptions(basic);
