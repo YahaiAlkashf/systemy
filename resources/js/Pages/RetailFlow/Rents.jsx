@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 export default function RentsRetailFlow() {
     const { app_url, auth } = usePage().props;
-        const { t } = useTranslation();
+    const { t } = useTranslation();
     const [rents, setRents] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [search, setSearch] = useState("");
@@ -97,7 +97,7 @@ export default function RentsRetailFlow() {
         setDeleteModal(true);
     };
 
-    const openPrint = (rent) => {
+    const handlePrintInvoice = (rent) => {
         setSelectedRent(rent);
         setPrintModal(true);
     };
@@ -109,35 +109,6 @@ export default function RentsRetailFlow() {
         setPrintModal(false);
         setSelectedRent(null);
         setErrors({});
-    };
-
-    const handlePrintContract = () => {
-        const printContent = document.getElementById('contract-content');
-        const newWindow = window.open('', '_blank');
-
-        const isGym = auth.user.system_type === 'gym';
-        const contractTitle = isGym ? t("عقد اشتراك") : t("عقد إيجار");
-        const contractType = isGym ? t("اشتراك") : t("إيجار");
-
-        newWindow.document.write(`
-            <html dir="rtl">
-                <head>
-                    <title>${contractTitle} #${selectedRent.id}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
-                        .contract-header { text-align: center; margin-bottom: 30px; }
-                        .contract-body { line-height: 1.8; }
-                        .signature-section { margin-top: 50px; display: flex; justify-content: space-between; }
-                        @media print { body { margin: 0; } }
-                    </style>
-                </head>
-                <body>
-                    ${printContent.innerHTML}
-                </body>
-            </html>
-        `);
-        newWindow.document.close();
-        newWindow.print();
     };
 
     const handleSaveAdd = async () => {
@@ -292,6 +263,13 @@ export default function RentsRetailFlow() {
                                             <button onClick={() => openDelete(rent)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors" title={`${t("حذف")} ${contractText}`}>
                                                 <TrashIcon className="h-4 w-4" />
                                             </button>
+                                            <button
+                                                onClick={() => handlePrintInvoice(rent)}
+                                                className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900 rounded-lg transition-colors"
+                                                title={t("طباعة الفاتورة")}
+                                            >
+                                                <PrinterIcon className="h-4 w-4" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -362,130 +340,136 @@ export default function RentsRetailFlow() {
                     </div>
                 )}
 
-                {printModal && selectedRent && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-background-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-background-card">
-                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                    {isGym ? `${t("عقد الاشتراك")} #${selectedRent.id}` : `${t("عقد الإيجار")} #${selectedRent.id}`}
-                                </h3>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={handlePrintContract}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                                    >
-                                        <PrinterIcon className="h-4 w-4" />
-                                        {t("طباعة")}
-                                    </button>
-                                    <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 dark:text-gray-300">
-                                        <XMarkIcon className="h-6 w-6" />
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="p-8">
-                                <div id="contract-content" className="contract-content">
-                                    <div className="contract-header text-center mb-8">
-                                        <h1 className="text-3xl font-bold mb-4">{isGym ? t("عقد اشتراك") : t("عقد إيجار")}</h1>
-                                        <p className="text-lg text-gray-600">{t("رقم")} {isGym ? t("الاشتراك") : t("العقد")}: #{selectedRent.id}</p>
-                                        <p className="text-sm text-gray-500">{t("تاريخ العقد")}: {formatDate(new Date().toISOString())}</p>
-                                    </div>
+                {/* Print Modal */}
+{printModal && selectedRent && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 print:bg-white print:inset-0 print:opacity-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full print:shadow-none print:rounded-none print:max-w-none print:w-full">
 
-                                    <div className="contract-body space-y-6">
-                                        {!isGym && (
-                                            <div className="border-b pb-4">
-                                                <h3 className="text-xl font-bold mb-3">{t("بيانات المؤجر:")}</h3>
-                                                <p><strong>{t("الاسم")}:</strong> [اسم المؤجر]</p>
-                                                <p><strong>{t("العنوان")}:</strong> [عنوان المؤجر]</p>
-                                                <p><strong>{t("رقم الهوية")}:</strong> [رقم هوية المؤجر]</p>
-                                            </div>
-                                        )}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 print:hidden">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                    {isGym ? t("إيصال اشتراك") : t("إيصال إيجار")}
+                </h3>
+                <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 dark:text-gray-300">
+                    <XMarkIcon className="h-6 w-6" />
+                </button>
+            </div>
 
-                                        <div className="border-b pb-4">
-                                            <h3 className="text-xl font-bold mb-3">{isGym ? t("بيانات المشترك:") : t("بيانات المستأجر:")}</h3>
-                                            <p><strong>{t("الاسم")}:</strong> {selectedRent.customer?.name || t('غير محدد')}</p>
-                                            <p><strong>{t("العنوان")}:</strong> [عنوان {isGym ? t("المشترك") : t("المستأجر")}]</p>
-                                            <p><strong>{t("رقم الهوية")}:</strong> [رقم هوية {isGym ? t("المشترك") : t("المستأجر")}]</p>
-                                            <p><strong>{t("رقم الهاتف")}:</strong> [رقم هاتف {isGym ? t("المشترك") : t("المستأجر")}]</p>
-                                        </div>
+            <div className="p-6 print:p-8">
+                <div className="text-center mb-6">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        {isGym ? t("إيصال اشتراك") : t("إيصال إيجار")}
+                    </h1>
 
-                                        <div className="border-b pb-4">
-                                            <h3 className="text-xl font-bold mb-3">{t("تفاصيل")} {isGym ? t("الاشتراك") : t("العقد")}:</h3>
-                                            <p><strong>{t("تاريخ بداية")} {isGym ? t("الاشتراك") : t("العقد")}:</strong> {formatDate(selectedRent.start_date)}</p>
-                                            <p><strong>{t("تاريخ انتهاء")} {isGym ? t("الاشتراك") : t("العقد")}:</strong> {formatDate(selectedRent.end_date)}</p>
-                                            <p><strong>{isGym ? t("قيمة الاشتراك الشهري") : t("قيمة الإيجار الشهري")}:</strong> {Number(selectedRent.monthly_rent || 0).toFixed(2)} {t("جنيه")}</p>
-                                            <p><strong>{t("المبلغ المدفوع")}:</strong> {Number(selectedRent.paid_amount || 0).toFixed(2)} {t("جنيه")}</p>
-                                            <p><strong>{t("نوع الاشتراك")}:</strong>
-                                                {selectedRent.subscription_type === 'monthly' ? t("شهري") :
-                                                 selectedRent.subscription_type === 'yearly' ? t("سنوي") : t("غير محدد")}
-                                            </p>
-                                        </div>
+                    <p className="text-gray-600">{new Date().toLocaleDateString('ar-EG')}</p>
+                </div>
 
-                                        {!isGym && (
-                                            <div className="border-b pb-4">
-                                                <h3 className="text-xl font-bold mb-3">{t("وصف العقار:")}</h3>
-                                                <p>[{t("وصف تفصيلي للعقار المؤجر - عدد الغرف، المساحة، الموقع، إلخ")}]</p>
-                                            </div>
-                                        )}
-
-                                        <div className="border-b pb-4">
-                                            <h3 className="text-xl font-bold mb-3">{t("الشروط والأحكام:")}</h3>
-                                            <ul className="list-disc list-inside space-y-2">
-                                                {isGym ? (
-                                                    <>
-                                                        <li>{t("يلتزم المشترك بدفع قيمة الاشتراك في الموعد المحدد شهرياً")}</li>
-                                                        <li>{t("يلتزم المشترك باتباع قواعد وأنظمة النادي الرياضي")}</li>
-                                                        <li>{t("يحق للإدارة تعليق العضوية في حالة عدم الالتزام بالشروط")}</li>
-                                                        <li>{t("لا يحق للمشترك التنازل عن العضوية للآخرين إلا بموافقة خطية من الإدارة")}</li>
-                                                        <li>{t("يحق للإدارة تعديل الأسعار مع إشعار مسبق للمشتركين")}</li>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <li>{t("يلتزم المستأجر بدفع الإيجار في الموعد المحدد شهرياً")}</li>
-                                                        <li>{t("يلتزم المستأجر بالحفاظ على العقار وعدم إتلافه")}</li>
-                                                        <li>{t("لا يحق للمستأجر تأجير العقار من الباطن إلا بموافقة خطية من المؤجر")}</li>
-                                                        <li>{t("يحق للمؤجر فسخ العقد في حالة عدم الالتزام بالشروط")}</li>
-                                                        <li>{t("يتم تسليم العقار في نهاية العقد بنفس الحالة التي تم استلامه بها")}</li>
-                                                    </>
-                                                )}
-                                            </ul>
-                                        </div>
-
-                                        <div className="signature-section mt-12">
-                                            <div className="flex justify-between">
-                                                <div className="text-center">
-                                                    <div className="border-t border-gray-400 w-48 mx-auto mb-2"></div>
-                                                    <p><strong>{isGym ? t("توقيع مدير النادي") : t("توقيع المؤجر")}</strong></p>
-                                                    <p className="text-sm text-gray-600">{t("التاريخ")}: ___________</p>
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className="border-t border-gray-400 w-48 mx-auto mb-2"></div>
-                                                    <p><strong>{isGym ? t("توقيع المشترك") : t("توقيع المستأجر")}</strong></p>
-                                                    <p className="text-sm text-gray-600">{t("التاريخ")}: ___________</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-                                            <p className="text-sm text-gray-600 text-center">
-                                                {t("هذا")} {isGym ? t("الاشتراك") : t("العقد")} {t("صادر بتاريخ")} {formatDate(new Date().toISOString())}
-                                                {t("ويعتبر ساري المفعول من تاريخ التوقيع عليه من الطرفين")}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div className="space-y-4 mb-6">
+                    <div className="flex justify-between">
+                        <span className="font-semibold">{isGym ? t("المشترك") : t("المستأجر")}:</span>
+                        <span>{selectedRent.customer?.name || t('غير محدد')}</span>
                     </div>
-                )}
+                    <div className="flex justify-between">
+                        <span className="font-semibold">{isGym ? t("قيمة الاشتراك") : t("قيمة الإيجار")}:</span>
+                        <span>{Number(selectedRent.monthly_rent || 0).toFixed(2)} {t("ج.م")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="font-semibold">{t("المبلغ المدفوع")}:</span>
+                        <span>{Number(selectedRent.paid_amount || 0).toFixed(2)} {t("ج.م")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="font-semibold">{t("المبلغ المتبقي")}:</span>
+                        <span>{Number((selectedRent.monthly_rent || 0) - (selectedRent.paid_amount || 0)).toFixed(2)} {t("ج.م")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="font-semibold">{t("نوع الاشتراك")}:</span>
+                        <span>
+                            {selectedRent.subscription_type === 'monthly' ? t("شهري") :
+                             selectedRent.subscription_type === 'yearly' ? t("سنوي") : t("غير محدد")}
+                        </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="font-semibold">{t("الفترة من")}:</span>
+                        <span>{formatDate(selectedRent.start_date)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="font-semibold">{t("إلى")}:</span>
+                        <span>{formatDate(selectedRent.end_date)}</span>
+                    </div>
+                </div>
+
+                <div className="border-t pt-4 mt-6">
+                    <div className="flex justify-between font-bold text-lg">
+                        <span>{t("الإجمالي")}:</span>
+                        <span>{Number(selectedRent.monthly_rent || 0).toFixed(2)} {t("ج.م")}</span>
+                    </div>
+                </div>
+
+
+                <div className="mt-8 text-center print:hidden">
+                    <button
+                        onClick={() => window.print()}
+                        className="px-6 py-2 bg-primary text-white rounded-lg flex items-center justify-center mx-auto hover:bg-primary-dark transition-colors"
+                    >
+                        <PrinterIcon className="h-4 w-4 ml-2" />
+                        {t("طباعة")}
+                    </button>
+                </div>
+
+            
+                <div className="hidden print:block mt-12 pt-4 border-t border-gray-300 text-center">
+                    <div className="flex justify-center items-center gap-3 mb-2">
+                        <p className="text-gray-600">{t("شكراً لتعاملكم معنا")}</p>
+                        <p className="text-gray-600">{auth.user?.company?.company_name}</p>
+                    </div>
+                    <div className="flex justify-center items-center gap-3">
+                        {(auth.user.company.subscription === "basic" || auth.user.company.subscription === "premium") && (
+                            <img src={`${app_url}/favicon-v2.ico`} alt="logo" className="w-6 h-6 rounded-lg" />
+                        )}
+                        <p className="text-gray-500 text-xs">
+                            {(auth.user.company.subscription === "basic" || auth.user.company.subscription === "premium") && (
+                                t("سيستمى نظام متكامل لادارة الانشطة التجارية")
+                            )}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+)}
             </div>
         </AdminLayout>
     );
 }
 
-function RentModal({ title, customers, form, setForm, errors, onClose, onSave, isGym ,t}) {
+
+function RentModal({ title, customers, form, setForm, errors, onClose, onSave, isGym, t }) {
+    const [customerSearch, setCustomerSearch] = useState("");
+    const [showCustomerList, setShowCustomerList] = useState(false);
+
+    useEffect(() => {
+        if (form.customer_id) {
+            const customer = customers.find(c => c.id === form.customer_id);
+            if (customer) {
+                setCustomerSearch(customer.name);
+            }
+        } else {
+            setCustomerSearch("");
+        }
+    }, [form.customer_id, customers]);
+
+    const filteredCustomers = customers.filter(c =>
+        c.name.toLowerCase().includes(customerSearch.toLowerCase())
+    );
+
+    const handleCustomerSelect = (customer) => {
+        setForm({ ...form, customer_id: customer.id });
+        setCustomerSearch(customer.name);
+        setShowCustomerList(false);
+    };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-background-card rounded-xl shadow-2xl max-w-2xl w-full">
+            <div className="bg-white dark:bg-background-card rounded-xl shadow-2xl max-w-2xl w-full" onMouseLeave={() => setShowCustomerList(false)}>
                 <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">{title}</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300">
@@ -497,16 +481,38 @@ function RentModal({ title, customers, form, setForm, errors, onClose, onSave, i
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             {isGym ? t("العميل (المشترك)") : t("العميل (المستأجر)")}
                         </label>
-                        <select
-                            value={form.customer_id}
-                            onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        >
-                            <option value="">{isGym ? t("اختر العميل (المشترك)") : t("اختر العميل (المستأجر)")}</option>
-                            {customers.map((c) => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={customerSearch}
+                                onChange={(e) => {
+                                    setCustomerSearch(e.target.value);
+                                    setShowCustomerList(true);
+                                    if (form.customer_id) {
+                                        const currentCustomer = customers.find(c => c.id === form.customer_id);
+                                        if (currentCustomer && e.target.value !== currentCustomer.name) {
+                                            setForm({ ...form, customer_id: "" });
+                                        }
+                                    }
+                                }}
+                                onFocus={() => setShowCustomerList(true)}
+                                placeholder={isGym ? t("ابحث عن مشترك...") : t("ابحث عن مستأجر...")}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            />
+                            {showCustomerList && (
+                                <div className="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto">
+                                    {filteredCustomers.map((c) => (
+                                        <div
+                                            key={c.id}
+                                            onClick={() => handleCustomerSelect(c)}
+                                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                                        >
+                                            {c.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         {errors.customer_id && <p className="text-red-600 text-sm mt-1">{errors.customer_id}</p>}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

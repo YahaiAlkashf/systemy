@@ -726,7 +726,7 @@ export default function InvoicesRetailFlow() {
                         <div className="bg-white dark:bg-background-card rounded-xl shadow-2xl max-w-2xl w-full">
                             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                    {t("فاتورة")} #{selectedInvoice.id}
+                                    {t("فاتورة")}
                                 </h3>
                                 <button
                                     onClick={closeModal}
@@ -771,14 +771,7 @@ export default function InvoicesRetailFlow() {
                                                 : t("مدفوعة بالكامل")}
                                         </p>
                                     </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-700 dark:text-gray-300">
-                                            {t("رقم الفاتورة")}
-                                        </h4>
-                                        <p className="text-gray-600 dark:text-gray-400">
-                                            #{selectedInvoice.id}
-                                        </p>
-                                    </div>
+
                                 </div>
 
                                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-6">
@@ -818,7 +811,7 @@ export default function InvoicesRetailFlow() {
                                                         : auth.user
                                                               .system_type ===
                                                           "realEstate"
-                                                        ? t("الكمية")
+                                                        ? ""
                                                         : auth.user
                                                               .system_type ===
                                                           "delivery"
@@ -836,7 +829,9 @@ export default function InvoicesRetailFlow() {
                                                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     {t("اسم صاحب الطلب")}
                                                 </th>):(
-                                                        <></>
+                                               <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    {t("الفئة")}
+                                                </th>
                                                 )}
                                                 <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     {t("السعر الكلي")}
@@ -865,7 +860,7 @@ export default function InvoicesRetailFlow() {
                                                                 : auth.user
                                                                       .system_type ===
                                                                   "realEstate"
-                                                                ? item.quantity
+                                                                ? ""
                                                                 : auth.user
                                                                       .system_type ===
                                                                   "delivery"
@@ -899,7 +894,7 @@ export default function InvoicesRetailFlow() {
                                                     colSpan="3"
                                                     className="px-4 py-3 text-right font-semibold text-gray-800 dark:text-gray-200"
                                                 >
-                                                    {t("الإجمالي:")}
+                                                    {t("الإجمالي")}
                                                 </td>
                                                 <td className="px-4 py-3 text-right font-semibold text-primary dark:text-primary-dark">
                                                     {selectedInvoice.total}{" "}
@@ -911,7 +906,7 @@ export default function InvoicesRetailFlow() {
                                                     colSpan="3"
                                                     className="px-4 py-3 text-right font-semibold text-gray-800 dark:text-gray-200"
                                                 >
-                                                    {t("المدفوع:")}
+                                                    {t("المدفوع")}
                                                 </td>
                                                 <td className="px-4 py-3 text-right font-semibold text-blue-600 dark:text-blue-400">
                                                     {
@@ -925,7 +920,7 @@ export default function InvoicesRetailFlow() {
                                                     colSpan="3"
                                                     className="px-4 py-3 text-right font-semibold text-gray-800 dark:text-gray-200"
                                                 >
-                                                    {t("المتبقي:")}
+                                                    {t("المتبقي")}
                                                 </td>
                                                 <td className="px-4 py-3 text-right font-semibold text-red-600 dark:text-red-400">
                                                     {selectedInvoice.total -
@@ -967,9 +962,9 @@ export default function InvoicesRetailFlow() {
                                 </h1>
                                 <div className="flex justify-between mt-4">
                                     <div className="text-left">
-                                        <p className="text-gray-600">
+                                        {/* <p className="text-gray-600">
                                             {t("رقم الفاتورة:")} #{selectedInvoice.id}
-                                        </p>
+                                        </p> */}
                                         <p className="text-gray-600">
                                             {t("التاريخ:")}{" "}
                                             {formatDate(
@@ -1035,7 +1030,6 @@ export default function InvoicesRetailFlow() {
                                                 ? t("اسم الرحلة")
                                                 : t("اسم المنتج")}
                                         </th>
-                                        <th className="px-4 py-2 text-center border border-gray-300">
                                             {auth.user.system_type ===
                                             "services"
                                                 ? ""
@@ -1044,20 +1038,24 @@ export default function InvoicesRetailFlow() {
                                                 ? ""
                                                 : auth.user.system_type ===
                                                   "realEstate"
-                                                ? t("الكمية")
+                                                ? t("")
                                                 : auth.user.system_type ===
                                                   "delivery"
-                                                ? t("حالة الطلب")
+                                                ? <th className="px-4 py-2 text-center border border-gray-300">
+                                                    {t("حالة الطلب")}
+                                                </th>
                                                 : auth.user.system_type ===
                                                   "travels"
                                                 ? ""
-                                                : t("الكمية")}
-                                        </th>
+                                                : <th className="px-4 py-2 text-center border border-gray-300">{t("الكمية")}</th>}
+
                                      {auth.user.system_type==="delivery" ? (
                                         <th className="px-4 py-2 text-center border border-gray-300">
                                                     {t("اسم صاحب الطلب")}
                                                 </th>):(
-                                                        <></>
+                                                     <th className="px-4 py-2 text-center border border-gray-300">
+                                                        {t("الفئة")}
+                                                        </th>
                                                 )}
                                         <th className="px-4 py-2 text-right border border-gray-300">
                                             {t("السعر")}
@@ -1074,7 +1072,7 @@ export default function InvoicesRetailFlow() {
                                                 <td className="px-4 py-2 border border-gray-300 text-right">
                                                     {item.product?.name}
                                                 </td>
-                                                <td className="px-4 py-2 border border-gray-300 text-center">
+
                                                     {auth.user.system_type ===
                                                     "services"
                                                         ? ""
@@ -1085,21 +1083,21 @@ export default function InvoicesRetailFlow() {
                                                         : auth.user
                                                               .system_type ===
                                                           "realEstate"
-                                                        ? item.quantity
+                                                        ? ""
                                                         : auth.user
                                                               .system_type ===
                                                           "delivery"
-                                                        ? item.quantity
+                                                        ?<td className="px-4 py-2 border border-gray-300 text-center"> {item.quantity} </td>
                                                         : auth.user
                                                               .system_type ===
                                                           "travels"
                                                         ? ""
-                                                        : item.quantity}
-                                                </td>
+                                                        : <td className="px-4 py-2 border border-gray-300 text-center"> {item.quantity} </td>}
+
                                                 <td className="px-4 py-2 border border-gray-300 text-right">
                                                             {item.product.category}{" "}
 
-                                                        </td>
+                                                </td>
                                                 <td className="px-4 py-2 border border-gray-300 text-right">
                                                     {item.price} {currency}
                                                 </td>
@@ -1115,9 +1113,9 @@ export default function InvoicesRetailFlow() {
                                     <tr>
                                         <td
                                             colSpan="3"
-                                            className="px-4 py-2 border border-gray-300 text-right font-semibold"
+                                            className="px-4 py-2  border border-gray-300 text-right font-semibold"
                                         >
-                                            {t("الإجمالي:")}
+                                            {t("الإجمالي")}
                                         </td>
                                         <td className="px-4 py-2 border border-gray-300 text-right font-semibold">
                                             {selectedInvoice.total} {currency}
@@ -1128,7 +1126,7 @@ export default function InvoicesRetailFlow() {
                                             colSpan="3"
                                             className="px-4 py-2 border border-gray-300 text-right font-semibold"
                                         >
-                                            {t("المدفوع:")}
+                                            {t("المدفوع")}
                                         </td>
                                         <td className="px-4 py-2 border border-gray-300 text-right font-semibold">
                                             {selectedInvoice.paid_amount}{" "}
@@ -1140,7 +1138,7 @@ export default function InvoicesRetailFlow() {
                                             colSpan="3"
                                             className="px-4 py-2 border border-gray-300 text-right font-semibold"
                                         >
-                                            {t("المتبقي:")}
+                                           {t("المتبقي")}
                                         </td>
                                         <td className="px-4 py-2 border border-gray-300 text-right font-semibold">
                                             {selectedInvoice.total -
@@ -1152,9 +1150,14 @@ export default function InvoicesRetailFlow() {
                             </table>
 
                             <div className="text-center mt-12 pt-4 border-t border-gray-300">
+                                <div className="flex justify-center items-center gap-3">
                                 <p className="text-gray-600">
                                     {t("شكراً لتعاملكم معنا")}
                                 </p>
+                                <p className="text-gray-600">
+                                    {auth.user?.company?.company_name}
+                                </p>
+                                </div>
                                 <div className="flex justify-center items-center gap-3">
                                     {(auth.user.company.subscription === "basic" || auth.user.company.subscription === "premium")
                                     && (

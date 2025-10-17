@@ -49,7 +49,7 @@ public function store(Request $request)
             'total' => 'required|numeric|min:0',
         ];
 
-        if ($systemType === "realEstate" || $systemType === "retail" || $systemType === "delivery") {
+        if (  $systemType === "retail" || $systemType === "delivery") {
             $baseRules['quantities'] = 'array|required';
         }
 
@@ -231,7 +231,7 @@ public function update(Request $request, $id)
             ], 422);
         }
 
-        if (($systemType === "realEstate" || $systemType === "retail" || $systemType === "delivery") &&
+        if (( $systemType === "retail" || $systemType === "delivery") &&
             (count($request->products) !== count($request->quantities) ||
                 count($request->products) !== count($request->prices))
         ) {

@@ -93,7 +93,7 @@ public function store(Request $request)
             $rules['barcode'] = 'nullable|string|unique:product_retail_flows,barcode,NULL,id,company_id,' . Auth::user()->company_id;
         }
 
-        if (Auth::user()->system_type === "realEstate" || Auth::user()->system_type === "retail") {
+        if ( Auth::user()->system_type === "realEstate" || Auth::user()->system_type === "retail") {
             if (Auth::user()->system_type === "realEstate") {
                 $rules['price'] = 'required|string';
                 $rules['net_profit'] = 'required|string';
@@ -103,7 +103,7 @@ public function store(Request $request)
 
                 $customMessages['price.string'] = 'السعر يجب أن يكون نصاً';
                 $customMessages['net_profit.string'] = 'صافي الربح يجب أن يكون نصاً';
-                $customMessages['wholesale_price.string'] = 'سعر الجملة يجب أن يكون نصاً';
+                $customMessages['wholesale_price.string'] = 'سعر الشراء يجب أن يكون نصاً';
             } else {
                 $rules['quantity'] = 'required|integer';
             }
@@ -142,7 +142,7 @@ public function store(Request $request)
 
         if (Auth::user()->system_type !== "services" &&
             Auth::user()->system_type !== "education" &&
-            Auth::user()->system_type !== "travels") {
+            Auth::user()->system_type !== "travels"&&Auth::user()->system_type !== "realEstate") {
             $productData['quantity'] = $request->quantity;
         }
 

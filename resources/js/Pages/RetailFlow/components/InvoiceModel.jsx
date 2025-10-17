@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { usePage } from "@inertiajs/react";
-import {
-    XMarkIcon,
-    PlusIcon,
-    TrashIcon,
-} from "@heroicons/react/24/outline";
+import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { CurrencyContext } from "../../../Context/CurrencyContext ";
 import { useTranslation } from "react-i18next";
 export default function InvoiceModal({
@@ -44,10 +40,20 @@ export default function InvoiceModal({
 
                 if (auth.user.system_type === "delivery") {
                     productProfit = price - (product.additional_costs || 0);
-                } else if (["services", "education", "travels"].includes(auth.user.system_type)) {
-                    productProfit = price - (product.wholesale_price || 0) - (product.additional_costs || 0);
+                } else if (
+                    ["services", "education", "travels"].includes(
+                        auth.user.system_type
+                    )
+                ) {
+                    productProfit =
+                        price -
+                        (product.wholesale_price || 0) -
+                        (product.additional_costs || 0);
                 } else {
-                    productProfit = price - (product.wholesale_price || 0) - (product.additional_costs || 0);
+                    productProfit =
+                        price -
+                        (product.wholesale_price || 0) -
+                        (product.additional_costs || 0);
                 }
 
                 totalProfit += productProfit * quantity;
@@ -60,7 +66,7 @@ export default function InvoiceModal({
 
     const currentTotal = invoiceData.prices.reduce((total, price, index) => {
         const quantity = Number(invoiceData.quantities[index]) || 1;
-        return total + (Number(price) * quantity);
+        return total + Number(price) * quantity;
     }, 0);
 
     return (
@@ -299,15 +305,16 @@ export default function InvoiceModal({
                                         ? t(" الرحلة")
                                         : t(" المنتج")}
                                 </th>
-                                {["services", "education", "travels"].includes(
-                                    auth.user.system_type
-                                ) ? (
+                                {[
+                                    "services",
+                                    "education",
+                                    "travels",
+                                    "realEstate",
+                                ].includes(auth.user.system_type) ? (
                                     ""
                                 ) : (
                                     <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {auth.user.system_type === "realEstate"
-                                            ? t("الكمية")
-                                            : auth.user.system_type === "delivery"
+                                        {auth.user.system_type === "delivery"
                                             ? t("حالة الطلب")
                                             : t("الكمية")}
                                     </th>
@@ -341,19 +348,33 @@ export default function InvoiceModal({
                                             "services",
                                             "education",
                                             "travels",
+                                            "realEstate"
                                         ].includes(auth.user.system_type) ? (
                                             ""
                                         ) : (
                                             <td className="px-3 py-2 text-center">
-                                                {auth.user.system_type === "delivery" ? (
+                                                {auth.user.system_type ===
+                                                "delivery" ? (
                                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                                        {invoiceData.quantities[index] || t("قيد التوصيل")}
+                                                        {invoiceData.quantities[
+                                                            index
+                                                        ] || t("قيد التوصيل")}
                                                     </span>
                                                 ) : (
                                                     <input
                                                         type="number"
-                                                        value={invoiceData.quantities[index]}
-                                                        onChange={(e) => updateProductQuantity(index, e.target.value)}
+                                                        value={
+                                                            invoiceData
+                                                                .quantities[
+                                                                index
+                                                            ]
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateProductQuantity(
+                                                                index,
+                                                                e.target.value
+                                                            )
+                                                        }
                                                         className="w-20 px-2 py-1 border rounded dark:bg-gray-600 dark:text-gray-200 text-center"
                                                     />
                                                 )}
@@ -361,19 +382,40 @@ export default function InvoiceModal({
                                         )}
                                         <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
                                             <div className="flex items-center">
-                                                <div>{invoiceData.prices[index]}</div>
-                                                <div className="text-xs">{currency}</div>
+                                                <div>
+                                                    {invoiceData.prices[index]}
+                                                </div>
+                                                <div className="text-xs">
+                                                    {currency}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
                                             <div className="flex items-center">
-                                                <div>{(Number(invoiceData.quantities[index]) || 0) * (Number(invoiceData.prices[index]) || 0)}</div>
-                                                <div className="text-xs">{currency}</div>
+                                                <div>
+                                                    {(Number(
+                                                        invoiceData.quantities[
+                                                            index
+                                                        ]
+                                                    ) || 1) *
+                                                        (Number(
+                                                            invoiceData.prices[
+                                                                index
+                                                            ]
+                                                        ) || 0)}
+                                                </div>
+                                                <div className="text-xs">
+                                                    {currency}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-3 py-2 text-center">
                                             <button
-                                                onClick={() => removeProductFromInvoice(index)}
+                                                onClick={() =>
+                                                    removeProductFromInvoice(
+                                                        index
+                                                    )
+                                                }
                                                 className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
                                             >
                                                 <TrashIcon className="h-4 w-4" />
@@ -389,7 +431,7 @@ export default function InvoiceModal({
                                     colSpan="3"
                                     className="px-3 py-2 font-semibold text-right text-gray-800 dark:text-gray-200"
                                 >
-                                    {t("الإجمالي:")}
+                                    {t("الإجمالي")}
                                 </td>
                                 <td
                                     colSpan="2"
@@ -397,7 +439,9 @@ export default function InvoiceModal({
                                 >
                                     <div className="flex items-center">
                                         <div>{currentTotal}</div>
-                                        <div className="text-xs">{currency}</div>
+                                        <div className="text-xs">
+                                            {currency}
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -414,7 +458,9 @@ export default function InvoiceModal({
                                 >
                                     <div className="flex items-center">
                                         <div>{totalProfit}</div>
-                                        <div className="text-xs">{currency}</div>
+                                        <div className="text-xs">
+                                            {currency}
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
