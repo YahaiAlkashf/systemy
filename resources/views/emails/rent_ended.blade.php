@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تذكير دفع المستحقات</title>
+    <title>انتهاء عقد الإيجار</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -22,7 +22,7 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
         .header {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -85,74 +85,55 @@
             font-size: 16px;
             color: #555;
         }
-        .amount-highlight {
-            background: #ffeaa7;
-            border: 2px solid #fdcb6e;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            margin: 20px 0;
-            font-size: 18px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="icon">⏰</div>
-            <h1>تذكير بدفع المستحقات</h1>
+            
+            <h1>انتهاء عقد الإيجار</h1>
         </div>
 
         <div class="content">
-            <p>عزيزي/عزيزتي <strong>{{ $customer->name }}</strong>,</p>
+            <p>عزيزي/عزيزتي <strong>{{ $customerName }}</strong>,</p>
 
             <div class="highlight">
-                <h3>هذا تذكير بدفع المستحقات المستحقة عليك</h3>
-            </div>
-
-            <div class="amount-highlight">
-                ⚠️ المبلغ المتبقي للدفع:
-                <span style="color: #e17055; font-size: 20px;">
-                    {{ number_format($remainingAmount, 2) }} جنيه
-                </span>
+                <h3>نود إعلامكم بأن عقد الإيجار الخاص بكم قد انتهى</h3>
             </div>
 
             <div class="info-box">
-                <h3 style="text-align: center; margin-top: 0; color: #ff6b6b;">تفاصيل المستحقات</h3>
+                <h3 style="text-align: center; margin-top: 0; color: #667eea;">تفاصيل العقد المنتهي</h3>
+
+                <div class="info-item">
+                    <span class="label">📅 تاريخ الانتهاء:</span>
+                    <span class="value">{{ $endDate }}</span>
+                </div>
 
                 <div class="info-item">
                     <span class="label">💰 إجمالي المبلغ المستحق:</span>
-                    <span class="value">{{ number_format($rent->monthly_rent, 2) }} جنيه</span>
+                    <span class="value">{{ number_format($totalAmount, 2) }} جنيه</span>
                 </div>
 
                 <div class="info-item">
                     <span class="label">💳 المبلغ المدفوع:</span>
-                    <span class="value">{{ number_format($rent->paid_amount, 2) }} جنيه</span>
+                    <span class="value">{{ number_format($paidAmount, 2) }} جنيه</span>
                 </div>
 
-                <div class="info-item">
-                    <span class="label">📊 المبلغ المتبقي:</span>
-                    <span class="value" style="color: #e17055; font-weight: bold;">
-                        {{ number_format($remainingAmount, 2) }} جنيه
-                    </span>
-                </div>
-
-                <div class="info-item" style="background: #ffeaa7; border-radius: 5px; padding: 10px; margin-top: 15px;">
-                    <span class="label" style="color: #e17055;">📅 تاريخ الاستحقاق:</span>
-                    <span class="value" style="color: #e17055; font-size: 16px;">{{ $dueDate }}</span>
+                <div class="info-item" style="background: #e8f5e8; border-radius: 5px; padding: 10px;">
+                    <span class="label" style="color: #2e7d32;">📊 المبلغ المتبقي:</span>
+                    <span class="value" style="color: #2e7d32; font-size: 18px;">{{ number_format($remainingAmount, 2) }} جنيه</span>
                 </div>
             </div>
 
             <div class="thank-you">
-                <p>⏳ نرجو السداد قبل تاريخ الاستحقاق لتجنب أي تأخير</p>
-                <p>شكراً لتعاونكم</p>
+                <p>نشكركم على ثقتكم بنا ونتطلع لخدمتكم مرة أخرى في المستقبل.</p>
+                <p>لأي استفسارات، لا تتردد في التواصل معنا.</p>
             </div>
         </div>
 
         <div class="footer">
             <p>مع خالص التحيات،</p>
-            <p><strong>{{ $rent->customer->company->company_name ?? 'الإدارة' }}</strong></p>
+            <p><strong>{{ $companyName }}</strong></p>
             <p style="margin-top: 10px; font-size: 12px; color: #999;">
                 هذا البريد الإلكتروني تم إرساله تلقائياً، يرجى عدم الرد عليه
             </p>
