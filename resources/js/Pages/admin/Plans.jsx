@@ -348,7 +348,7 @@ export default function Plans() {
                                 <p className="text-gray-600 dark:text-gray-300">{t(" الشهرية داخل مصر :")} {basicPlan.price_in_egp}</p>
                                 <p className="text-gray-600 dark:text-gray-300">{t(" الشهرية خارج مصر:")} {basicPlan.price_outside_egp}</p>
                                 <p className="text-gray-600 dark:text-gray-300">{t(" السنوية داخل مصر :")} {basicPlan.price_year_in_egp}</p>
-                                <p className="text-gray-600 dark:text-gray-300">{t(" الشهرية خارج مصر:")} {basicPlan.price_year_outside_egp}</p>
+                                <p className="text-gray-600 dark:text-gray-300">{t(" السنوية خارج مصر:")} {basicPlan.price_year_outside_egp}</p>
                             </div>
                         )}
                         {premiumPlan && (
