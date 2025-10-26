@@ -46,7 +46,7 @@ class RentsRemindCommand extends Command
             }
 
             // التحقق من انتهاء مدة الإيجار
-            if ($rent->end_date && Carbon::parse($rent->end_date)->lessThanOrEqualTo($today)) {
+            if ($rent->end_date && Carbon::parse($rent->end_date)->isSameDay($today)) {
                 $this->info("🏁 Rent ended: {$rent->id}, end date: {$rent->end_date}");
 
                 // إرسال إيميل انتهاء الإيجار
