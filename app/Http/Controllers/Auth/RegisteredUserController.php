@@ -75,10 +75,11 @@ class RegisteredUserController extends Controller
         ]);
 
         }
-        $user->sendEmailVerificationNotification();
         event(new Registered($user));
 
         Auth::login($user);
+        // $user->sendEmailVerificationNotification();
+        $user->notifyNow(new \Illuminate\Auth\Notifications\VerifyEmail);
         return redirect()->route('verification.notice');
 
     }
