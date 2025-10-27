@@ -15,7 +15,9 @@ class Rent extends Model
         'monthly_rent',
         'paid_this_month',
         'paid_amount',
-        'subscription_type'
+        'subscription_type',
+        'next_rent_date',
+        'flag'
     ];
 
     protected $casts = [

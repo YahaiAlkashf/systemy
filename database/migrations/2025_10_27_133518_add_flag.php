@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('rents', function (Blueprint $table) {
-                $table->decimal('monthly_rent', 20, 2)->change();
-                 $table->decimal('paid_amount', 20, 2)->change();
-        });
+              $table->integer('flag')->default(1);
+         });
     }
 
     /**
@@ -22,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('rents', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };

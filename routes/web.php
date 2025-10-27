@@ -209,6 +209,7 @@ Route::get('/', function () {
                 Route::post('/rentsretailFlow', [RentsController::class, 'store']);
                 Route::post('/rentsretailFlow/{id}', [RentsController::class, 'update']);
                 Route::delete('/rentsretailFlow/{id}', [RentsController::class, 'destroy']);
+                Route::post('/rentsretailFlow/paid/{id}', [RentsController::class, 'paid']);
 
                 Route::middleware('SuperAdmin')->group(function () {
                     Route::get('/retailflow/users', [UserManagementController::class, 'index']);

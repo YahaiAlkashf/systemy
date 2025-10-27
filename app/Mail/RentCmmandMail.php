@@ -33,7 +33,7 @@ class RentCmmandMail extends Mailable
                     ->with([
                         'rent' => $this->rent,
                         'remainingAmount' => $this->remainingAmount,
-                        'dueDate' => $this->dueDate->format('Y-m-d'),
+                        'dueDate' => $this->rent->next_rent_date,
                         'customer' => $this->rent->customer
                     ]);
     }

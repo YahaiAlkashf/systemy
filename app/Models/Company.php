@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Company extends Model
 {
-use HasFactory;
+    use HasFactory;
     protected $fillable = [
         'company_name',
         'phone',
@@ -22,5 +22,9 @@ use HasFactory;
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+    public function superAdmins()
+    {
+        return $this->hasMany(User::class)->where('role', 'superadmin');
     }
 }

@@ -3,7 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Mail\RentCmmandMail;
-use App\Mail\RentEndedMail; // هتضيف هذا الـ Mail الجديد
+use App\Mail\RentEndedMail;
+use App\Mail\SuperAdminNotificationMail;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Rent;
@@ -15,239 +16,309 @@ use Illuminate\Support\Facades\Log;
 class RentsRemindCommand extends Command
 {
     protected $signature = 'rents:remind';
-    protected $description = 'Send daily email and WhatsApp reminders for rents 5 days before monthly due date until paid';
+    protected $description = 'Send daily email and WhatsApp reminders for rents 5 days before the next due date and notify on rent end date.';
 
     public function handle()
     {
-        Log::info('Starting rents reminder command');
-
+        Log::info('Rents Reminder Command: Starting execution.');
         $today = Carbon::today();
 
-        $rents = Rent::with(['customer' => function($query) {
-                $query->select('id', 'company_id', 'name', 'phone', 'email');
-            }, 'customer.company' => function($query) {
-                $query->select('id', 'company_name');
-            }])
-            ->whereColumn('paid_amount', '<', 'monthly_rent')
-            ->get(['id', 'customer_id', 'start_date', 'monthly_rent', 'paid_amount', 'end_date']); // أضيف end_date هنا
+        // أولاً: معالجة العقود التي انتهت اليوم
+        $this->processEndedRents($today);
 
-        Log::info('Total rents to process: ' . $rents->count());
+        // ثانياً: معالجة التذكيرات للعقود المستحقة قريباً
+        $this->processDueRents($today);
 
-        $emailCount = 0;
-        $whatsappCount = 0;
-        $endedEmailCount = 0;
-        $endedWhatsappCount = 0;
-
-        foreach ($rents as $rent) {
-            if (!$rent->customer) {
-                $this->warn("Skipping rent {$rent->id} - no customer");
-                Log::warning("Skipping rent {$rent->id} - no customer found");
-                continue;
-            }
-
-            // التحقق من انتهاء مدة الإيجار
-            if ($rent->end_date && Carbon::parse($rent->end_date)->isSameDay($today)) {
-                $this->info("🏁 Rent ended: {$rent->id}, end date: {$rent->end_date}");
-
-                // إرسال إيميل انتهاء الإيجار
-                if ($rent->customer->email) {
-                    try {
-                        Mail::to($rent->customer->email)
-                            ->send(new RentEndedMail($rent));
-                        $endedEmailCount++;
-                        $this->info("✓ Sent RENT ENDED email to: {$rent->customer->email}");
-                        Log::info("Sent rent ended email to {$rent->customer->email} for rent {$rent->id}");
-                    } catch (\Exception $e) {
-                        $this->error("✗ Failed to send RENT ENDED email to {$rent->customer->email}: " . $e->getMessage());
-                        Log::error("Failed to send rent ended email to {$rent->customer->email}: " . $e->getMessage());
-                    }
-                }
-
-                // إرسال واتساب انتهاء الإيجار
-                if ($rent->customer->phone) {
-                    try {
-                        $this->sendRentEndedWhatsApp($rent);
-                        $endedWhatsappCount++;
-                        $this->info("✓ Sent RENT ENDED WhatsApp to: {$rent->customer->phone}");
-                        Log::info("Sent rent ended WhatsApp to {$rent->customer->phone} for rent {$rent->id}");
-                    } catch (\Exception $e) {
-                        $this->error("✗ Failed to send RENT ENDED WhatsApp to {$rent->customer->phone}: " . $e->getMessage());
-                        Log::error("Failed to send rent ended WhatsApp to {$rent->customer->phone}: " . $e->getMessage());
-                    }
-                }
-
-                continue; // تخطي الإيجار المنتهي
-            }
-
-            $startDate = Carbon::parse($rent->start_date);
-            $currentDueDate = $this->calculateDueDate($startDate, $today);
-
-            $diff = $today->diffInDays($currentDueDate, false);
-
-            if ($diff <= 5 && $diff >= 0) {
-                $remainingAmount = $rent->monthly_rent - $rent->paid_amount;
-
-                $this->info("Processing rent {$rent->id}: due {$currentDueDate->format('Y-m-d')}, diff {$diff} days, remaining {$remainingAmount}");
-
-                if ($rent->customer->email) {
-                    try {
-                        Mail::to($rent->customer->email)
-                            ->send(new RentCmmandMail($rent, $remainingAmount, $currentDueDate));
-                        $emailCount++;
-                        $this->info("✓ Sent email to: {$rent->customer->email}");
-                        Log::info("Sent email to {$rent->customer->email} for rent {$rent->id}");
-                    } catch (\Exception $e) {
-                        $this->error("✗ Failed to send email to {$rent->customer->email}: " . $e->getMessage());
-                        Log::error("Failed to send email to {$rent->customer->email}: " . $e->getMessage());
-                    }
-                } else {
-                    $this->warn("No email for customer {$rent->customer->id}");
-                    Log::warning("No email address for customer {$rent->customer->id} - rent {$rent->id}");
-                }
-
-                if ($rent->customer->phone) {
-                    try {
-                        $this->sendWhatsAppReminder($rent, $remainingAmount, $currentDueDate);
-                        $whatsappCount++;
-                        $this->info("✓ Sent WhatsApp to: {$rent->customer->phone}");
-                        Log::info("Sent WhatsApp to {$rent->customer->phone} for rent {$rent->id}");
-                    } catch (\Exception $e) {
-                        $this->error("✗ Failed to send WhatsApp to {$rent->customer->phone}: " . $e->getMessage());
-                        Log::error("Failed to send WhatsApp to {$rent->customer->phone}: " . $e->getMessage());
-                    }
-                } else {
-                    $this->warn("No phone for customer {$rent->customer->id}");
-                    Log::warning("No phone number for customer {$rent->customer->id} - rent {$rent->id}");
-                }
-            } else {
-                $this->info("Skipping rent {$rent->id}: diff {$diff} days (not in 0-5 range)");
-                Log::debug("Skipping rent {$rent->id} - due in {$diff} days (not in reminder range)");
-            }
-        }
-
-        $this->info("Rents reminders sent - Emails: {$emailCount}, WhatsApp: {$whatsappCount}");
-        $this->info("Rent ended notifications - Emails: {$endedEmailCount}, WhatsApp: {$endedWhatsappCount}");
-        Log::info("Rents reminders completed - Emails: {$emailCount}, WhatsApp: {$whatsappCount} | Rent ended: {$endedEmailCount} emails, {$endedWhatsappCount} WhatsApp");
-
+        Log::info('Rents Reminder Command: Execution finished.');
         return 0;
     }
 
-    // دالة جديدة لرسائل واتساب انتهاء الإيجار
-    protected function sendRentEndedWhatsApp($rent)
+    /**
+     * جلب العقود التي انتهت اليوم، إرسال إشعارات، وتعطيلها
+     */
+    private function processEndedRents(Carbon $today)
     {
-        $companyId = $rent->customer->company_id;
+        $endedRents = Rent::with('customer.company.users')
+            ->where('flag', 1)
+            ->whereDate('end_date', $today)
+            ->get();
 
-        $whatsappSettings = CompanyWhatsappSetting::where('company_id', $companyId)
-            ->where('is_connected', true)
-            ->first();
-
-        if (!$whatsappSettings) {
-            Log::info("No WhatsApp settings for company {$companyId}, skipping rent ended WhatsApp for rent {$rent->id}");
+        if ($endedRents->isEmpty()) {
+            Log::info('No rents ended today.');
             return;
         }
 
-        $whatsappService = new WhatsAppService($companyId);
+        $this->info("Found " . $endedRents->count() . " rents that ended today.");
 
-        $cleanPhone = $this->cleanPhoneNumber($rent->customer->phone);
-        $message = $this->formatRentEndedWhatsAppMessage($rent);
+        foreach ($endedRents as $rent) {
+            $customer = $rent->customer;
+            if (!$customer) {
+                Log::warning("Skipping ended rent {$rent->id}: Customer not found.");
+                continue;
+            }
 
-        $whatsappService->sendMessage($cleanPhone, $message);
-    }
+            $this->info("Processing ended rent #{$rent->id} for customer: {$customer->name}");
 
+            // إرسال إشعارات الانتهاء للعميل والمدير
+            $this->sendRentEndedNotifications($rent, $customer);
 
-    protected function formatRentEndedWhatsAppMessage($rent)
-    {
-        $endDateFormatted = Carbon::parse($rent->end_date)->format('Y-m-d');
-        $companyName = $rent->customer->company->company_name ?? 'الشركة';
-
-        return "🏁 انتهاء عقد الإيجار\n\n" .
-               "عزيزي/عزيزتي {$rent->customer->name},\n\n" .
-               "نود إعلامكم بأن عقد الإيجار الخاص بكم قد انتهى:\n" .
-               "📅 تاريخ الانتهاء: {$endDateFormatted}\n" .
-               "💰 إجمالي المبلغ المستحق: {$rent->monthly_rent} جنيه\n" .
-               "💳 المبلغ المدفوع: {$rent->paid_amount} جنيه\n" .
-               "📊 المبلغ المتبقي: " . ($rent->monthly_rent - $rent->paid_amount) . " جنيه\n\n" .
-               "شكراً لثقتكم بنا.\n" .
-               "{$companyName}";
-    }
-
-
-    protected function calculateDueDate(Carbon $startDate, Carbon $today): Carbon
-    {
-        $startDay = $startDate->day;
-
-        $daysInMonth = $today->daysInMonth;
-        $day = min($startDay, $daysInMonth);
-
-        $currentMonthDueDate = Carbon::create($today->year, $today->month, $day);
-
-        if ($today->greaterThan($currentMonthDueDate)) {
-            return $currentMonthDueDate->addMonth();
+            // تعطيل العقد لمنع إرسال تذكيرات مستقبلية
+            $rent->update(['flag' => 0]);
+            Log::info("Deactivated rent #{$rent->id} as its end date has been reached.");
         }
-
-        return $currentMonthDueDate;
     }
 
-    protected function sendWhatsAppReminder($rent, $remainingAmount, $dueDate)
+    /**
+     * جلب العقود المستحقة خلال 5 أيام، وإرسال تذكيرات
+     */
+    private function processDueRents(Carbon $today)
     {
-        $companyId = $rent->customer->company_id;
+        $reminderLimitDate = $today->copy()->addDays(5);
 
-        $whatsappSettings = CompanyWhatsappSetting::where('company_id', $companyId)
-            ->where('is_connected', true)
-            ->first();
+        $dueRents = Rent::with('customer.company.users')
+            ->where('flag', 1)
+            ->whereColumn('paid_amount', '<', 'monthly_rent')
+            ->whereNotNull('next_rent_date')
+            ->whereBetween('next_rent_date', [$today, $reminderLimitDate])
+            ->get();
 
-        if (!$whatsappSettings) {
-            Log::info("No WhatsApp settings for company {$companyId}, skipping WhatsApp for rent {$rent->id}");
+        if ($dueRents->isEmpty()) {
+            Log::info("No rents due for reminders in the next 5 days.");
             return;
         }
 
-        $whatsappService = new WhatsAppService($companyId);
+        $this->info("Found " . $dueRents->count() . " rents due for reminders.");
 
-        $cleanPhone = $this->cleanPhoneNumber($rent->customer->phone);
-        $message = $this->formatWhatsAppMessage($rent, $remainingAmount, $dueDate);
+        foreach ($dueRents as $rent) {
+            $customer = $rent->customer;
+            if (!$customer) {
+                Log::warning("Skipping due rent {$rent->id}: Customer not found.");
+                continue;
+            }
 
-        $whatsappService->sendMessage($cleanPhone, $message);
+            $dueDate = Carbon::parse($rent->next_rent_date);
+            $daysLeft = $today->diffInDays($dueDate, false);
+            $remainingAmount = $rent->monthly_rent - $rent->paid_amount;
+
+            $this->info("Processing due rent #{$rent->id} for customer: {$customer->name}. Due in {$daysLeft} days.");
+
+            // إرسال تذكيرات الدفع للعميل والمدير
+            $this->sendRentDueNotifications($rent, $customer, $remainingAmount, $dueDate, $daysLeft);
+        }
     }
 
-    protected function formatWhatsAppMessage($rent, $remainingAmount, $dueDate)
+    /**
+     * إرسال إشعارات انتهاء العقد
+     */
+    private function sendRentEndedNotifications(Rent $rent, $customer)
     {
-        $dueDateFormatted = $dueDate->format('Y-m-d');
-        $companyName = $rent->customer->company->company_name ?? 'الشركة';
+        // إرسال إيميل للعميل
+        if ($customer->email) {
+            try {
+                Mail::to($customer->email)->send(new RentEndedMail($rent));
+                $this->info("✓ Sent RENT ENDED email to CUSTOMER: {$customer->email}");
+                Log::info("Sent rent ended email to customer {$customer->email} for rent {$rent->id}");
+            } catch (\Exception $e) {
+                $this->error("✗ Failed to send RENT ENDED email to customer {$customer->email}: " . $e->getMessage());
+                Log::error("Failed to send rent ended email to customer {$customer->email}: " . $e->getMessage());
+            }
+        }
 
-        return "⏰ تذكير بدفع مستحقات\n\n" .
-               "عزيزي/عزيزتي {$rent->customer->name},\n\n" .
-               "هذا تذكير بدفع المستحقات المستحقة:\n" .
-               "📅 تاريخ الاستحقاق: {$dueDateFormatted}\n" .
-               "💰 المبلغ المستحق: {$rent->monthly_rent} جنيه\n" .
-               "💳 المبلغ المدفوع: {$rent->paid_amount} جنيه\n" .
-               "📊 المبلغ المتبقي: {$remainingAmount} جنيه\n\n" .
-               "يرجى تسديد المبلغ في أقرب وقت ممكن.\n" .
-               "شكراً لتعاونكم\n" .
-               "{$companyName}";
+        // إرسال واتساب للعميل
+        if ($customer->phone) {
+            $this->sendWhatsAppMessage($customer, 'rent_ended', ['rent' => $rent]);
+        }
+
+        // إرسال إشعارات للمدراء
+        $this->notifySuperAdmins($rent, $customer, 'rent_ended');
     }
 
-    protected function cleanPhoneNumber($phone)
+    /**
+     * إرسال تذكيرات الدفع
+     */
+    private function sendRentDueNotifications(Rent $rent, $customer, $remainingAmount, Carbon $dueDate, int $daysLeft)
+    {
+        // إرسال إيميل للعميل
+        if ($customer->email) {
+            try {
+                Mail::to($customer->email)->send(new RentCmmandMail($rent, $remainingAmount, $dueDate));
+                $this->info("✓ Sent RENT DUE email to CUSTOMER: {$customer->email}");
+                Log::info("Sent rent due email to customer {$customer->email} for rent {$rent->id}");
+            } catch (\Exception $e) {
+                $this->error("✗ Failed to send RENT DUE email to customer {$customer->email}: " . $e->getMessage());
+                Log::error("Failed to send rent due email to customer {$customer->email}: " . $e->getMessage());
+            }
+        }
+
+        // إرسال واتساب للعميل
+        if ($customer->phone) {
+            $this->sendWhatsAppMessage($customer, 'rent_due', [
+                'rent' => $rent,
+                'remainingAmount' => $remainingAmount,
+                'dueDate' => $dueDate
+            ]);
+        }
+
+        // إرسال إشعارات للمدراء
+        $this->notifySuperAdmins($rent, $customer, 'rent_due', $daysLeft);
+    }
+
+    /**
+     * إرسال إشعارات لمدراء الشركة
+     */
+    protected function notifySuperAdmins(Rent $rent, $customer, string $notificationType, int $daysLeft = null)
+    {
+        $company = $customer->company;
+        if (!$company) {
+            Log::warning("No company found for rent {$rent->id} to notify superadmins.");
+            return;
+        }
+
+        $superAdmins = $company->users()->where('role', 'superadmin')->get();
+        if ($superAdmins->isEmpty()) {
+            Log::warning("No superadmins found for company {$company->id}.");
+            return;
+        }
+
+        foreach ($superAdmins as $superAdmin) {
+            // إرسال إيميل للمدير
+            if ($superAdmin->email) {
+                try {
+                    Mail::to($superAdmin->email)->send(new SuperAdminNotificationMail($rent, $customer, $notificationType, $daysLeft));
+                    $this->info("✓ Sent super admin email to: {$superAdmin->email}");
+                    Log::info("Sent super admin notification email to {$superAdmin->email} for rent {$rent->id}");
+                } catch (\Exception $e) {
+                    $this->error("✗ Failed to send super admin email to {$superAdmin->email}: " . $e->getMessage());
+                    Log::error("Failed to send super admin email to {$superAdmin->email}: " . $e->getMessage());
+                }
+            }
+        }
+
+        // إرسال واتساب لرقم الشركة
+        if ($company->phone) {
+            $this->sendWhatsAppMessage($company, "superadmin_{$notificationType}", [
+                'rent' => $rent,
+                'customer' => $customer,
+                'daysLeft' => $daysLeft
+            ], true);
+        }
+    }
+
+    /**
+     * إرسال رسائل واتساب
+     */
+    private function sendWhatsAppMessage($recipient, string $type, array $data, bool $isCompany = false)
+    {
+        $companyId = $isCompany ? $recipient->id : $recipient->company_id;
+        $phone = $recipient->phone;
+
+        $whatsappSettings = CompanyWhatsappSetting::where('company_id', $companyId)->where('is_connected', true)->first();
+        if (!$whatsappSettings) {
+            Log::warning("WhatsApp is not connected for company #{$companyId}. Skipping message.");
+            return;
+        }
+
+        try {
+            $whatsappService = new WhatsAppService($companyId);
+            $cleanPhone = $this->cleanPhoneNumber($phone);
+            $message = $this->formatWhatsAppMessage($type, $data);
+            $whatsappService->sendMessage($cleanPhone, $message);
+            $this->info("✓ Sent WhatsApp '{$type}' to: {$cleanPhone}");
+            Log::info("Sent WhatsApp '{$type}' to {$cleanPhone} for company #{$companyId}");
+        } catch (\Exception $e) {
+            $this->error("✗ Failed to send WhatsApp to {$phone}: " . $e->getMessage());
+            Log::error("Failed to send WhatsApp to {$phone} for company #{$companyId}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * تنسيق رسائل الواتساب
+     */
+    private function formatWhatsAppMessage(string $type, array $data): string
+    {
+        $rent = $data['rent'];
+        $customer = $data['customer'] ?? $rent->customer;
+        $companyName = $customer->company->company_name ?? 'شركتك';
+
+        switch ($type) {
+            case 'rent_due':
+                $dueDateFormatted = $data['dueDate']->format('Y-m-d');
+                return "⏰ تذكير بدفع الإيجار
+
+" .
+                       "عزيزي/عزيزتي {$customer->name},
+
+" .
+                       "نود تذكيركم بأن الإيجار مستحق للدفع.
+" .
+                       "📅 تاريخ الاستحقاق: {$dueDateFormatted}
+" .
+                       "💰 المبلغ المتبقي: {$data['remainingAmount']} جنيه
+
+" .
+                       "يرجى تسديد المبلغ في أقرب وقت ممكن.
+" .
+                       "{$companyName}";
+
+            case 'rent_ended':
+                return "🏁 انتهاء عقد الإيجار
+
+" .
+                       "عزيزي/عزيزتي {$customer->name},
+
+" .
+                       "نود إعلامكم بأن عقد الإيجار الخاص بكم قد انتهى اليوم.
+" .
+                       "💰 المبلغ المتبقي إن وجد: " . ($rent->monthly_rent - $rent->paid_amount) . " جنيه
+
+" .
+                       "شكراً لثقتكم بنا.
+" .
+                       "{$companyName}";
+
+            case 'superadmin_rent_due':
+                return "🔔 تنبيه للمدير - إيجار مستحق
+
+" .
+                       "العميل: {$customer->name}
+" .
+                       "متبقي للاستحقاق: {$data['daysLeft']} يوم/أيام
+" .
+                       "المبلغ المتبقي: " . ($rent->monthly_rent - $rent->paid_amount) . " جنيه
+
+" .
+                       "يرجى المتابعة.";
+
+            case 'superadmin_rent_ended':
+                return "🔔 إشعار للمدير - انتهاء عقد
+
+" .
+                       "انتهى عقد الإيجار اليوم للعميل:
+" .
+                       "العميل: {$customer->name}
+" .
+                       "المبلغ المتبقي إن وجد: " . ($rent->monthly_rent - $rent->paid_amount) . " جنيه";
+
+            default:
+                return '';
+        }
+    }
+
+    /**
+     * تنظيف رقم الهاتف وإضافة كود الدولة
+     */
+    protected function cleanPhoneNumber($phone): string
     {
         $phone = preg_replace('/[^0-9]/', '', $phone);
-
         if (empty($phone)) {
-            throw new \Exception('رقم الهاتف غير صالح بعد التنظيف');
+            throw new \Exception('رقم الهاتف فارغ أو غير صالح.');
         }
-
+        if (substr($phone, 0, 2) === '20') {
+            return $phone;
+        }
         if (substr($phone, 0, 1) === '0') {
-            $phone = '20' . substr($phone, 1);
+            return '20' . substr($phone, 1);
         }
-        elseif (strlen($phone) === 9 && substr($phone, 0, 1) !== '0') {
-            $phone = '20' . $phone;
-        }
-        elseif (strlen($phone) === 10 && substr($phone, 0, 1) === '1') {
-            $phone = '20' . $phone;
-        }
-
-        if (strlen($phone) < 10) {
-            throw new \Exception('رقم الهاتف قصير جداً: ' . $phone);
-        }
-
-        return $phone;
+        return '20' . $phone;
     }
 }
