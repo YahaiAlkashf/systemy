@@ -75,7 +75,7 @@ class RentsController extends Controller
                     'start_date' => $request->start_date,
                     'end_date' => $request->end_date,
                     'monthly_rent' => $request->monthly_rent,
-                    'paid_amount' => $request->paid_amount,
+                    'paid_amount' => 0,
                     'subscription_type' => $request->subscription_type,
                     'next_rent_date' => \Carbon\Carbon::parse($request->start_date)->addMonth(2),
                     'flag'=>2,
