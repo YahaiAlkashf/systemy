@@ -439,7 +439,7 @@ class MemberController extends Controller
         }
     }
 
-       public function exportPDF(Request $request)
+    public function exportPDF(Request $request)
     {
         $sortBy = $request->get('sort_by', 'default');
         $search = $request->get('search', '');
@@ -566,7 +566,7 @@ class MemberController extends Controller
             $sheet->setCellValue('B' . $row, $member->name);
             $sheet->setCellValue('C' . $row, $member->user->email ?? 'لا يوجد');
             $sheet->setCellValue('D' . $row, $member->cycle->name ?? 'لا يوجد');
-            $sheet->setCellValue('E' . $row, $member->phone);
+            $sheet->setCellValue('E' . $row, $member->phone ?? 'لا يوجد');
             $sheet->setCellValue('F' . $row, $member->add_members ? 'نعم' : 'لا');
             $sheet->setCellValue('G' . $row, $member->add_tasks ? 'نعم' : 'لا');
             $sheet->setCellValue('H' . $row, $member->add_events ? 'نعم' : 'لا');
