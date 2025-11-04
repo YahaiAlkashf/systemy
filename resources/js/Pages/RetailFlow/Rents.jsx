@@ -647,7 +647,17 @@ const openEdit = (rent) => {
                                         </span>
                                     </div>
                                 </div>
+                                <div className="border-t pt-4 mt-6">
+                                    <div className="flex justify-between font-bold text-lg">
+                                        <span>{t("تاريخ السداد القادم")}:</span>
+                                        <span>
+                                            {
+                                                selectedRent.next_rent_date
 
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
                                 <div className="border-t pt-4 mt-6">
                                     <div className="flex justify-between font-bold text-lg">
                                         <span>{t("الإجمالي")}:</span>
