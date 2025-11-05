@@ -653,7 +653,6 @@ const openEdit = (rent) => {
                                         <span>
                                             {
                                                 selectedRent.next_rent_date
-
                                             }
                                         </span>
                                     </div>
