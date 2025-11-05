@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
     XMarkIcon,
     CheckBadgeIcon,
@@ -8,6 +8,7 @@ import {
     MagnifyingGlassIcon,
     CheckCircleIcon,
     PaperClipIcon,
+    EyeIcon,
 } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { usePage } from "@inertiajs/react";
@@ -16,7 +17,8 @@ import { useMemo } from "react";
 
 export default function TasksModal({ member, closeModal }) {
     const { t } = useTranslation();
-    const { app_url } = usePage().props;
+        const { app_url, auth } = usePage().props;
+
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedTask, setSelectedTask] = useState(null);
@@ -28,7 +30,8 @@ export default function TasksModal({ member, closeModal }) {
     const [editFileUploads, setEditFileUploads] = useState([]);
     const [errors, setErrors] = useState({});
     const [tasks2, setTasks2] = useState([]);
-
+    const [taskId,setTaskId]=useState(null);
+    const [fileUploads, setFileUploads] = useState([]);
     useEffect(() => {
         fetchMemberAllTasks();
         fetchCycles();
@@ -55,7 +58,14 @@ const showAllTasks = async (task_id) => {
         return {};
     }
 };
-
+    const handleFileUpload = (e, isEdit = false) => {
+        const files = Array.from(e.target.files);
+        if (isEdit) {
+            setEditFileUploads([...editFileUploads, ...files]);
+        } else {
+            setFileUploads([...fileUploads, ...files]);
+        }
+    };
     const fetchMemberAllTasks = async () => {
         try {
             const response = await axios.get(
@@ -117,28 +127,29 @@ const showAllTasks = async (task_id) => {
         }
     };
 
-const openEditModal = async (task) => {
-    try {
-        const groupedTasks = await showAllTasks(task.task_id);
-        const taskGroup = groupedTasks[task.task_id] || [];
-        const assignedUserIds = taskGroup
-            .map(t => t.assigned_to)
-            .filter(Boolean)
-            .map(id => Number(id));
-        setSelectedTask({
-            ...task,
-            assigned_to: assignedUserIds,
-        });
-        setEditTaskModal(true);
-    } catch (error) {
-        console.error("Error opening edit modal:", error);
-        setSelectedTask({
-            ...task,
-            assigned_to: task.assigned_to ? [Number(task.assigned_to)] : [],
-        });
-        setEditTaskModal(true);
-    }
-};
+    const openEditModal = async (task) => {
+        try {
+            const groupedTasks = await showAllTasks(task.task_id);
+            setTaskId(task.id);
+            const taskGroup = groupedTasks[task.task_id] || [];
+            const assignedUserIds = taskGroup
+                .map(t => t.assigned_to)
+                .filter(Boolean)
+                .map(id => Number(id));
+            setSelectedTask({
+                ...task,
+                assigned_to: assignedUserIds,
+            });
+            setEditTaskModal(true);
+        } catch (error) {
+            console.error("Error opening edit modal:", error);
+            setSelectedTask({
+                ...task,
+                assigned_to: task.assigned_to ? [Number(task.assigned_to)] : [],
+            });
+            setEditTaskModal(true);
+        }
+    };
 
     const fetchCycles = async () => {
         try {
@@ -217,93 +228,100 @@ const openEditModal = async (task) => {
                 console.log(error);
             }
         };
-    const handleEditTask = async () => {
-        setLoading(true);
-        setErrors({});
+const handleEditTask = async () => {
+    setLoading(true);
+    setErrors({});
 
-        try {
-            if (
-                !selectedTask.title ||
-                !selectedTask.due_date ||
-                (Array.isArray(selectedTask.assigned_to) &&
-                    selectedTask.assigned_to.length === 0) ||
-                (!Array.isArray(selectedTask.assigned_to) &&
-                    !selectedTask.assigned_to)
-            ) {
-                setErrors({
-                    general: ["جميع الحقول المطلوبة يجب ملؤها"],
-                });
-                setLoading(false);
-                return;
-            }
-
-            const formData = new FormData();
-
-            formData.append("title", selectedTask.title);
-            formData.append("description", selectedTask.description || "");
-            formData.append("due_date", selectedTask.due_date);
-
-            if (Array.isArray(selectedTask.assigned_to)) {
-                selectedTask.assigned_to.forEach((userId) => {
-                    formData.append("assigned_to[]", userId);
-                });
-            } else {
-                formData.append("assigned_to[]", selectedTask.assigned_to);
-            }
-
-            editFileUploads.forEach((file) => {
-                formData.append("files[]", file);
+    try {
+        if (
+            !selectedTask.title ||
+            !selectedTask.due_date ||
+            (Array.isArray(selectedTask.assigned_to) &&
+                selectedTask.assigned_to.length === 0) ||
+            (!Array.isArray(selectedTask.assigned_to) &&
+                !selectedTask.assigned_to)
+        ) {
+            setErrors({
+                general: ["جميع الحقول المطلوبة يجب ملؤها"],
             });
-
-            console.log("Sending update data:", {
-                title: selectedTask.title,
-                description: selectedTask.description,
-                assigned_to: selectedTask.assigned_to,
-                due_date: selectedTask.due_date,
-                newFilesCount: editFileUploads.length,
-            });
-            console.log("FormData:", formData);
-            console.log("selectedTask:", selectedTask.id);
-
-            const response = await axios.post(
-                `${app_url}/tasks/${selectedTask.id}`,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
-
-            console.log("Edit task response:", response.data);
-
-            if (response.data.success || response.data.message) {
-                showAllTasks();
-                setEditTaskModal(false);
-                setEditFileUploads([]);
-
-                setMemberNameSearch("");
-                setMemberIdSearch("");
-            }
-        } catch (error) {
-            console.error("Error editing task:", error);
-
-            if (error.response) {
-                setErrors(error.response.data.errors || {});
-                console.error("Server error:", error.response.data);
-            } else if (error.request) {
-                setErrors({
-                    general: ["تعذر الاتصال بالخادم"],
-                });
-            } else {
-                setErrors({
-                    general: ["حدث خطأ أثناء إعداد الطلب"],
-                });
-            }
-        } finally {
             setLoading(false);
+            return;
         }
-    };
+
+        const formData = new FormData();
+
+        formData.append("title", selectedTask.title);
+        formData.append("description", selectedTask.description || "");
+        formData.append("due_date", selectedTask.due_date);
+
+        if (Array.isArray(selectedTask.assigned_to)) {
+            selectedTask.assigned_to.forEach((userId) => {
+                formData.append("assigned_to[]", userId);
+            });
+        } else {
+            formData.append("assigned_to[]", selectedTask.assigned_to);
+        }
+        if(editFileUploads){
+            console.log('hello');
+        }
+        editFileUploads.forEach((file) => {
+            formData.append("files[]", file);
+        });
+
+        console.log("Sending update data:", {
+            title: selectedTask.title,
+            description: selectedTask.description,
+            assigned_to: selectedTask.assigned_to,
+            due_date: selectedTask.due_date,
+            newFilesCount: editFileUploads.length,
+        });
+
+        const response = await axios.post(
+            `${app_url}/tasks/${taskId}`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        console.log("Edit task response:", response.data);
+
+        if (response.data.success || response.data.message) {
+            await fetchMemberAllTasks();
+
+            setEditTaskModal(false);
+            setEditFileUploads([]);
+            setTaskId(null);
+            setSelectedTask(null);
+            setMemberNameSearch("");
+            setMemberIdSearch("");
+        }
+    } catch (error) {
+        console.error("Error editing task:", error);
+
+        if (error.response) {
+            setErrors(error.response.data.errors || {});
+            console.error("Server error:", error.response.data);
+
+            if (error.response.status === 404) {
+                await fetchMemberAllTasks();
+                setEditTaskModal(false);
+            }
+        } else if (error.request) {
+            setErrors({
+                general: ["تعذر الاتصال بالخادم"],
+            });
+        } else {
+            setErrors({
+                general: ["حدث خطأ أثناء إعداد الطلب"],
+            });
+        }
+    } finally {
+        setLoading(false);
+    }
+};
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
@@ -349,6 +367,7 @@ const openEditModal = async (task) => {
                                         <div className="flex justify-between items-start mb-2">
                                             <h4 className="font-semibold text-gray-800 dark:text-gray-200">
                                                 {task.title}
+                                                  {(auth.user.role === 'superadmin' || auth.user.member.add_tasks === 1) &&
                                                  <button
                                                 onClick={() =>
                                                     openEditModal(task)
@@ -357,6 +376,8 @@ const openEditModal = async (task) => {
                                             >
                                                 <PencilIcon className="h-4 w-4  " />
                                             </button>
+                                                  }
+
                                             </h4>
                                             <span
                                                 className={`px-2 py-1 text-xs rounded-full ${statusInfo.color}`}
@@ -687,12 +708,13 @@ const openEditModal = async (task) => {
                                                     key={index}
                                                     className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-2 rounded"
                                                 >
-                                                    <div className="flex items-center">
-                                                        <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
-                                                        <span className="text-sm">
-                                                            {file.file_name}
-                                                        </span>
-                                                    </div>
+
+                                                        <div className="flex items-center">
+                                                            <PaperClipIcon className="h-4 w-4 mr-2 text-gray-500" />
+                                                            <span className="text-sm">
+                                                                {file.file_name}
+                                                            </span>
+                                                        </div>
                                                     <div className="flex items-center space-x-2">
                                                         <a
                                                             href={`${app_url}/storage/${file.file_path}`}
@@ -779,7 +801,6 @@ const openEditModal = async (task) => {
                             <button
                                 onClick={() => {
                                     setEditTaskModal(false);
-                                    setSelectedMemberEdit(null);
                                     setMemberNameSearch("");
                                     setMemberIdSearch("");
                                 }}

@@ -359,7 +359,7 @@ class MemberController extends Controller
                 ], 403);
             }
 
-            $tasks = Task::with(['assigner', 'assignee'])
+            $tasks = Task::with(['assigner', 'assignee','files'])
                 ->where('assigned_to', $member->user_id)
                 ->where('company_id', $member->company_id)
                 ->orderBy('due_date', 'desc')

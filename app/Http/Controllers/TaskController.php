@@ -130,12 +130,12 @@ class TaskController extends Controller
 
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'assigned_to' => 'required|array',
             'assigned_to.*' => 'required|exists:users,id',
             'due_date' => 'required|date|after_or_equal:today',
-            'files.*' => 'nullable|file',
+            'files.*' => 'nullable|file|max:40960', // 40MB
         ], [
             'title.required' => 'العنوان مطلوب',
             'title.string' => 'العنوان يجب أن يكون نصًا',
@@ -161,87 +161,136 @@ class TaskController extends Controller
             ], 422);
         }
 
-        $arr = count($request->assigned_to);
+        // بدء transaction للتأكد من سلامة البيانات
 
-        $taskIdToUse = $originalTask->task_id;
-        if ($arr > 1 && !$originalTask->task_id) {
-            $maxTaskId = Task::where('company_id', Auth::user()->company_id)->max('task_id');
-            $taskIdToUse = $maxTaskId ? $maxTaskId + 1 : 1;
-        }
 
-        if ($originalTask->task_id) {
-            $groupTasks = Task::where('task_id', $originalTask->task_id)
-                ->where('company_id', Auth::user()->company_id)
-                ->get();
+        try {
+            $arr = count($request->assigned_to);
+            $taskIdToUse = $originalTask->task_id;
 
-            foreach ($groupTasks as $groupTask) {
-                foreach ($groupTask->files as $file) {
-                    Storage::disk('public')->delete($file->file_path);
-                    $file->delete();
-                }
-                $groupTask->delete();
-            }
-        } else {
-            foreach ($originalTask->files as $file) {
-                Storage::disk('public')->delete($file->file_path);
-                $file->delete();
-            }
-            $originalTask->delete();
-        }
-
-        $createdTasks = [];
-
-        foreach ($request->assigned_to as $user_id) {
-            $assignedUser = User::findOrFail($user_id);
-            if ($assignedUser->company_id !== Auth::user()->company_id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'لا يمكن تعيين المهمة لمستخدم من شركة أخرى'
-                ], 403);
+            if ($arr > 1 && !$originalTask->task_id) {
+                $maxTaskId = Task::where('company_id', Auth::user()->company_id)->max('task_id');
+                $taskIdToUse = $maxTaskId ? $maxTaskId + 1 : 1;
             }
 
-            $taskData = [
-                'title' => $request->title,
-                'description' => $request->description,
-                'assigned_to' => $user_id,
-                'assigned_by' => Auth::id(),
-                'due_date' => $request->due_date,
-                'status' => 'pending',
-                'company_id' => Auth::user()->company_id,
-            ];
-
-
-                $taskData['task_id'] = $taskIdToUse;
-
-
-            $task = Task::create($taskData);
-            $createdTasks[] = $task;
-
-            $user = User::find($user_id);
-            if ($user && $user->email) {
-                // Mail::to($user->email)->send(new TaskAssignedMail($task, $user));
-                $this->sendEmail($user , $task);
-            }
-
+            // حفظ الملفات المؤقتاً إذا وجدت
+            $uploadedFiles = [];
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    $path = $file->store("tasks/{$task->id}", 'public');
-
-                    $task->files()->create([
-                        'file_name'   => $file->getClientOriginalName(),
-                        'file_path'   => $path,
-                        'file_type'   => $file->getClientMimeType(),
-                        'uploaded_by' => Auth::id(),
-                    ]);
+                    $uploadedFiles[] = $file;
                 }
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'تم تحديث المهمة بنجاح',
-            'tasks' => $createdTasks
-        ]);
+            // حفظ المهام والملفات الأصلية مؤقتاً
+            $originalTasksData = [];
+            if ($originalTask->task_id) {
+                $groupTasks = Task::where('task_id', $originalTask->task_id)
+                    ->where('company_id', Auth::user()->company_id)
+                    ->with('files')
+                    ->get();
+
+                foreach ($groupTasks as $groupTask) {
+                    $originalTasksData[] = [
+                        'task' => $groupTask,
+                        'files' => $groupTask->files->toArray()
+                    ];
+                }
+            } else {
+                $originalTasksData[] = [
+                    'task' => $originalTask,
+                    'files' => $originalTask->files->toArray()
+                ];
+            }
+
+            // حذف المهام الأصلية
+            if ($originalTask->task_id) {
+                $groupTasks = Task::where('task_id', $originalTask->task_id)
+                    ->where('company_id', Auth::user()->company_id)
+                    ->get();
+
+                foreach ($groupTasks as $groupTask) {
+                    // لا تحذف الملفات هنا، سنحذفها بعد نجاح العملية
+                    $groupTask->delete();
+                }
+            } else {
+                $originalTask->delete();
+            }
+
+            $createdTasks = [];
+
+            foreach ($request->assigned_to as $user_id) {
+                $assignedUser = User::findOrFail($user_id);
+                if ($assignedUser->company_id !== Auth::user()->company_id) {
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'لا يمكن تعيين المهمة لمستخدم من شركة أخرى'
+                    ], 403);
+                }
+
+                $taskData = [
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'assigned_to' => $user_id,
+                    'assigned_by' => Auth::id(),
+                    'due_date' => $request->due_date,
+                    'status' => 'pending',
+                    'company_id' => Auth::user()->company_id,
+                    'task_id' => $taskIdToUse,
+                ];
+
+                $task = Task::create($taskData);
+                $createdTasks[] = $task;
+
+                // رفع الملفات للمهمة الجديدة
+                if (!empty($uploadedFiles)) {
+                    foreach ($uploadedFiles as $file) {
+                        $path = $file->store("tasks/{$task->id}", 'public');
+
+                        $task->files()->create([
+                            'file_name'   => $file->getClientOriginalName(),
+                            'file_path'   => $path,
+                            'file_type'   => $file->getClientMimeType(),
+                            'uploaded_by' => Auth::id(),
+                        ]);
+
+
+                    }
+                }
+
+                $user = User::find($user_id);
+                if ($user && $user->email) {
+                    $this->sendEmail($user, $task);
+                }
+            }
+
+            // بعد نجاح كل شيء، احذف الملفات القديمة
+            foreach ($originalTasksData as $originalData) {
+                foreach ($originalData['files'] as $file) {
+                    if (Storage::disk('public')->exists($file['file_path'])) {
+                        Storage::disk('public')->delete($file['file_path']);
+                    }
+                }
+            }
+
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحديث المهمة بنجاح',
+                'tasks' => $createdTasks,
+                'files_uploaded' => count($uploadedFiles)
+            ]);
+
+        } catch (\Exception $e) {
+
+
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء تحديث المهمة',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function destroy($id)
