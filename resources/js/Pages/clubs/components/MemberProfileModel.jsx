@@ -167,7 +167,7 @@ export default function MemberProfileModel() {
                                         <img
                                             src={`${app_url}/storage/${member.image}`}
                                             alt="image"
-                                            className="hover:"
+                                            className="h-20 w-20 rounded-full object-cover"
                                         />
                                     <div
                                             className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-full
