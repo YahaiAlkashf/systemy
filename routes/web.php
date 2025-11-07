@@ -256,7 +256,7 @@ Route::get('/', function () {
             Route::get('/members/{id}/tasks', [MemberController::class, 'getMemberTasks']);
             Route::get('/members/{id}/all-events', [MemberController::class, 'getMemberAllEvents']);
             Route::get('/members/{id}/all-tasks', [MemberController::class, 'getMemberAllTasks']);
-
+            Route::Post('/memberimage/{id}', [MemberController::class, 'EditProfile']);
             Route::get('/members/export-excel', [MemberController::class, 'exportExcel'])->name('members.export.excel');
             Route::get('/members/export-pdf', [MemberController::class, 'exportPdf'])->name('members.export.pdf');
 

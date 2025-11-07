@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -53,7 +54,7 @@ class MemberController extends Controller
             'cycle_id' => 'nullable|exists:cycles,id',
             'role' => 'nullable',
             'rating' => 'required|integer|min:0|max:5',
-            'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)] ,
+            // 'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)] ,
             'add_members'=>'nullable',
             'add_library'=>'nullable',
             'add_events'=>'nullable',
@@ -91,13 +92,17 @@ class MemberController extends Controller
             'member_id.unique' => 'رقم العضو مستخدم بالفعل',
         ]);
 
-
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
+
+        $lastMember  = Member::where('company_id', Auth::user()->company_id)->latest('created_at')->first();
+
+        $member_id=$lastMember->member_id+1;
+
 
         $user = User::create([
             'name' => $request->name,
@@ -119,7 +124,7 @@ class MemberController extends Controller
             'role' => $request->role,
             'rating' => $request->rating,
             'user_id' => $user->id,
-            'member_id' => $request->member_id,
+            'member_id' => $member_id,
             'company_id' => Auth::user()->company_id,
             'add_members' => $request->add_members ?? false,
             'add_library' => $request->add_library ?? false,
@@ -150,7 +155,7 @@ class MemberController extends Controller
             'role' => 'nullable',
             'rating' => 'required|integer|min:0|max:5',
             'add_members'=>'nullable',
-            'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)->ignore($member->id)],
+            // 'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)->ignore($member->id)],
             'add_library'=>'nullable',
             'add_events'=>'nullable',
             'add_tasks'=>'nullable',
@@ -214,7 +219,6 @@ class MemberController extends Controller
             'cycle_id' => $request->cycle_id,
             'role' => $request->role,
             'rating' => $request->rating,
-            'member_id' => $request->member_id,
            'add_members' => $request->add_members ?? false,
             'add_library' => $request->add_library ?? false,
             'add_events' => $request->add_events ?? false,
@@ -669,5 +673,26 @@ class MemberController extends Controller
         }
 
         return $members;
+    }
+
+
+    public function EditProfile(Request $request,$id){
+        $validator =Validator::make($request->all(),[
+            'image' => 'nullable',
+        ]);
+        if($validator->fails()){
+                        return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        $member=Member::findOrFail($id);
+        if($request->file('image')){
+            if(!empty($member->image) && Storage::disk('public')->exists($member->image)){
+                Storage::disk('public')->delete($member->image);
+            }
+            $image= $request->file('image')->store('members_image','public');
+            $member->update(['image' => $image]);
+        }
     }
 }

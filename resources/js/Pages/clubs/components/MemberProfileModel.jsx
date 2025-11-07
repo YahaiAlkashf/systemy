@@ -22,7 +22,9 @@ export default function MemberProfileModel() {
     const [myTasks, setMyTasks] = useState([]);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(true);
-
+    const [modelImage,setModelImage]=useState(false);
+    const [memberId,setMemberId]=useState(null);
+    const [image,setImage]=useState(null);
     useEffect(() => {
         showAllEvents();
         fetchMemberProfile();
@@ -60,7 +62,9 @@ export default function MemberProfileModel() {
             const response = await axios.get(`${app_url}/tasks`);
             const allTasks = response.data.tasks;
 
-            const userTasks = allTasks.filter((task) => task.assigned_to === auth.user.id);
+            const userTasks = allTasks.filter(
+                (task) => task.assigned_to === auth.user.id
+            );
 
             setMyTasks(userTasks);
         } catch (error) {
@@ -107,18 +111,44 @@ export default function MemberProfileModel() {
         );
     }
 
-    const attendedEvents = myEvents.filter(event =>
-        event.attendances.some(att => att.status === "attending")
+    const attendedEvents = myEvents.filter((event) =>
+        event.attendances.some((att) => att.status === "attending")
     ).length;
 
-    const apologizedEvents = myEvents.filter(event =>
-        event.attendances.some(att => att.status === "apologizing")
+    const apologizedEvents = myEvents.filter((event) =>
+        event.attendances.some((att) => att.status === "apologizing")
     ).length;
 
-    const completedTasks = myTasks.filter(task => task.status === "completed").length;
-    const inProgressTasks = myTasks.filter(task => task.status === "in_progress").length;
-    const pendingTasks = myTasks.filter(task => task.status === "pending").length;
+    const completedTasks = myTasks.filter(
+        (task) => task.status === "completed"
+    ).length;
+    const inProgressTasks = myTasks.filter(
+        (task) => task.status === "in_progress"
+    ).length;
+    const pendingTasks = myTasks.filter(
+        (task) => task.status === "pending"
+    ).length;
 
+    const showModleImage =($id)=>{
+        setModelImage(true);
+        setMemberId($id);
+    }
+    const handelImage=async ()=>{
+        try{
+            const formData = new FormData();
+            formData.append("image", image);
+            await axios.post(`${app_url}/memberimage/${memberId}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            setModelImage(false);
+            fetchMemberProfile();
+        }catch(error){
+            console.log(error);
+        }
+
+    }
     return (
         <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
             <div className="flex items-center justify-between mb-6">
@@ -131,12 +161,39 @@ export default function MemberProfileModel() {
                 <div className="md:col-span-2 bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
                     <div className="flex items-center gap-4 mb-6">
                         <div className="relative">
-                            <UserCircleIcon className="h-20 w-20 text-gray-400" />
+                            <div className="relative group w-20 h-20">
+                                {member.image ? (
+                                    <>
+                                        <img
+                                            src={`${app_url}/storage/${member.image}`}
+                                            alt="image"
+                                            className="hover:"
+                                        />
+                                    <div
+                                            className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-full
+                                              opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                                              onClick={()=>showModleImage(member.id)}
+                                        >
+                                            <PencilIcon className="w-4 h-4"/>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                    <UserCircleIcon className="h-20 w-20 text-gray-400" />
+                                    <div
+                                            className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-full
+                                              opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                                              onClick={()=>showModleImage(member.id)}
+                                        >
+                                            <PencilIcon className="w-4 h-4"/>
+                                        </div>
+                                        </>
+                                )}
+                            </div>
 
-                                <div className="absolute bottom-0 right-0 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                                    {member.jop_title }
-                                </div>
-
+                            <div className="absolute bottom-0 right-0 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                                {member.jop_title}
+                            </div>
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
@@ -186,7 +243,7 @@ export default function MemberProfileModel() {
                                     {t("المسمى الوظيفى")}
                                 </p>
                                 <p className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {member.jop_title || 'غير محدد'}
+                                    {member.jop_title || "غير محدد"}
                                 </p>
                             </div>
                         </div>
@@ -267,6 +324,41 @@ export default function MemberProfileModel() {
                         </div>
                     </div>
                 </div>
+
+                                 {modelImage && (
+                                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+                                                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                                        {t(" تحديث الصورة الشخصية")}
+                                                    </h3>
+                                                    <button
+                                                       onClick={() => {setModelImage(false);}}
+                                                        className="text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                                                    >
+                                                        <XMarkIcon className="h-6 w-6" />
+                                                    </button>
+                                                </div>
+                                                <div className="p-6 max-w-md align-top">
+                                                   <input type="file" onChange={(e)=>setImage(e.target.files[0])} />
+                                                </div>
+                                                <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                                                     <button
+                                                        onClick={() => {handelImage();}}
+                                                        className="flex-1 px-4 py-2 bg-primary text-gray-100 rounded-lg hover:bg-primary-dark dark:bg-primary dark:text-gray-200 dark:hover:bg-primary-dark"
+                                                    >
+                                                        {t("حفظ")}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {setModelImage(false);}}
+                                                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                                                    >
+                                                        {t("إغلاق")}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
             </div>
         </div>
     );

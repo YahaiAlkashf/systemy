@@ -40,12 +40,12 @@ export default function Settings({ mustVerifyEmail, status }) {
                         </div>
 
 
-                        <div className="p-6 sm:p-8 bg-white dark:bg-background-card shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700">
+                        {/* <div className="p-6 sm:p-8 bg-white dark:bg-background-card shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700">
                             <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
                                 {t("حذف الحساب")}
                             </h2>
                             <DeleteUserForm className="max-w-xl" />
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 

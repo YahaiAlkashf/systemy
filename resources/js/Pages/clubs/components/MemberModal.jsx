@@ -128,7 +128,7 @@ export default function MemberModal({
                     {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone[0]}</p>}
                 </div>
 
-                <div>
+                {/* <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                        {t("الرقم التعريفى (id)")}
                     </label>
@@ -139,7 +139,7 @@ export default function MemberModal({
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
                     />
                     {errors.member_id && <p className="text-red-500 text-xs mt-1">{errors.member_id[0]}</p>}
-                </div>
+                </div> */}
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -158,27 +158,6 @@ export default function MemberModal({
                     {errors.cycle_id && <p className="text-red-500 text-xs mt-1">{errors.cycle_id[0]}</p>}
                 </div>
 
-                {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t("الرتبة")}
-                    </label>
-                    <select
-                        value={member.role || ""}
-                        onChange={(e) => {
-                            setMember({ ...member, role: e.target.value });
-                            if (handleRoleChange) {
-                                handleRoleChange(e.target.value, isEdit);
-                            }
-                        }}
-                        className="w-full px-8 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 focus:scale-[1.02]"
-                    >
-                        <option value="">{t("اختر الرتبة")}</option>
-                        {roles.map((role, index) => (
-                            <option key={index} value={role}>{role}</option>
-                        ))}
-                    </select>
-                    {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role[0]}</p>}
-                </div> */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                        {t("المسمى الوظيفي")}

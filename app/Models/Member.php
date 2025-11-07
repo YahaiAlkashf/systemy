@@ -27,6 +27,7 @@ class Member extends Model
         'delete_messege',
         'add_advertisement',
         'jop_title',
+        'image',
     ];
 
     protected $casts = [
