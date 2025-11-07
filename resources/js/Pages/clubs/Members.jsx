@@ -513,6 +513,9 @@ export default function Members() {
                                     #
                                 </th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                    {t("الصورة")}
+                                </th>
+                                <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     {t("الاسم")}
                                 </th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
@@ -564,6 +567,26 @@ export default function Members() {
                                         {idx +
                                             1 +
                                             (currentPage - 1) * rowsPerPage}
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-200 font-medium">
+                                {member.image ? (
+                                    <>
+                                        <img
+                                            src={`${app_url}/storage/${member.image}`}
+                                            alt="image"
+                                            className="h-10 w-10 rounded-full object-cover"
+                                        />
+                                    <div
+                                        >
+
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                    <UserCircleIcon className="h-10 w-10 text-gray-400" />
+
+                                        </>
+                                )}
                                     </td>
                                     <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-200 font-medium">
                                         {member.name}
