@@ -54,7 +54,7 @@ class MemberController extends Controller
             'cycle_id' => 'nullable|exists:cycles,id',
             'role' => 'nullable',
             'rating' => 'required|integer|min:0|max:5',
-            // 'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)] ,
+            'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)] ,
             'add_members'=>'nullable',
             'add_library'=>'nullable',
             'add_events'=>'nullable',
@@ -99,9 +99,9 @@ class MemberController extends Controller
             ], 422);
         }
 
-        $lastMember  = Member::where('company_id', Auth::user()->company_id)->latest('created_at')->first();
+        // $lastMember  = Member::where('company_id', Auth::user()->company_id)->latest('created_at')->first();
 
-        $member_id=$lastMember->member_id+1;
+        // $member_id=$lastMember->member_id+1;
 
 
         $user = User::create([
@@ -124,7 +124,7 @@ class MemberController extends Controller
             'role' => $request->role,
             'rating' => $request->rating,
             'user_id' => $user->id,
-            'member_id' => $member_id,
+            'member_id' => $request->member_id ?? null,
             'company_id' => Auth::user()->company_id,
             'add_members' => $request->add_members ?? false,
             'add_library' => $request->add_library ?? false,
@@ -155,7 +155,7 @@ class MemberController extends Controller
             'role' => 'nullable',
             'rating' => 'required|integer|min:0|max:5',
             'add_members'=>'nullable',
-            // 'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)->ignore($member->id)],
+            'member_id' => ['nullable',Rule::unique('members','member_id')->where('company_id',Auth::user()->company_id)->ignore($member->id)],
             'add_library'=>'nullable',
             'add_events'=>'nullable',
             'add_tasks'=>'nullable',
@@ -220,6 +220,7 @@ class MemberController extends Controller
             'role' => $request->role,
             'rating' => $request->rating,
            'add_members' => $request->add_members ?? false,
+           'member_id' => $request->member_id ?? null,
             'add_library' => $request->add_library ?? false,
             'add_events' => $request->add_events ?? false,
             'add_tasks' => $request->add_tasks ?? false,
