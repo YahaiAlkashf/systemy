@@ -696,4 +696,10 @@ class MemberController extends Controller
             $member->update(['image' => $image]);
         }
     }
+
+    public function EditProfileId(Request $request,$id){
+        $member=Member::findOrFail($id);
+         $member->update(['member_id' => $request->member_id]);
+
+    }
 }

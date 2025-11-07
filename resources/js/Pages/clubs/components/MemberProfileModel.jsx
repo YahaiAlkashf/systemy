@@ -133,6 +133,7 @@ export default function MemberProfileModel() {
         setModelImage(true);
         setMemberId($id);
     }
+
     const handelImage=async ()=>{
         try{
             const formData = new FormData();
@@ -148,6 +149,17 @@ export default function MemberProfileModel() {
             console.log(error);
         }
 
+    }
+
+    const handelMemberId = async($id)=>{
+        try{
+            await axios.post(`${app_url}/memberId/${$id}`,{
+                member_id:memberId
+            });
+               fetchMemberProfile();
+        }catch(error){
+            console.log(error);
+        }
     }
     return (
         <div className="mx-3 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-10">
@@ -231,7 +243,13 @@ export default function MemberProfileModel() {
                                     {t("رقم العضوية")}
                                 </p>
                                 <p className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {member.member_id || t("غير محدد")}
+                                    {member.member_id ||(
+                                        <>
+                                             <input type="text"  className="text-black" onChange={(e)=>setMemberId(e.target.value)}/>
+                                             <button onClick={()=>handelMemberId(member.id)} className="flex-1 px-4 py-2 bg-primary text-gray-100 rounded-lg hover:bg-primary-dark dark:bg-primary dark:text-gray-200 dark:hover:bg-primary-dark">حفظ</button>
+                                        </>
+                                    )}
+
                                 </p>
                             </div>
                         </div>
