@@ -534,7 +534,7 @@ export default function Members() {
                                     {t("الصلاحيات")}
                                 </th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                    {t(" المسمى الوظيفى")}
+                                    {t(" الكلية ")}
                                 </th>
                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     {t("التقييم")}

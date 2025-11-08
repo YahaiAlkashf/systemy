@@ -700,6 +700,10 @@ class MemberController extends Controller
     public function EditProfileId(Request $request,$id){
         $member=Member::findOrFail($id);
          $member->update(['member_id' => $request->member_id]);
-
     }
+        public function EditProfileTitle(Request $request,$id){
+        $member=Member::findOrFail($id);
+         $member->update(['jop_title' => $request->title]);
+    }
+
 }
