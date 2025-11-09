@@ -160,7 +160,7 @@ export default function MemberModal({
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                       {t("المسمى الوظيفي")}
+                       {t(" الكلية")}
                     </label>
                     <input
                         type="text"
