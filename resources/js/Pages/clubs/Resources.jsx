@@ -223,7 +223,7 @@ export default function Library() {
                                 {t("الكل")}
                             </button>
                         </div>
-                        {(auth.user.member.add_library === 1 || auth.user.role === 'superadmin') && (
+                        {(auth.user?.member?.add_library === 1 || auth.user.role === 'superadmin') && (
                             <>
                                  <button
                                     onClick={handleAddFolder}
@@ -276,7 +276,7 @@ export default function Library() {
                                             </p>
                                         </div>
                                     </div>
-                            {(auth.user.member.add_library === 1 || auth.user.role === 'superadmin') && (
+                            {(auth.user?.member?.add_library === 1 || auth.user.role === 'superadmin') && (
                                     <div className="flex space-x-1">
                                         <button
                                             onClick={(e) => {
@@ -382,7 +382,7 @@ export default function Library() {
                                                     <ArrowDownTrayIcon className="h-4 w-4" />
                                                     {t("تحميل")}
                                                 </button>
-                                        {(auth.user.member.add_library === 1 || auth.user.role === 'superadmin') && (
+                                        {(auth.user?.member?.add_library === 1 || auth.user.role === 'superadmin') && (
                                                 <button
                                                    onClick={() => handleDeleteFile(file)}
                                                     className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"

@@ -173,9 +173,9 @@ export default function MemberModal({
                 <div className="flex gap-2 mt-2" dir='rtl'>
                     <input
                             type="checkbox"
-                            checked={member.add_members}
+                            checked={member?.add_members}
                             onChange={(e) => setMember({ ...member, add_members: e.target.checked ? 1 : 0})}
-                            value={member.add_members}
+                            value={member?.add_members}
                             className=" transition-all duration-300 hover:scale-[1.02]"
                     />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -186,9 +186,9 @@ export default function MemberModal({
                 <div className="flex gap-2 mt-2" dir='rtl'>
                     <input
                             type="checkbox"
-                            checked={member.add_tasks}
+                            checked={member?.add_tasks}
                             onChange={(e) => setMember({ ...member, add_tasks: e.target.checked ? 1 : 0})}
-                            value={member.add_tasks}
+                            value={member?.add_tasks}
                             className=" transition-all duration-300 hover:scale-[1.02]"
                     />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -199,9 +199,9 @@ export default function MemberModal({
                 <div className="flex gap-2 mt-2" dir='rtl'>
                     <input
                             type="checkbox"
-                            checked={member.add_events}
+                            checked={member?.add_events}
                             onChange={(e) => setMember({ ...member, add_events: e.target.checked ? 1 : 0})}
-                            value={member.add_events}
+                            value={member?.add_events}
                             className=" transition-all duration-300 hover:scale-[1.02]"
                     />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -212,9 +212,9 @@ export default function MemberModal({
                 <div className="flex gap-2 mt-2" dir='rtl'>
                     <input
                             type="checkbox"
-                            checked={member.add_library}
+                            checked={member?.add_library}
                             onChange={(e) => setMember({ ...member, add_library: e.target.checked ? 1 : 0})}
-                            value={member.add_library}
+                            value={member?.add_library}
                             className=" transition-all duration-300 hover:scale-[1.02]"
                     />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -225,9 +225,9 @@ export default function MemberModal({
                 <div className="flex gap-2 mt-2" dir='rtl'>
                     <input
                             type="checkbox"
-                            checked={member.add_advertisement}
+                            checked={member?.add_advertisement}
                             onChange={(e) => setMember({ ...member, add_advertisement: e.target.checked ? 1 : 0})}
-                            value={member.add_advertisement}
+                            value={member?.add_advertisement}
                             className=" transition-all duration-300 hover:scale-[1.02]"
                     />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -238,9 +238,9 @@ export default function MemberModal({
                 <div className="flex gap-2 mt-2" dir='rtl'>
                     <input
                             type="checkbox"
-                            checked={member.delete_messege}
+                            checked={member?.delete_messege}
                             onChange={(e) => setMember({ ...member, delete_messege: e.target.checked ? 1 : 0})}
-                            value={member.delete_messege}
+                            value={member?.delete_messege}
                             className=" transition-all duration-300 hover:scale-[1.02]"
                     />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

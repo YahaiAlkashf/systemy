@@ -174,7 +174,7 @@ export default function CompanyChat() {
                         <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                             {t("لوحة الإعلانات")}
                         </h3>
-                        {(auth.user.member.add_advertisement === 1 || auth.user.role === 'superadmin') && (
+                        {(auth.user?.member?.add_advertisement === 1 || auth.user.role === 'superadmin') && (
                             <div className="flex gap-2">
                                 {!editAnnouncementMode && currentAnnouncement && (
                                     <>
@@ -312,7 +312,7 @@ export default function CompanyChat() {
                                                 : 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-bl-none'
                                             }`}
                                         >
-                                            {(auth.user.member.delete_messege === 1 || auth.user.role === 'superadmin' || message.user_id === auth.user.id) && (
+                                            {(auth.user.member?.delete_messege === 1 || auth.user.role === 'superadmin' || message.user_id === auth.user.id) && (
                                                 <button
                                                     onClick={() => handleDeleteMessage(message.id)}
                                                     className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"

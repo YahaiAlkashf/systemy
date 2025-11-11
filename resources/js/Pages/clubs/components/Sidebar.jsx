@@ -66,7 +66,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             path: "/clubs/memberprofile",
         },
     ];
-    }else if( auth.user.member.add_members === 1){
+    }else if( auth.user.member?.add_members === 1){
         navItems = [
             { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {
@@ -100,7 +100,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             path: "/clubs/memberprofile",
         },
     ];
-    }else if(auth.user.member.add_members === 1){
+    }else if(auth.user.member?.add_members === 1){
         navItems = [
         { name: t("لوحة التحكم"), icon: HomeIcon, path: "/clubs" },
         {

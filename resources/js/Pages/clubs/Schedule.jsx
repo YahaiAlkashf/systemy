@@ -461,7 +461,7 @@ export default function Schedules() {
                                 </button>
                             </div>
                         </div>
-                        {(auth.user.member.add_events === 1 || auth.user.role === 'superadmin') && (
+                        {(auth.user?.member?.add_events === 1 || auth.user.role === 'superadmin') && (
                             <button
                                 onClick={handleAddEvent}
                                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"

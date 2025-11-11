@@ -367,7 +367,7 @@ const handleEditTask = async () => {
                                         <div className="flex justify-between items-start mb-2">
                                             <h4 className="font-semibold text-gray-800 dark:text-gray-200">
                                                 {task.title}
-                                                  {(auth.user.role === 'superadmin' || auth.user.member.add_tasks === 1) &&
+                                                  {(auth.user.role === 'superadmin' || auth.user.member?.add_tasks === 1) &&
                                                  <button
                                                 onClick={() =>
                                                     openEditModal(task)
